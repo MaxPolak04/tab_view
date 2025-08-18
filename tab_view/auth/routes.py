@@ -14,7 +14,7 @@ def signin():
     if form.validate_on_submit():
         password = form.password.data
         remember_me = form.remember_me.data
-        user = User.query.filter_by(username='Admin').first()
+        user = User.query.filter_by(username='admin').first()
 
         if not user:
             flash('User not found!', 'danger')
@@ -34,5 +34,5 @@ def signin():
         db.session.commit()
 
         flash('Logged in successfully!', 'success')
-        return redirect(url_for('tasks.get_all_tasks'))
-    return render_template('signin.html', form=form)
+        return redirect(url_for('devices.get_all_devices'))
+    return render_template('sign-in.html', form=form)

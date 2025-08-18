@@ -18,3 +18,9 @@ def wait_for_db(app):
 
 def str_to_bool(value):
     return str(value).lower() in ('true', '1', 'yes')
+
+
+def detect_type(filename):
+    ext = filename.rsplit('.', 1)[-1].lower()
+    return 'image' if ext in ['jpg', 'jpeg', 'png'] else 'video'
+

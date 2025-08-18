@@ -18,8 +18,16 @@ class User(db.Model, UserMixin):
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
-    media_url = db.Column(db.String(200), nullable=False)
+    device_url = db.Column(db.String(200), unique=True, nullable=False)
+    media_id = db.Column(db.Integer, db.ForeignKey('media.id'))
+    media = db.relationship('Media')
 
     def __repr__(self):
         return f'<Device {self.title}>'
     
+
+class Media(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    media_type = db.Column(db.String(10))  # 'image' lub 'video'
+    uploaded_at = db.Column(db.DateTime, server_default=db.func.now())

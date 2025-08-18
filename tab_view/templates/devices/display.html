@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}Display Media{% endblock %}
+
+
+
+{% block content %}
+    {% if media.media_type == 'image' %}
+        <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" style="width:100vw; height:100vh; object-fit:cover;">
+    {% elif media.media_type == 'video' %}
+        <video autoplay loop muted style="width:100vw; height:100vh; object-fit:cover;">
+            <source src="{{ url_for('static', filename='uploads/' + media.filename) }}" type="video/mp4">
+        </video>
+    {% endif %}
+{% endblock %}

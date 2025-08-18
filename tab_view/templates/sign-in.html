@@ -7,11 +7,11 @@
 
 
 {% block content %}
-<h1 class="main-heading">Sign In</h1>
-<div class="wrapper">
+<h1 class="main-heading display-5">Sign In</h1>
+<div class="container">
     <form action="" method="POST" class="form">
-        <p class="form-user">Admin</p>
         {{ form.hidden_tag() }}
+        <p class="display-3">Admin</p>
         <div class="mb-3">
             {{ form.password.label(class="form-label") }}
             {{ form.password(class="form-control", placeholder="Enter your password") }}
@@ -26,4 +26,4 @@
         {{ form.submit(class="btn btn-primary btn-lg") }}
     </form>
 </div>
-{% block endblock %}
+{% endblock %}
