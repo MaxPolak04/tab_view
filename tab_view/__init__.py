@@ -46,12 +46,12 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(devices_bp, url_prefix='/devices')
     app.register_blueprint(media_bp, url_prefix='/media')
-    # app.register_blueprint(errors_bp, url_prefix='/error')
+    app.register_blueprint(errors_bp, url_prefix='/error')
 
 
     @app.route('/')
     def index():
-        return redirect(url_for('devices.get_all_devices')) # TODO: Check This
+        return redirect(url_for('devices.get_all_devices'))
     
 
     with app.app_context():
