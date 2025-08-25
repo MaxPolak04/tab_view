@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 
 
 
@@ -7,6 +7,12 @@
 
 
 {% block content %}
-    <h1 class="main-heading">Error 404</h1>
-    <p class="text">Resource not found</p>
+    <div class="container custom-container">
+        <div class="flex-box">
+            <div class="error-box">
+                <h1 class="error-heading">Error 404 - Not Found</h1>
+                <p class="text-center">Resource not found</p>
+            </div>
+        </div>
+    </div>
 {% endblock %}

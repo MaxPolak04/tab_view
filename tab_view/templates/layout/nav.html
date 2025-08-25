@@ -1,0 +1,18 @@
+<nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary top-0 shadow-sm z-index-1000">
+    <div class="container">
+        <a class="navbar-brand text-primary" href="{{ url_for('devices.get_all_devices') }}">TabView</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                    <a class="nav-link" href="{{ url_for('devices.get_all_devices') }}">Devices</a>
+                    <a class="nav-link" href="{{ url_for('media.get_all_media') }}">Media</a>
+                    <a class="nav-link" href="{{ url_for('auth.signout') }}">Sign out</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

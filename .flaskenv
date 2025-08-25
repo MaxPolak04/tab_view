@@ -1,0 +1,2 @@
+FLASK_APP=tab_view
+FLASK_DEBUG=1

@@ -36,3 +36,11 @@ def signin():
         flash('Logged in successfully!', 'success')
         return redirect(url_for('devices.get_all_devices'))
     return render_template('sign-in.html', form=form)
+
+
+@auth_bp.route('/signout')
+@login_required
+def signout():
+    logout_user()
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for('index'))

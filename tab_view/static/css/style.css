@@ -19,6 +19,7 @@ body {
 
 main {
     min-height: 100vh;
+    padding-bottom: 2em;
 }
 
 .wrapper {
@@ -30,4 +31,197 @@ main {
 .messages {
     display: flex;
     justify-content: flex-end;
+}
+
+.main-heading,
+.error-heading {
+    padding: 4em 0;
+    font-size: 4rem;
+    text-transform: uppercase;
+    text-align: center;
+    color: #0d6efd;
+}
+
+.navbar {
+    box-shadow: 0 0 15px #00000036 !important;
+    background-color: #fff !important;
+}
+
+.navbar-brand {
+    font-size: 2.5rem;
+}
+
+.nav-link {
+    font-size: 2.5rem;
+    margin: 0 1em;
+    transition: color .3s;
+}
+
+.nav-link:hover {
+    color: #0d6efd;
+}
+
+.pagination {
+    margin-top: 3em;
+}
+
+.custom-tooltip {
+    --bs-tooltip-font-size: 1.5rem;
+    --bs-tooltip-border-radius: 8px;
+}
+
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+.dropdown-item {
+    font-size: 1.6rem;
+    transition: color .3s;
+}
+
+.dropdown-item:hover {
+    color: #0d6efd;
+}
+
+.modal-title {
+    font-size: 2rem !important;
+}
+
+.form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2em;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #00000036;
+    background-color: #fff;
+}
+
+.devices-grid,
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3em;
+    justify-items: center;
+}
+
+
+.device-box,
+.media-box {
+    position: relative;
+    width: 100%;
+    max-width: 25em;
+    padding: 2em;
+    box-shadow: 0 0 15px #00000036;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.error-box {
+    width: 100%;
+    padding: 2em;
+    box-shadow: 0 0 15px #00000036;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.device-button,
+.media-button {
+    position: absolute;
+    right: 0;
+    font-size: 2rem;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    transition: color .3s, background-color .3s;
+}
+
+.btn.show,
+.device-button:hover,
+.media-button:hover {
+    color: #fff;
+    background-color: #00000025;
+}
+
+.device-img,
+.device-video,
+.media-img,
+.media-video {
+    width: 100%;
+    height: 12em;
+    object-fit: cover;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.device-heading,
+.media-heading {
+    margin: .5em 0 .2em;
+    overflow: hidden;
+}
+
+.device-link {
+    text-decoration: none;
+    color: #707070;
+    transition: color .3s;
+}
+
+.device-link:hover {
+    color: #0d6efd;
+}
+
+.display-menu,
+.default-menu {
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.display-img,
+.display-video,
+.default-img {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    padding: 0;
+    margin: 0;
+}
+
+.flash-overlay {
+  position: fixed;
+  top: 3em;
+  right: 5em;
+  z-index: 1055;
+  width: auto;
+  max-width: 90vw;
+  pointer-events: none;
+}
+
+.flash-overlay .alert {
+  pointer-events: auto;
+  margin-bottom: 1em;
+  box-shadow: 0 0 10px #00000030;
+}
+
+.alert.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
+
+.error-heading {
+    padding: 0;
+    color: #dc3545;
+}
+
+.flex-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.custom-container {
+    height: 100%;
 }

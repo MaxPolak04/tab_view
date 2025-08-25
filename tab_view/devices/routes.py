@@ -1,7 +1,7 @@
 from . import devices_bp
 from tab_view import db
 from tab_view.models import Device, Media
-from .forms import NewDevice, UpdateDevice
+from .forms import NewDevice, UpdateDevice, DeleteDevice
 from flask import request, render_template, flash, redirect, url_for
 from flask_login import login_required
 
@@ -9,24 +9,26 @@ from flask_login import login_required
 @devices_bp.route('/', methods=['GET'])
 @login_required
 def get_all_devices():
+    form = DeleteDevice()
 
     page = request.args.get('page', 1, type=int)
-    per_page = 10
+    per_page = 9
     pagination = Device.query \
         .order_by(Device.id) \
         .paginate(page=page, per_page=per_page)
     
     devices = pagination.items
-    return render_template('devices.html',
+    return render_template('devices/devices.html',
                            devices=devices,
-                           pagination=pagination)
+                           pagination=pagination,
+                           form=form)
 
 
 @devices_bp.route('/<device_url>')
 def show_device(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
     media = device.media
-    return render_template('devices/display.html', media=media)
+    return render_template('devices/display.html', device=device, media=media)
 
 
 @devices_bp.route('/new', methods=['GET', 'POST'])
@@ -50,7 +52,7 @@ def create_device():
         db.session.commit()
         flash('Device added successfully!', 'success')
         return redirect(url_for('devices.get_all_devices'))
-    return render_template('new-device.html', form=form)
+    return render_template('devices/new-device.html', form=form)
 
 
 @devices_bp.route('/update/<device_id>', methods=['GET', 'POST'])
@@ -63,8 +65,15 @@ def update_device(device_id):
         flash("No media available. Add a file before creating the device.", "warning")
         return redirect(url_for('media.new_media'))
     
-    form = UpdateDevice()
+    form = UpdateDevice(obj=device)
+    form.device_id = device.id
     form.media_id.choices = [(media.id, media.filename) for media in media_list]
+
+    if request.method == 'GET':
+        form.name.data = device.name
+        form.device_url.data = device.device_url
+        form.media_id.data = device.media_id
+
 
     if form.validate_on_submit():
 
@@ -85,14 +94,14 @@ def update_device(device_id):
         db.session.commit()
         flash('Device updated successfully!', 'success')
         return redirect(url_for('devices.get_all_devices'))
-    return render_template('update-device.html', form=form, device=device)
+    return render_template('devices/update-device.html', form=form, device=device)
 
 
-@devices_bp.route('/delete/<device_url>', methods=['POST'])
+@devices_bp.route('/delete/<device_id>', methods=['POST'])
 @login_required
-def delete_device(device_url):
-    device = Device.query.get_or_404(device_url)
+def delete_device(device_id):
+    device = Device.query.get_or_404(device_id)
     db.session.delete(device)
     db.session.commit()
     flash('Device deleted successfully!', 'success')
-    return redirect(url_for('device.get_all_devices'))
+    return redirect(url_for('devices.get_all_devices'))

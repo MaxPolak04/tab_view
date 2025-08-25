@@ -19,6 +19,7 @@ class NewDevice(FlaskForm):
 
 
 class UpdateDevice(FlaskForm):
+    device_id = None
     name = StringField('Device Name', validators=[DataRequired(), Length(max=50)])
     device_url = StringField('Adres URL', validators=[DataRequired(), Regexp(
             r'^[a-zA-Z0-9_-]+$',
@@ -27,6 +28,6 @@ class UpdateDevice(FlaskForm):
     media_id = SelectField('Select media for this device:', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Update')
 
-    def validate_device_url(self, field):
-        if Device.query.filter_by(device_url=field.data).first():
-            raise ValidationError('This URL is already in use by another device.')
+
+class DeleteDevice(FlaskForm):
+    submit = SubmitField('Delete')

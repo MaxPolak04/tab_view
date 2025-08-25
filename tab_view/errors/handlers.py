@@ -1,17 +1,12 @@
 from flask import render_template
+from werkzeug.exceptions import HTTPException
 from . import errors_bp
 
 
-@errors_bp.errorhandler(404)
-def not_found_error(error):
-    return render_template('errors/404.html'), 404
-
-
-@errors_bp.errorhandler(500)
-def internal_error(error):
-    return render_template('errors/500.html'), 500
-    
+@errors_bp.app_errorhandler(HTTPException)
+def handle_http_error(error):
+    return render_template(f"errors/{error.code}.html", error=error), error.code
 
 @errors_bp.app_errorhandler(Exception)
-def handle_exception(error):
+def handle_generic_error(error):
     return render_template("errors/500.html", error=error), 500

@@ -1,0 +1,107 @@
+{% extends 'layout/base.html' %}
+
+
+
+{% block title %}Devices{% endblock %}
+
+
+
+{% block content %}
+    {% for device in devices %}
+        <div class="modal fade" id="deleteDeviceModal{{ device.id }}" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="modalTitle">Delete {{ device.name }}</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-center my-3">Are you sure you want to delete device <strong class="text-primary">{{ device.name }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">Close</button>
+                        <form action="{{ url_for('devices.delete_device', device_id=device.id) }}" method="POST">
+                            {{ form.hidden_tag() }}
+                            {{ form.submit(class="btn btn-danger btn-lg") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <h1 class="main-heading">Devices</h1>
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <a class="btn btn-primary btn-lg float-end mb-5" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
+            </div>
+        </div>
+        <div class="devices-grid">
+            {% for device in devices %}
+                <div class="device-box">
+                    {% if device.media %}
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle device-button" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('devices.update_device', device_id=device.id) }}">Update</a></li>
+                                <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteDeviceModal{{ device.id }}" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">Delete</button></li>
+                            </ul>
+                        </div>
+                        {% if device.media.media_type == 'image' %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}"
+                                alt="{{ device.name }}"
+                                class="device-box__img device-img img-fluid">
+                        {% elif device.media.media_type == 'video' %}
+                            <video class="device-box__video device-video" muted autoplay loop>
+                                <source src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" type="video/mp4">
+                                Your browser does not support video playback.
+                            </video>
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/default.jpg') }}"
+                                alt="Default Media"
+                                class="device-box__img device-img img-fluid">
+                        {% endif %}
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default.jpg') }}"
+                            alt="Default Image"
+                            class="device-box__img device-img">
+                    {% endif %}
+                    <h2 class="device-box__heading device-heading display-3 text-center">{{ device.name }}</h2>
+                    <p class="text-center"><a href="{{ url_for('devices.show_device', device_url=device.device_url) }}" class="device-link" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="http://example.com/devices/{{ device.device_url }}" data-bs-custom-class="custom-tooltip">/devices/{{ device.device_url }}</a></p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- pagination -->
+        <nav class="mt-4 pagination" aria-label="Page navigation">
+            <ul class="pagination mx-auto">
+                <li class="page-item">
+                    <a class="page-link {% if pagination.page == 1 %}disabled{% endif %}"
+                        href="{{ url_for('devices.get_all_devices', page=1) }}" {% if pagination.page==1 %}tabindex="-1" {% endif %}
+                        aria-label="First">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% if pagination.has_prev %}
+                <li class="page-item"><a class="page-link"
+                        href="{{ url_for('devices.get_all_devices', page=pagination.prev_num) }}">{{ pagination.prev_num }}</a></li>
+                {% endif %}
+                <li class="page-item"><span class="page-link active" href="{{ url_for('devices.get_all_devices', page=page) }}"
+                        aria-current="page">{{ pagination.page }}</span></li>
+                {% if pagination.has_next %}
+                <li class="page-item"><a class="page-link"
+                        href="{{ url_for('devices.get_all_devices', page=pagination.next_num) }}">{{ pagination.next_num }}</a></li>
+                {% endif %}
+                <li class="page-item">
+                    <a class="page-link {% if not pagination.page < pagination.pages %}disabled{% endif %}"
+                        href="{{ url_for('devices.get_all_devices', page=pagination.pages) }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+{% endblock %}

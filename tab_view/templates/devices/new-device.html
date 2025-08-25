@@ -1,0 +1,41 @@
+{% extends 'layout/base.html' %}
+
+
+
+{% block title %}Add New Device{% endblock %}
+
+
+
+{% block content %}
+    <h1 class="main-heading display-5">Add New Device</h1>
+    <div class="container">
+        <form action="{{ url_for('devices.create_device') }}" class="form" method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control", placeholder="Enter device name") }}
+                {% for error in form.name.error %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.device_url.label(class="form-label") }}
+                <div class="input-group">
+                    <span class="input-group-text" id="basic-addon3">http://example.com/devices/</span>
+                    {{ form.device_url(class="form-control", placeholder="Enter device URL", **{"aria-describedby": "basic-addon3 basic-addon4"}) }}
+                </div>
+                {% for error in form.device_url.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.media_id.label(class="form-label") }}
+                {{ form.media_id(class="form-control") }}
+                {% for error in form.media_id.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {{ form.submit(class="btn btn-primary btn-lg") }}
+        </form>
+    </div>
+{% endblock %}
