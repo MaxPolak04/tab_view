@@ -51,6 +51,15 @@ main {
     font-size: 2.5rem;
 }
 
+.navbar-toggler {
+    padding: 1em;
+    border: none;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
 .nav-link {
     font-size: 2.5rem;
     margin: 0 1em;
@@ -99,11 +108,10 @@ main {
 .devices-grid,
 .media-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     gap: 3em;
     justify-items: center;
 }
-
 
 .device-box,
 .media-box {
@@ -209,9 +217,18 @@ main {
   transition: opacity 0.5s ease-out;
 }
 
+.error-box {
+    max-width: 45em;
+}
+
 .error-heading {
+    margin-bottom: 1em;
     padding: 0;
     color: #dc3545;
+}
+
+.error-text {
+    font-size: 2.5rem;
 }
 
 .flex-box {
@@ -219,9 +236,24 @@ main {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100%;
+    min-height: 80vh;
 }
 
-.custom-container {
-    height: 100%;
+
+
+/* ================================================================= */
+
+@media (width > 768px) {
+    .devices-grid,
+    .media-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+@media (width > 992px) {
+    .devices-grid,
+    .media-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }

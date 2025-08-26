@@ -5,6 +5,15 @@ const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]
 const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
 
+const nav = document.querySelector('.navbar-collapse')
+
+document.addEventListener('click', () => {
+    if (nav.classList.contains('show')) {
+        nav.classList.remove('show')
+    }
+})
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const errorMessages = [
         "Doctor, heal thyself. The admin panel needs a hug.",
