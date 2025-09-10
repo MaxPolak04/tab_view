@@ -10,6 +10,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     last_login_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    is_admin = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -26,7 +27,7 @@ class Device(db.Model):
     media = db.relationship('Media')
 
     def __repr__(self):
-        return f'<Device {self.title}>'
+        return f'<Device {self.name}>'
     
 
 class Media(db.Model):
@@ -34,5 +35,9 @@ class Media(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)
-    media_type = db.Column(db.String(10))  # 'image' lub 'video'
+    media_type = db.Column(db.String(10))  # 'image' or 'video'
     uploaded_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    def __repr__(self):
+        return f'<Media {self.filename}>'
+    

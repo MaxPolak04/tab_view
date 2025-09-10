@@ -1,0 +1,94 @@
+{% extends 'layout/base.html' %}
+
+
+
+{% block title %}Users{% endblock %}
+
+
+
+{% block content %}
+    {% for user in users %}
+        <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="modalTitle">Delete {{ user.username }}</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-center my-3">Are you sure you want to delete user <strong class="text-primary">{{ user.username }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">Close</button>
+                        <form action="{{ url_for('users.delete_user', user_id=user.id) }}" method="POST">
+                            {{ form.hidden_tag() }}
+                            {{ form.submit(class="btn btn-danger btn-lg") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <h1 class="main-heading">Users</h1>
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <a class="btn btn-primary btn-lg float-end mb-5" role="button" href="{{ url_for('users.create_user') }}">Create New User</a>
+            </div>
+        </div>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Is Admin</th>
+                    <th scope="col">Last Login At</th>
+                    <th scope="col">Update</th>
+                    <th scope="col">Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <th scope="row">{{ user.id }}</th>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.is_admin }}</td>
+                        <td>{{ user.last_login_at }}</td>
+                        <td><a href="{{ url_for('users.update_user', user_id=user.id) }}" role="button" class="btn btn-info">Update</a></td>
+                        <td><button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">Delete</button></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- pagination -->
+        <nav class="mt-4 pagination" aria-label="Page navigation">
+            <ul class="pagination mx-auto">
+                <li class="page-item">
+                    <a class="page-link {% if pagination.page == 1 %}disabled{% endif %}"
+                        href="{{ url_for('users.get_all_users', page=1) }}" {% if pagination.page==1 %}tabindex="-1" {% endif %}
+                        aria-label="First">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% if pagination.has_prev %}
+                <li class="page-item"><a class="page-link"
+                        href="{{ url_for('users.get_all_users', page=pagination.prev_num) }}">{{ pagination.prev_num }}</a></li>
+                {% endif %}
+                <li class="page-item"><span class="page-link active" href="{{ url_for('users.get_all_users', page=page) }}"
+                        aria-current="page">{{ pagination.page }}</span></li>
+                {% if pagination.has_next %}
+                <li class="page-item"><a class="page-link"
+                        href="{{ url_for('users.get_all_users', page=pagination.next_num) }}">{{ pagination.next_num }}</a></li>
+                {% endif %}
+                <li class="page-item">
+                    <a class="page-link {% if not pagination.page < pagination.pages %}disabled{% endif %}"
+                        href="{{ url_for('users.get_all_users', page=pagination.pages) }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+{% endblock %}

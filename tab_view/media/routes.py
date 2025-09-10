@@ -15,7 +15,7 @@ def get_all_media():
     form = MediaDeleteForm()
 
     page = request.args.get('page', 1, type=int)
-    per_page = 10
+    per_page = 9
     pagination = Media.query \
         .order_by(Media.id) \
         .paginate(page=page, per_page=per_page)

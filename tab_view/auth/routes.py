@@ -1,5 +1,5 @@
 from flask import render_template, url_for, redirect, session, flash, current_app
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash
 from flask_login import login_user, logout_user, login_required
 from . import auth_bp
 from tab_view.auth.forms import SignInForm
@@ -12,9 +12,10 @@ def signin():
     form = SignInForm()
 
     if form.validate_on_submit():
+        username = form.username.data
         password = form.password.data
         remember_me = form.remember_me.data
-        user = User.query.filter_by(username='admin').first()
+        user = User.query.filter_by(username=username).first()
 
         if not user:
             flash('User not found!', 'danger')

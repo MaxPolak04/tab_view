@@ -35,7 +35,7 @@ main {
 
 .main-heading,
 .error-heading {
-    padding: 4em 0;
+    padding: 2em 0;
     font-size: 4rem;
     text-transform: uppercase;
     text-align: center;
@@ -243,7 +243,14 @@ main {
 
 /* ================================================================= */
 
+
+
 @media (width > 768px) {
+    .main-heading,
+    .error-heading {
+        padding-top: 3em;
+    }
+
     .devices-grid,
     .media-grid {
         grid-template-columns: repeat(2, 1fr);
