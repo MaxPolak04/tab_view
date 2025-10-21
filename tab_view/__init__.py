@@ -41,6 +41,7 @@ def create_app():
     from .devices import devices_bp
     from .media import media_bp
     from .users import users_bp
+    from .events import events_bp
     from .errors import errors_bp
 
 
@@ -48,7 +49,11 @@ def create_app():
     app.register_blueprint(devices_bp, url_prefix='/devices')
     app.register_blueprint(media_bp, url_prefix='/media')
     app.register_blueprint(users_bp, url_prefix='/users')
+    app.register_blueprint(events_bp, url_prefix='/api/v1/events')
     # app.register_blueprint(errors_bp, url_prefix='/error')
+
+
+    csrf.exempt(events_bp)
 
 
     @app.route('/')
