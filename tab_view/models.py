@@ -57,15 +57,17 @@ class Event(db.Model):
     media = db.relationship('Media')
 
     def __repr__(self):
-        return f'<Schedule {self.id}>'
+        return f'<Event {self.id}>'
     
     def to_dict(self):
         return {
             'id': self.id,
             'title': self.title,
-            'start_time': self.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'end_time': self.end_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'device_id': self.device_id,
-            'media_id': self.media_id
+            'start': self.start_time.isoformat() if self.start_time else None,
+            'end': self.end_time.isoformat() if self.end_time else None,
+            'extendedProps': {
+                'device_id': self.device_id,
+                'media_id': self.media_id
+            }
         }
     

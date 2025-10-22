@@ -31,13 +31,18 @@
     {% include 'layout/nav.html' %}
 
     <main class="bg-light">
-
         {% block content %}
     
         {% endblock %}
     </main>
 
     {% include 'layout/footer.html' %}
+
+
+    
+    {% block scripts %}
+
+    {% endblock %}
 
     <!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>

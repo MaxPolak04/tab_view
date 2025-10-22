@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, login_required
 from . import auth_bp
 from tab_view.auth.forms import SignInForm
 from tab_view.models import User, db
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 
 @auth_bp.route('/signin', methods=['GET', 'POST'])
@@ -31,7 +31,7 @@ def signin():
             current_app.permanent_session_lifetime = timedelta(minutes=15)
         
         login_user(user, remember=remember_me, fresh=True)
-        user.last_login_at = db.func.now()
+        user.last_login_at = datetime.utcnow()
         db.session.commit()
 
         flash('Logged in successfully!', 'success')

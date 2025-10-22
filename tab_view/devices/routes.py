@@ -1,6 +1,6 @@
 from . import devices_bp
 from tab_view import db
-from tab_view.models import Device, Media
+from tab_view.models import Device, Media, Event
 from .forms import NewDevice, UpdateDevice, DeleteDevice
 from flask import request, render_template, flash, redirect, url_for
 from flask_login import login_required
@@ -28,7 +28,36 @@ def get_all_devices():
 def show_device(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
     media = device.media
-    return render_template('devices/display.html', device=device, media=media)
+
+    events = (
+        Event.query
+        .filter_by(device_id=device.id)
+        .join(Media)
+        .add_columns(
+            Event.start_time,
+            Event.end_time,
+            Media.filename,
+            Media.media_type
+        )
+        .all()
+    )
+
+    schedule = [
+        {
+            'start': event.start_time.isoformat(),
+            'end': event.end_time.isoformat(),
+            'filename': event.filename,
+            'media_type': event.media_type
+        }
+        for event in events
+    ]
+
+    return render_template(
+        'devices/display.html', 
+        device=device, 
+        media=media,
+        schedule=schedule
+    )
 
 
 @devices_bp.route('/new', methods=['GET', 'POST'])
@@ -59,8 +88,8 @@ def create_device():
 @login_required
 def update_device(device_id):
     device = Device.query.get_or_404(device_id)
-
     media_list = Media.query.all()
+
     if not media_list:
         flash("No media available. Add a file before creating the device.", "warning")
         return redirect(url_for('media.new_media'))
@@ -76,7 +105,6 @@ def update_device(device_id):
 
 
     if form.validate_on_submit():
-
         existing_name = Device.query.filter_by(name=form.name.data).first()
         if existing_name and existing_name.id != device.id:
             flash('This device name is already in use.', 'danger')
@@ -94,7 +122,12 @@ def update_device(device_id):
         db.session.commit()
         flash('Device updated successfully!', 'success')
         return redirect(url_for('devices.get_all_devices'))
-    return render_template('devices/update-device.html', form=form, device=device)
+    return render_template(
+        'devices/update-device.html', 
+        form=form, 
+        device=device,
+        media_list=[{'id': m.id, 'filename': m.filename} for m in media_list]
+        )
 
 
 @devices_bp.route('/delete/<device_id>', methods=['POST'])

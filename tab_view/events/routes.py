@@ -1,25 +1,32 @@
+from flask import request
 from flask_restful import Resource
-from tab_view.models import Event, db
+from tab_view.models import Device, Media, Event, db
+from tab_view.utils import error_response
 from .parser import event_parser, update_parser
 
 
 class EventResource(Resource):
     def get(self):
-        events = Event.query.all()
-        result = []
-        for event in events:
-            result.append({
-                'id': event.id,
-                'title': event.title,
-                'start_time': event.start_time.strftime('%Y-%m-%dT%H:%M:%S'),
-                'end_time': event.end_time.strftime('%Y-%m-%dT%H:%M:%S'),
-                'device_id': event.device_id,
-                'media_id': event.media_id,
-            })
+        device_id = request.args.get('device_id', type=int)
+
+        if device_id:
+            events = Event.query.filter_by(device_id=device_id).all()
+        else:
+            events = Event.query.all()
+
+        result = [event.to_dict() for event in events]
         return result, 200
     
     def post(self):
         args = event_parser.parse_args()
+
+        device = Device.query.get(args['device_id'])
+        media = Media.query.get(args['media_id'])
+        if not device:
+            return error_response(f'Device with id {args["device_id"]} not found', 404)
+        if not media:
+            return error_response(f'Media with id {args["media_id"]} not found', 404)
+
         new_event = Event(
             title=args['title'],
             start_time=args['start_time'],
@@ -27,6 +34,7 @@ class EventResource(Resource):
             device_id=args['device_id'],
             media_id=args['media_id']
         )
+        print(f'\n {args} \n')
         db.session.add(new_event)
         db.session.commit()
         return {'message': 'Event created',
@@ -36,11 +44,24 @@ class EventResource(Resource):
         event = Event.query.get_or_404(event_id)
         args = update_parser.parse_args()
 
-        event.title = args['title']
-        event.start_time = args['start_time']
-        event.end_time = args['end_time']
-        event.device_id = args['device_id']
-        event.media_id = args['media_id']
+        if args['device_id'] is not None:
+            device = Device.query.get(args['device_id'])
+            if not device:
+                return error_response(f'Device with id {args["device_id"]} not found', 404)
+            event.device_id = args['device_id']
+
+        if args['media_id'] is not None:
+            media = Media.query.get(args['media_id'])
+            if not media:
+                return error_response(f'Media with id {args["media_id"]} not found', 404)
+            event.media_id = args['media_id']
+
+        if args['title'] is not None:
+            event.title = args['title']
+        if args['start_time'] is not None:
+            event.start_time = args['start_time']
+        if args['end_time'] is not None:
+            event.end_time = args['end_time']
 
         db.session.commit()
         return {'message': 'Event updated',

@@ -7,7 +7,7 @@
 
 
 {% block content %}
-    <h1 class="main-heading display-5">Update Device</h1>
+    <h1 class="main-heading display-5">Update Device {{ device.name }}</h1>
     <div class="container">
         <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form" method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
@@ -34,9 +34,74 @@
                 {% for error in form.media_id.errors %}
                     <div class="text-danger">{{ error }}</div>
                 {% endfor %}
+                <small class="text-muted d-block pt-3">(Domyślne media wyświetlane poza harmonogramem)</small>
             </div>
-            <div id="calendar"></div>
             {{ form.submit(class="btn btn-primary btn-lg") }}
         </form>
+
+        <div class="calendar-box">
+            <h2 class="section-heading display-4">Ustaw harmonogram dla urządzenia</h2>
+            <small class="text-muted">(przykrywa domyślne media)</small>
+            <div id="calendar"></div>
+        </div>
     </div>
+
+    <!-- Modal do tworzenia/edycji eventu -->
+    <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Dodaj harmonogram</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="eventForm">
+                        <div class="mb-3">
+                            <label for="eventTitle" class="form-label">Title:</label>
+                            <input type="text" class="form-control" id="eventTitle" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="eventStart" class="form-label">Start Date:</label>
+                            <input type="datetime-local" class="form-control" id="eventStart" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="eventEnd" class="form-label">End Date:</label>
+                            <input type="datetime-local" class="form-control" id="eventEnd" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="eventMedia" class="form-label">Media to display:</label>
+                            <select class="form-select" id="eventMedia" required>
+                                {% for media in media_list %}
+                                    <option value="{{ media.id }}">{{ media.filename }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info" role="alert">
+                            <small>To media będzie wyświetlane na urządzeniu <strong>{{ device.name }}</strong> w wybranym czasie, przykrywając domyślne ustawienie.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <button type="button" class="btn btn-danger" id="deleteEventBtn" style="display:none;">Usuń</button>
+                    <button type="button" class="btn btn-primary" id="saveEventBtn">Zapisz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block scripts %}
+ <script>
+    // eslint-disable-next-line
+    window.currentDeviceId = {{ device.id }};
+    // eslint-disable-next-line
+    window.mediaList = {{ media_list|tojson }};
+</script>
 {% endblock %}

@@ -1,4 +1,4 @@
-from flask import abort
+from flask import abort, jsonify
 from sqlalchemy import select, literal
 from sqlalchemy.exc import OperationalError
 from flask_login import current_user, login_required
@@ -37,3 +37,8 @@ def detect_type(filename):
     ext = filename.rsplit('.', 1)[-1].lower()
     return 'image' if ext in ['jpg', 'jpeg', 'png', 'gif'] else 'video'
 
+
+def error_response(message, status_code):
+    response = jsonify({'error': message})
+    response.status_code = status_code
+    return response
