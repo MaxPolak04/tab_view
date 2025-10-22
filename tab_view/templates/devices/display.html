@@ -35,6 +35,10 @@
     <!-- Load Data -->
     <script>
         window.schedule = {{ schedule|tojson }};
+        window.defaultMedia = {
+            filename: "{{ media.filename }}",
+            media_type: "{{ media.media_type }}"
+        };
     </script>
 
     <!-- Bootstrap JS -->

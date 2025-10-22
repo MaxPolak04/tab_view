@@ -307,6 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateMedia() {
     const now = new Date();
     const schedule = window.schedule || [];
+    const main = document.querySelector('.display-menu');
+    if (!main) return;
 
     const currentEvent = schedule.find(event => {
         const start = new Date(event.start);
@@ -314,26 +316,45 @@ function updateMedia() {
         return now >= start && now < end;
     });
 
-    const main = document.querySelector('.display-menu');
-    if (!main || !currentEvent) return;
-
     main.innerHTML = ''; // usuń poprzednie media
 
-    if (currentEvent.media_type === 'image') {
-        const img = document.createElement('img');
-        img.src = `/static/uploads/${currentEvent.filename}`;
-        img.classList.add('display-img');
-        main.appendChild(img);
-    } else if (currentEvent.media_type === 'video') {
-        const video = document.createElement('video');
-        video.src = `/static/uploads/${currentEvent.filename}`;
-        video.autoplay = true;
-        video.loop = true;
-        video.muted = true;
-        video.classList.add('display-video');
-        main.appendChild(video);
+    if (currentEvent) {
+        if (currentEvent.media_type === 'image') {
+            const img = document.createElement('img');
+            img.src = `/static/uploads/${currentEvent.filename}`;
+            img.classList.add('display-img');
+            main.appendChild(img);
+        } else if (currentEvent.media_type === 'video') {
+            const video = document.createElement('video');
+            video.src = `/static/uploads/${currentEvent.filename}`;
+            video.autoplay = true;
+            video.loop = true;
+            video.muted = true;
+            video.classList.add('display-video');
+            main.appendChild(video);
+        }
+    } else {
+        // fallback: domyślne media urządzenia
+        const defaultMedia = window.defaultMedia;
+        if (!defaultMedia) return;
+
+        if (defaultMedia.media_type === 'image') {
+            const img = document.createElement('img');
+            img.src = `/static/uploads/${defaultMedia.filename}`;
+            img.classList.add('display-img');
+            main.appendChild(img);
+        } else if (defaultMedia.media_type === 'video') {
+            const video = document.createElement('video');
+            video.src = `/static/uploads/${defaultMedia.filename}`;
+            video.autoplay = true;
+            video.loop = true;
+            video.muted = true;
+            video.classList.add('display-video');
+            main.appendChild(video);
+        }
     }
 }
+
 
 // Aktualizuj co minutę (możesz dostosować)
 setInterval(updateMedia, 60 * 1000);
