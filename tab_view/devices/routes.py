@@ -29,28 +29,29 @@ def show_device(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
     media = device.media
 
-    events = (
-        Event.query
-        .filter_by(device_id=device.id)
-        .join(Media)
-        .add_columns(
-            Event.start_time,
-            Event.end_time,
-            Media.filename,
-            Media.media_type
-        )
-        .all()
-    )
+    # Download events with media playlist
+    events = Event.query.filter_by(device_id=device.id).all()
 
-    schedule = [
-        {
+    schedule = []
+    for event in events:
+        playlist = [
+            {
+                'media_id': em.media_id,
+                'filename': em.media.filename,
+                'media_type': em.media.media_type,
+                'order': em.order,
+                'duration': em.duration
+            }
+            for em in sorted(event.event_media, key=lambda x: x.order)
+        ]
+        
+        schedule.append({
+            'id': event.id,
+            'title': event.title,
             'start': event.start_time.isoformat(),
             'end': event.end_time.isoformat(),
-            'filename': event.filename,
-            'media_type': event.media_type
-        }
-        for event in events
-    ]
+            'media_playlist': playlist
+        })
 
     return render_template(
         'devices/display.html', 
@@ -103,7 +104,6 @@ def update_device(device_id):
         form.device_url.data = device.device_url
         form.media_id.data = device.media_id
 
-
     if form.validate_on_submit():
         existing_name = Device.query.filter_by(name=form.name.data).first()
         if existing_name and existing_name.id != device.id:
@@ -122,12 +122,17 @@ def update_device(device_id):
         db.session.commit()
         flash('Device updated successfully!', 'success')
         return redirect(url_for('devices.get_all_devices'))
+    
     return render_template(
         'devices/update-device.html', 
         form=form, 
         device=device,
-        media_list=[{'id': m.id, 'filename': m.filename} for m in media_list]
-        )
+        media_list=[{
+            'id': m.id, 
+            'filename': m.filename,
+            'media_type': m.media_type
+        } for m in media_list]
+    )
 
 
 @devices_bp.route('/delete/<device_id>', methods=['POST'])

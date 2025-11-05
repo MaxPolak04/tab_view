@@ -3,7 +3,7 @@ from flask import redirect, url_for, render_template, current_app, flash, reques
 from flask_login import login_required
 from . import media_bp
 from .forms import MediaUploadForm, MediaUpdateForm, MediaDeleteForm
-from tab_view import db, csrf
+from tab_view import db
 from tab_view.models import Media, Device
 from tab_view.utils import detect_type
 import os

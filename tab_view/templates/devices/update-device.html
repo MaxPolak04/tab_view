@@ -1,87 +1,184 @@
 {% extends 'layout/base.html' %}
 
-
-
 {% block title %}Update Device{% endblock %}
 
-
-
 {% block content %}
-    <h1 class="main-heading display-5">Update Device {{ device.name }}</h1>
+    <h1 class="main-heading display-5">Update Device: {{ device.name }}</h1>
     <div class="container">
-        <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form" method="POST" enctype="multipart/form-data">
-            {{ form.hidden_tag() }}
-            <div class="mb-3">
-                {{ form.name.label(class="form-label") }}
-                {{ form.name(class="form-control") }}
-                {% for error in form.name.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                {% endfor %}
+        <!-- Device editing form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Ustawienia urządzenia</h5>
             </div>
-            <div class="mb-3">
-                {{ form.device_url.label(class="form-label") }}
-                <div class="input-group">
-                    <span class="input-group-text" id="basic-addon3">http://example.com/devices/</span>
-                    {{ form.device_url(class="form-control", **{"aria-describedby": "basic-addon3 basic-addon4"}) }}
-                </div>
-                {% for error in form.device_url.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                {% endfor %}
+            <div class="card-body">
+                <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form" method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                        {% for error in form.name.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.device_url.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">http://example.com/devices/</span>
+                            {{ form.device_url(class="form-control") }}
+                        </div>
+                        {% for error in form.device_url.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.media_id.label(class="form-label") }}
+                        <small class="text-muted d-block mb-2">(Domyślne media wyświetlane poza harmonogramem)</small>
+                        
+                        <!-- Hidden select -->
+                        {{ form.media_id(class="form-control d-none", id="defaultMediaSelect", value=device.media_id) }}
+                        
+                        <!-- Preview of selected media -->
+                        <div id="defaultMediaPreview" class="border rounded p-3 text-center" style="cursor: pointer; min-height: 150px;">
+                            <i class="bi bi-image" style="font-size: 3rem;"></i>
+                            <p class="mt-2">Kliknij, aby wybrać domyślne media</p>
+                        </div>
+                        
+                        {% for error in form.media_id.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {{ form.submit(class="btn btn-primary btn-lg") }}
+                </form>
             </div>
-            <div class="mb-3">
-                {{ form.media_id.label(class="form-label") }}
-                {{ form.media_id(class="form-control", value=device.media_id) }}
-                {% for error in form.media_id.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <small class="text-muted d-block pt-3">(Domyślne media wyświetlane poza harmonogramem)</small>
-            </div>
-            {{ form.submit(class="btn btn-primary btn-lg") }}
-        </form>
+        </div>
 
-        <div class="calendar-box">
-            <h2 class="section-heading display-4">Ustaw harmonogram dla urządzenia</h2>
-            <small class="text-muted">(przykrywa domyślne media)</small>
-            <div id="calendar"></div>
+        <!-- Schedule calendar -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Harmonogram wyświetlania (przykrywa domyślne media)</h5>
+            </div>
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Modal do tworzenia/edycji eventu -->
-    <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="eventModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- Default media selection modal -->
+    <div class="modal fade" id="mediaPickerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Wybierz media</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="row g-3" id="mediaPickerGrid">
+                        {% for media in media_list %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card media-picker-item h-100" 
+                                 data-media-id="{{ media.id }}" 
+                                 data-media-filename="{{ media.filename }}" 
+                                 data-media-type="{{ media.media_type }}" 
+                                 style="cursor: pointer;">
+                                {% if media.media_type == 'image' %}
+                                    <img src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" 
+                                         class="card-img-top"
+                                         alt="{{ media.filename }}"
+                                         loading="lazy"
+                                         onerror="console.error('Nie można załadować:', '{{ media.filename }}'); this.src='/static/img/default.jpg';">
+                                {% elif media.media_type == 'video' %}
+                                    <video class="card-img-top" preload="metadata">
+                                        <source src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" type="video/mp4">
+                                    </video>
+                                {% endif %}
+                                <div class="card-body p-2">
+                                    {% if media.media_type == 'video' %}
+                                    <span class="badge bg-primary mb-1">
+                                        <i class="bi bi-play-fill"></i> Video
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-success mb-1">
+                                        <i class="bi bi-image"></i> Obraz
+                                    </span>
+                                    {% endif %}
+                                    <small class="d-block text-truncate" title="{{ media.filename }}">
+                                        {{ media.filename }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for creating/editing an event with a playlist -->
+    <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="eventModalLabel">Dodaj harmonogram</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="eventForm">
                         <div class="mb-3">
-                            <label for="eventTitle" class="form-label">Title:</label>
+                            <label for="eventTitle" class="form-label">Nazwa harmonogramu:</label>
                             <input type="text" class="form-control" id="eventTitle" required>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="eventStart" class="form-label">Start Date:</label>
-                            <input type="datetime-local" class="form-control" id="eventStart" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="eventStart" class="form-label">Data początkowa:</label>
+                                <input type="datetime-local" class="form-control" id="eventStart" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="eventEnd" class="form-label">Data końcowa:</label>
+                                <input type="datetime-local" class="form-control" id="eventEnd" required>
+                            </div>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="eventEnd" class="form-label">End Date:</label>
-                            <input type="datetime-local" class="form-control" id="eventEnd" required>
+                            <label for="eventColor" class="form-label">Kolor kafelka w kalendarzu:</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" class="form-control form-control-color" id="eventColor" value="#3788d8" title="Wybierz kolor">
+                                <div class="color-presets d-flex gap-2">
+                                    <button type="button" class="btn btn-sm color-preset" data-color="#3788d8" style="background-color: #3788d8; width: 30px; height: 30px; border-radius: 4px;" title="Niebieski"></button>
+                                    <button type="button" class="btn btn-sm color-preset" data-color="#28a745" style="background-color: #28a745; width: 30px; height: 30px; border-radius: 4px;" title="Zielony"></button>
+                                    <button type="button" class="btn btn-sm color-preset" data-color="#dc3545" style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 4px;" title="Czerwony"></button>
+                                    <button type="button" class="btn btn-sm color-preset" data-color="#ffc107" style="background-color: #ffc107; width: 30px; height: 30px; border-radius: 4px;" title="Żółty"></button>
+                                    <button type="button" class="btn btn-sm color-preset" data-color="#6f42c1" style="background-color: #6f42c1; width: 30px; height: 30px; border-radius: 4px;" title="Fioletowy"></button>
+                                    <button type="button" class="btn btn-sm color-preset" data-color="#fd7e14" style="background-color: #fd7e14; width: 30px; height: 30px; border-radius: 4px;" title="Pomarańczowy"></button>
+                                </div>
+                            </div>
+                            <small class="text-muted">Kliknij na gotowy kolor lub wybierz własny</small>
                         </div>
+
+                        <hr>
                         
                         <div class="mb-3">
-                            <label for="eventMedia" class="form-label">Media to display:</label>
-                            <select class="form-select" id="eventMedia" required>
-                                {% for media in media_list %}
-                                    <option value="{{ media.id }}">{{ media.filename }}</option>
-                                {% endfor %}
-                            </select>
+                            <label class="form-label">Playlista mediów:</label>
+                            <button type="button" class="btn btn-success btn-sm mb-2" id="addMediaToPlaylist">
+                                <i class="bi bi-plus-circle"></i> Dodaj media
+                            </button>
+                            
+                            <!-- List of media in the playlist -->
+                            <div id="playlistContainer" class="border rounded p-2" style="min-height: 100px;">
+                                <p class="text-muted text-center" id="emptyPlaylistMsg">
+                                    <i class="bi bi-info-circle"></i> Kliknij "Dodaj media" aby utworzyć playlistę
+                                </p>
+                            </div>
+                            <small class="text-muted">Przeciągnij aby zmienić kolejność</small>
                         </div>
 
                         <div class="alert alert-info" role="alert">
-                            <small>To media będzie wyświetlane na urządzeniu <strong>{{ device.name }}</strong> w wybranym czasie, przykrywając domyślne ustawienie.</small>
+                            <small>
+                                <i class="bi bi-info-circle"></i> Media będą wyświetlane kolejno w pętli przez cały czas trwania harmonogramu.
+                                Obrazy przez określony czas, filmy do końca.
+                            </small>
                         </div>
                     </form>
                 </div>
@@ -93,15 +190,176 @@
             </div>
         </div>
     </div>
+
+    <!-- Media selection modal for playlist -->
+    <div class="modal fade" id="playlistMediaPickerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Wybierz media do playlisty</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="row g-3">
+                        {% for media in media_list %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card playlist-media-item h-100" 
+                                 data-media-id="{{ media.id }}" 
+                                 data-media-filename="{{ media.filename }}" 
+                                 data-media-type="{{ media.media_type }}" 
+                                 style="cursor: pointer;">
+                                {% if media.media_type == 'image' %}
+                                    <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" 
+                                         class="card-img-top"
+                                         alt="{{ media.filename }}"
+                                         loading="lazy">
+                                {% elif media.media_type == 'video' %}
+                                    <video class="card-img-top" preload="metadata">
+                                        <source src="{{ url_for('static', filename='uploads/' + media.filename) }}" type="video/mp4">
+                                    </video>
+                                {% endif %}
+                                <div class="card-body p-2">
+                                    {% if media.media_type == 'video' %}
+                                    <span class="badge bg-primary mb-1">
+                                        <i class="bi bi-play-fill"></i> Video
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-success mb-1">
+                                        <i class="bi bi-image"></i> Obraz
+                                    </span>
+                                    {% endif %}
+                                    <small class="d-block text-truncate" title="{{ media.filename }}">
+                                        {{ media.filename }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS for drag & drop and thumbnails -->
+    <style>
+        /* Media thumbnails */
+        .media-picker-item img,
+        .media-picker-item video,
+        .playlist-media-item img,
+        .playlist-media-item video {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .media-picker-item,
+        .playlist-media-item {
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        
+        .media-picker-item:hover,
+        .playlist-media-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-color: #0d6efd;
+            z-index: 10;
+        }
+        
+        .media-picker-item:active,
+        .playlist-media-item:active {
+            transform: scale(0.98);
+        }
+        
+        /* Playlist */
+        .playlist-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .playlist-item:hover {
+            background: #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .playlist-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        
+        .playlist-item-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        
+        .playlist-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .playlist-item-info strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .playlist-item-duration {
+            width: 120px;
+            flex-shrink: 0;
+        }
+        
+        /* Preview of default media */
+        #defaultMediaPreview {
+            transition: all 0.2s;
+        }
+        
+        #defaultMediaPreview:hover {
+            background-color: #f8f9fa;
+            border-color: #0d6efd !important;
+        }
+        
+        #defaultMediaPreview img,
+        #defaultMediaPreview video {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Color presets */
+        .color-preset {
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .color-preset:hover {
+            border-color: #0d6efd;
+            transform: scale(1.1);
+        }
+        
+        .color-preset.active {
+            border-color: #000;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+        }
+    </style>
 {% endblock %}
 
-
-
 {% block scripts %}
- <script>
-    // eslint-disable-next-line
+<script>
     window.currentDeviceId = {{ device.id }};
-    // eslint-disable-next-line
     window.mediaList = {{ media_list|tojson }};
+    window.currentDeviceMediaId = {{ device.media_id if device.media_id else 'null' }};
 </script>
 {% endblock %}

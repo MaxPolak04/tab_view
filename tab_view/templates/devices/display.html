@@ -22,15 +22,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <main class="display-menu">
-        {% if media.media_type == 'image' %}
-            <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" class="display-img">
-        {% elif media.media_type == 'video' %}
-            <video autoplay loop muted autoplay class="display-video">
-                <source src="{{ url_for('static', filename='uploads/' + media.filename) }}" type="video/mp4">
-            </video>
-        {% endif %}
-    </main>
+    <main class="display-menu"></main>
 
     <!-- Load Data -->
     <script>
@@ -47,6 +39,6 @@
         crossorigin="anonymous"></script>
 
     <!-- JS -->
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/display.js') }}"></script>
 </body>
 </html>

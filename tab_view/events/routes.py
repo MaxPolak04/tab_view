@@ -1,8 +1,8 @@
 from flask import request
 from flask_restful import Resource
-from tab_view.models import Device, Media, Event, db
+from tab_view.models import Device, Media, Event, EventMedia, db
 from tab_view.utils import error_response
-from .parser import event_parser, update_parser
+from datetime import datetime
 
 
 class EventResource(Resource):
@@ -17,55 +17,81 @@ class EventResource(Resource):
         result = [event.to_dict() for event in events]
         return result, 200
     
+
     def post(self):
-        args = event_parser.parse_args()
-
-        device = Device.query.get(args['device_id'])
-        media = Media.query.get(args['media_id'])
+        data = request.get_json()
+        
+        if not data.get('title') or not data.get('start_time') or not data.get('end_time'):
+            return error_response('Missing required fields', 400)
+        
+        if not data.get('media_playlist') or len(data['media_playlist']) == 0:
+            return error_response('Playlist cannot be empty', 400)
+        
+        device = Device.query.get(data['device_id'])
         if not device:
-            return error_response(f'Device with id {args["device_id"]} not found', 404)
-        if not media:
-            return error_response(f'Media with id {args["media_id"]} not found', 404)
-
+            return error_response(f'Device with id {data["device_id"]} not found', 404)
+        
         new_event = Event(
-            title=args['title'],
-            start_time=args['start_time'],
-            end_time=args['end_time'],
-            device_id=args['device_id'],
-            media_id=args['media_id']
+            title=data['title'],
+            start_time=datetime.fromisoformat(data['start_time']),
+            end_time=datetime.fromisoformat(data['end_time']),
+            device_id=data['device_id'],
+            color=data.get('color', data['color'])
         )
-        print(f'\n {args} \n')
         db.session.add(new_event)
+        db.session.flush()
+
+        for item in data['media_playlist']:
+            media = Media.query.get(item['media_id'])
+            if not media:
+                db.session.rollback()
+                return error_response(f'Media with id {item["media_id"]} not found', 404)
+            
+            event_media = EventMedia(
+                event_id=new_event.id,
+                media_id=item['media_id'],
+                order=item.get('order', 0),
+                duration=item.get('duration', 10)
+            )
+            db.session.add(event_media)
+        
         db.session.commit()
-        return {'message': 'Event created',
-                'event': new_event.to_dict()}, 201
+        return {'message': 'Event created', 'event': new_event.to_dict()}, 201
+
 
     def put(self, event_id):
         event = Event.query.get_or_404(event_id)
-        args = update_parser.parse_args()
+        data = request.get_json()
 
-        if args['device_id'] is not None:
-            device = Device.query.get(args['device_id'])
-            if not device:
-                return error_response(f'Device with id {args["device_id"]} not found', 404)
-            event.device_id = args['device_id']
+        if data.get('title'):
+            event.title = data['title']
+        if data.get('start_time'):
+            event.start_time = datetime.fromisoformat(data['start_time'])
+        if data.get('end_time'):
+            event.end_time = datetime.fromisoformat(data['end_time'])  
+        if data.get('color'):
+            event.color = data['color']
 
-        if args['media_id'] is not None:
-            media = Media.query.get(args['media_id'])
-            if not media:
-                return error_response(f'Media with id {args["media_id"]} not found', 404)
-            event.media_id = args['media_id']
+        if 'media_playlist' in data:
+            EventMedia.query.filter_by(event_id=event.id).delete()
 
-        if args['title'] is not None:
-            event.title = args['title']
-        if args['start_time'] is not None:
-            event.start_time = args['start_time']
-        if args['end_time'] is not None:
-            event.end_time = args['end_time']
-
+            for item in data['media_playlist']:
+                media = Media.query.get(item['media_id'])
+                if not media:
+                    db.session.rollback()
+                    return error_response(f'Media with id {item["media_id"]} not found', 404)
+                
+                event_media = EventMedia(
+                    event_id=event.id,
+                    media_id=item['media_id'],
+                    order=item.get('order', 0),
+                    duration=item.get('duration', 10)
+                )
+                db.session.add(event_media)
+        
         db.session.commit()
-        return {'message': 'Event updated',
-                'event': event.to_dict()}
+        return {'message': 'Event updated', 'event': event.to_dict()}
+
 
     def delete(self, event_id):
         event = Event.query.get_or_404(event_id)
