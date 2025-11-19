@@ -6,6 +6,9 @@ from flask_wtf.csrf import CSRFProtect
 from flask_apscheduler import APScheduler
 from tab_view.utils import wait_for_db
 from tab_view.config import Config
+import logging
+from logging.handlers import RotatingFileHandler
+import os
 
 
 db = SQLAlchemy()
@@ -20,6 +23,27 @@ def create_app():
 
     app = Flask(__name__)
     app.config.from_object(Config)
+
+
+    # Logging configuration
+    if not app.debug:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        
+        file_handler = RotatingFileHandler(
+            'logs/tab_view.log', 
+            maxBytes=10240000,  # 10MB
+            backupCount=10
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('Tab View startup')
+
 
     app.config['SCHEDULER_API_ENABLED'] = False
 

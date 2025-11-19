@@ -110,6 +110,13 @@ document.addEventListener('DOMContentLoaded', function() {
         selectMirror: true,
         
         events: function(info, successCallback, failureCallback) {
+            // FullCalendar automatically passes info.startStr and info.endStr
+            const params = new URLSearchParams({
+                device_id: currentDeviceId,
+                start: info.startStr,
+                end: info.endStr
+            });
+
             fetch(`/api/v1/events/?device_id=${currentDeviceId}`)
                 .then(response => response.json())
                 .then(data => {

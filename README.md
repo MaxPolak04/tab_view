@@ -14,3 +14,4 @@ TODO:
 - synchronizacja z czasem na serwerze
 - testy (pytest i Flask-Testing)
 - role/uprawnienia dla użytkowników (?)
+- zmienić komentarze i komunikaty na angielskie w JS
