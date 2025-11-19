@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -64,6 +64,21 @@ def create_app():
     login_manager.login_view = 'auth.signin'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'warning'
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        # Check if request is to API endpoint
+        if request.path.startswith('/api/'):
+            response = jsonify({
+                'error': 'Unauthorized',
+                'message': 'Authentication required. Please log in.',
+                'status': 401
+            })
+            response.status_code = 401
+            response.headers['WWW-Authenticate'] = 'Session realm="Login Required"'
+            return response
+            
+        return redirect(url_for('auth.signin', next=request.url))
 
     from .models import User
 

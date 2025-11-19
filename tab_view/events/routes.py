@@ -1,5 +1,6 @@
 from flask import request, jsonify
 from flask_restful import Resource
+from flask_login import login_required
 from sqlalchemy import and_
 from tab_view import limiter
 from tab_view.models import Device, Media, Event, EventMedia, db
@@ -15,6 +16,7 @@ class EventResource(Resource):
     """
     REST API for event management
     """
+    @login_required
     @limiter.limit('200 per hour')
     def get(self, event_id=None):
         """
@@ -90,6 +92,7 @@ class EventResource(Resource):
             return error_response('Internal server error', 500)
     
 
+    @login_required
     @limiter.limit('200 per hour')
     def post(self):
         """
@@ -111,6 +114,7 @@ class EventResource(Resource):
             ]
         }
         """
+        
         try:
             data = request.get_json()
             
@@ -216,6 +220,7 @@ class EventResource(Resource):
             return error_response('Internal server error', 500)
 
 
+    @login_required
     @limiter.limit('200 per hour')
     def put(self, event_id):
         """
@@ -322,6 +327,7 @@ class EventResource(Resource):
             return error_response('Internal server error', 500)
 
 
+    @login_required
     @limiter.limit('200 per hour')
     def delete(self, event_id):
         """

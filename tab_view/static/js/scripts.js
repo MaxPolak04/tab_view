@@ -4,7 +4,6 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
 const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
 const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
-
 const nav = document.querySelector('.navbar-collapse')
 
 document.addEventListener('click', () => {
@@ -12,7 +11,6 @@ document.addEventListener('click', () => {
         nav.classList.remove('show')
     }
 })
-
 
 document.addEventListener("DOMContentLoaded", function () {
     const errorMessages = [
@@ -33,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return errorMessages[index];
     }
 
-
     function showError500() {
         const message = getRandomErrorMessage();
         console.error(message);
@@ -43,13 +40,11 @@ document.addEventListener("DOMContentLoaded", function () {
     showError500()
 })
 
-
 document.querySelector('form').addEventListener('submit', function(e) {
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
     btn.innerText = 'Uploading...';
-  });
-
+});
 
 setTimeout(() => {
     document.querySelectorAll('.flash-overlay .alert').forEach(alert => {
@@ -57,8 +52,6 @@ setTimeout(() => {
         setTimeout(() => alert.remove(), 500);
     });
 }, 3000);
-
-
 
 // Calendar with media playlist
 
@@ -78,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let playlistMediaPickerModal;
     let currentPlaylist = [];
     
-    // Bootstrap Modals Initialization
+    // Bootstrap Modals initialization
     const eventModalEl = document.getElementById('eventModal');
     const mediaPickerModalEl = document.getElementById('mediaPickerModal');
     const playlistMediaPickerModalEl = document.getElementById('playlistMediaPickerModal');
@@ -89,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Event listener for closing the playlist modal
     playlistMediaPickerModalEl.addEventListener('hidden.bs.modal', function() {
-        console.log('Modal playlist closed - rendering playlist');
+        console.log('Playlist modal closed - rendering playlist');
         renderPlaylist();
     });
     
@@ -117,9 +110,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 end: info.endStr
             });
 
-            fetch(`/api/v1/events/?device_id=${currentDeviceId}`)
-                .then(response => response.json())
+            fetch(`/api/v1/events/?device_id=${currentDeviceId}`, {
+                credentials: 'same-origin'  // ✅ REQUIRED for Flask-Login session
+            })
+                .then(response => {
+                    if (response.status === 401) {
+                        // Redirect to login if unauthorized
+                        window.location.href = '/auth/signin';
+                        return;
+                    }
+                    if (!response.ok) {
+                        throw new Error('HTTP Error: ' + response.status);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    if (!data) return;
+                    
                     const events = data.map(event => ({
                         id: event.id,
                         title: event.title,
@@ -180,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventTitle').value = event.title;
             document.getElementById('eventStart').value = formatDateTimeLocal(event.start);
             document.getElementById('eventEnd').value = formatDateTimeLocal(event.end);
-            document.getElementById('eventColor').value = event.color || '#3788d8';
+            document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
             
             // DEEP COPY of playlist (to avoid references)
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
@@ -226,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (currentPlaylist.length === 0) {
-            console.log('Playlist is empty – showing message');
+            console.log('Playlist is empty - showing message');
             // Remove only playlist-item, NOT emptyMsg
             const items = container.querySelectorAll('.playlist-item');
             items.forEach(item => item.remove());
@@ -277,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (item.media_type === 'image') {
                 durationField = `
                     <div class="playlist-item-duration">
-                        <label class="form-label small">Czas (s):</label>
+                        <label class="form-label small">Time (s):</label>
                         <input type="number" class="form-control form-control-sm" 
                                value="${item.duration || 10}" 
                                min="1" max="300"
@@ -397,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Add to playlisty
+            // Add to playlist
             currentPlaylist.push({
                 media_id: mediaId,
                 filename: filename,
@@ -455,20 +462,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         fetch(url, {
             method: method,
+            credentials: 'same-origin',  // ✅ REQUIRED for Flask-Login session
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(eventData)
         })
         .then(response => {
+            if (response.status === 401) {
+                // Redirect to login if unauthorized
+                alert('Session expired. Please log in again.');
+                window.location.href = '/auth/signin';
+                return;
+            }
+            if (response.status === 415) {
+                return response.json().then(err => {
+                    throw new Error('Invalid Content-Type. Please contact administrator.');
+                });
+            }
             if (!response.ok) {
                 return response.json().then(err => {
-                    throw new Error(err.error || 'HTTP Error: ' + response.status);
+                    throw new Error(err.message || err.error || 'HTTP Error: ' + response.status);
                 });
             }
             return response.json();
         })
         .then(data => {
+            if (!data) return;
+            
             console.log('Event saved:', data);
             
             // Refresh calendar
@@ -500,15 +521,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (confirm('Are you sure you want to delete this schedule?')) {
             fetch(`/api/v1/events/${currentEventId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: 'same-origin'  // ✅ REQUIRED for Flask-Login session
             })
             .then(response => {
+                if (response.status === 401) {
+                    alert('Session expired. Please log in again.');
+                    window.location.href = '/auth/signin';
+                    return;
+                }
                 if (!response.ok) {
                     throw new Error('HTTP Error: ' + response.status);
                 }
                 return response.json();
             })
             .then(data => {
+                if (!data) return;
+                
                 console.log('Event deleted:', data);
                 
                 // Refresh calendar
@@ -536,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateEventDates(event) {
         fetch(`/api/v1/events/${event.id}`, {
             method: 'PUT',
+            credentials: 'same-origin',  // ✅ REQUIRED for Flask-Login session
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -544,11 +574,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 start_time: event.start.toISOString(),
                 end_time: event.end.toISOString(),
                 device_id: currentDeviceId,
-                color: event.color || '#3788d8',
+                color: event.backgroundColor || '#3788d8',
                 media_playlist: event.extendedProps.media_playlist
             })
         })
         .then(response => {
+            if (response.status === 401) {
+                alert('Session expired. Please log in again.');
+                window.location.href = '/auth/signin';
+                return;
+            }
             if (!response.ok) {
                 throw new Error('HTTP Error: ' + response.status);
             }
@@ -571,15 +606,19 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDefaultMediaPreview(window.currentDeviceMediaId);
     }
     
-    defaultMediaPreview.addEventListener('click', function() {
-        mediaPickerModal.show();
-    });
+    if (defaultMediaPreview) {
+        defaultMediaPreview.addEventListener('click', function() {
+            mediaPickerModal.show();
+        });
+    }
     
     document.querySelectorAll('.media-picker-item').forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             const mediaId = parseInt(this.dataset.mediaId);
-            defaultMediaSelect.value = mediaId;
+            if (defaultMediaSelect) {
+                defaultMediaSelect.value = mediaId;
+            }
             updateDefaultMediaPreview(mediaId);
             mediaPickerModal.hide();
         });
@@ -621,16 +660,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 </p>
             `;
         }
-        defaultMediaPreview.innerHTML = preview;
+        if (defaultMediaPreview) {
+            defaultMediaPreview.innerHTML = preview;
+        }
     }
     
-    // === SUPPORTING FUNCTIONS ===
+    // === HELPER FUNCTIONS ===
     
     function formatDateTimeLocal(dateStr) {
         // Convert to Date object
         const date = new Date(dateStr);
         
-        // IMPORTANT: Download local time (not UTC)
+        // IMPORTANT: Get local time (not UTC)
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -641,8 +682,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function convertToLocalISO(dateTimeLocalStr) {
-        // Wprowadź: „2025-11-05T14:30” (format datetime-local)
-        // Output: “2025-11-05T14:30:00” (ISO format without conversion to UTC)
+        // Input: "2025-11-05T14:30" (datetime-local format)
+        // Output: "2025-11-05T14:30:00" (ISO format without conversion to UTC)
         
         if (!dateTimeLocalStr) return null;
         
