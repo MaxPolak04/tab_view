@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from flask_restful import Resource
 from sqlalchemy import and_
+from tab_view import limiter
 from tab_view.models import Device, Media, Event, EventMedia, db
 from tab_view.utils import error_response
 from datetime import datetime, timedelta
@@ -14,6 +15,7 @@ class EventResource(Resource):
     """
     REST API for event management
     """
+    @limiter.limit('200 per hour')
     def get(self, event_id=None):
         """
         GET /api/v1/events/ - List of events (filtered by device and date)
@@ -88,6 +90,7 @@ class EventResource(Resource):
             return error_response('Internal server error', 500)
     
 
+    @limiter.limit('200 per hour')
     def post(self):
         """
         POST /api/v1/events/ - Create new event
@@ -213,6 +216,7 @@ class EventResource(Resource):
             return error_response('Internal server error', 500)
 
 
+    @limiter.limit('200 per hour')
     def put(self, event_id):
         """
         PUT /api/v1/events/<id> - Update event
@@ -318,6 +322,7 @@ class EventResource(Resource):
             return error_response('Internal server error', 500)
 
 
+    @limiter.limit('200 per hour')
     def delete(self, event_id):
         """
         DELETE /api/v1/events/<id> - Deletw event

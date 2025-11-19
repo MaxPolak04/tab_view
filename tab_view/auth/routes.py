@@ -2,12 +2,14 @@ from flask import render_template, url_for, redirect, session, flash, current_ap
 from werkzeug.security import check_password_hash
 from flask_login import login_user, logout_user, login_required
 from . import auth_bp
+from tab_view import limiter
 from tab_view.auth.forms import SignInForm
 from tab_view.models import User, db
 from datetime import datetime, timedelta
 
 
 @auth_bp.route('/signin', methods=['GET', 'POST'])
+@limiter.limit("10 per hour")
 def signin():
     form = SignInForm()
 

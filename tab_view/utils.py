@@ -2,6 +2,7 @@ from flask import abort, jsonify
 from sqlalchemy import select, literal
 from sqlalchemy.exc import OperationalError
 from flask_login import current_user, login_required
+from flask_limiter.util import get_remote_address
 from functools import wraps
 import time
 
@@ -42,3 +43,9 @@ def error_response(message, status_code):
     response = jsonify({'error': message})
     response.status_code = status_code
     return response
+
+
+def get_user_or_ip():
+    if current_user.is_authenticated:
+        return str(current_user.id)
+    return get_remote_address()

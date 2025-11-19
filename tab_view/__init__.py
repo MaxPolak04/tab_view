@@ -4,7 +4,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_apscheduler import APScheduler
-from tab_view.utils import wait_for_db
+from flask_limiter import Limiter
+from tab_view.utils import wait_for_db, get_user_or_ip
 from tab_view.config import Config
 import logging
 from logging.handlers import RotatingFileHandler
@@ -16,6 +17,10 @@ migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 scheduler = APScheduler()
+limiter = Limiter(
+    key_func=get_user_or_ip,
+    default_limits=["200 per hour"]
+)
 
 
 def create_app():
@@ -53,6 +58,7 @@ def create_app():
     login_manager.init_app(app)
     csrf.init_app(app)
     scheduler.init_app(app)
+    limiter.init_app(app)
 
 
     login_manager.login_view = 'auth.signin'
@@ -86,6 +92,7 @@ def create_app():
 
 
     @app.route('/')
+    @limiter.exempt
     def index():
         return redirect(url_for('devices.get_all_devices'))
     
