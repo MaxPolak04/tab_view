@@ -120,21 +120,23 @@ def create_app():
         
         def cleanup_old_events():
             """Removes events that ended more than a month ago"""
-            try:
-                cutoff_date = datetime.now() - timedelta(days=30)
-                old_events = Event.query.filter(Event.end_time < cutoff_date).all()
-                
-                deleted_count = len(old_events)
-                
-                for event in old_events:
-                    db.session.delete(event)
-                
-                db.session.commit()
-                print(f"[CLEANUP] Usunięto {deleted_count} starych eventów - {datetime.now()}")
-                
-            except Exception as e:
-                db.session.rollback()
-                print(f"[CLEANUP ERROR] {str(e)}")
+            
+            with app.app_context():
+                try:
+                    cutoff_date = datetime.now() - timedelta(days=30)
+                    old_events = Event.query.filter(Event.end_time < cutoff_date).all()
+                    
+                    deleted_count = len(old_events)
+                    
+                    for event in old_events:
+                        db.session.delete(event)
+                    
+                    db.session.commit()
+                    print(f"[CLEANUP] {deleted_count} old events have been deleted - {datetime.now()}")
+                    
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"[CLEANUP ERROR] {str(e)}")
         
         # Add task - runs daily at 3:00 AM.
         if not scheduler.get_job('cleanup_old_events'):
@@ -148,7 +150,7 @@ def create_app():
         
         # Start the scheduler
         scheduler.start()
-        print("[SCHEDULER] Automatyczne czyszczenie eventów uruchomione")
+        print("[SCHEDULER] Event auto-cleaning enabled")
 
 
     return app

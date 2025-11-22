@@ -8,7 +8,6 @@ flask db upgrade
 zrobić freeze zainstalowanych paczek
 
 TODO:
-- usuwanie eventów po ich ukończeniu
 - synchronizacja z czasem na serwerze
 - testy (pytest i Flask-Testing)
 - role/uprawnienia dla użytkowników (?)
