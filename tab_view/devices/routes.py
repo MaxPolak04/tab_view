@@ -3,7 +3,8 @@ from tab_view import db
 from tab_view.models import Device, Media, Event
 from .forms import NewDevice, UpdateDevice, DeleteDevice
 from flask import request, render_template, flash, redirect, url_for
-from flask_login import login_required
+from tab_view.utils import admin_required
+from flask_login import login_required, current_user
 
 
 @devices_bp.route('/', methods=['GET'])
@@ -62,7 +63,7 @@ def show_device(device_url):
 
 
 @devices_bp.route('/new', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def create_device():
     media_list = Media.query.all()
     if not media_list:
@@ -105,6 +106,10 @@ def update_device(device_id):
         form.media_id.data = device.media_id
 
     if form.validate_on_submit():
+        if not current_user.is_admin:
+            flash('Device settings can only be modified by administrators.', 'warning')
+            return render_template('devices/update-device.html', form=form, device=device, media_list=media_list)
+    
         existing_name = Device.query.filter_by(name=form.name.data).first()
         if existing_name and existing_name.id != device.id:
             flash('This device name is already in use.', 'danger')
@@ -136,7 +141,7 @@ def update_device(device_id):
 
 
 @devices_bp.route('/delete/<device_id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_device(device_id):
     device = Device.query.get_or_404(device_id)
     db.session.delete(device)

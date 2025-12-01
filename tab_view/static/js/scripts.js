@@ -88,8 +88,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // === CALENDAR ===
     calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'timeGridWeek',
-        locale: 'pl',
+        initialView: 'dayGridMonth',
+        locale: 'en',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             fetch(`/api/v1/events/?device_id=${currentDeviceId}`, {
-                credentials: 'same-origin'  // ✅ REQUIRED for Flask-Login session
+                credentials: 'same-origin'  // Required for Flask-Login session
             })
                 .then(response => {
                     if (response.status === 401) {
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         fetch(url, {
             method: method,
-            credentials: 'same-origin',  // ✅ REQUIRED for Flask-Login session
+            credentials: 'same-origin',  // Required for Flask-Login session
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -475,9 +475,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = '/auth/signin';
                 return;
             }
+            // ✅ Handle overlap error (409)
+            if (response.status === 409) {
+                return response.json().then(err => {
+                    throw new Error(err.message || err.error || 'This schedule overlaps with an existing one.');
+                });
+            }
             if (response.status === 415) {
                 return response.json().then(err => {
-                    throw new Error('Invalid Content-Type. Please contact administrator.');
+                    throw new Error('Invalid Content-Type. Please contact the administrator.');
                 });
             }
             if (!response.ok) {
@@ -503,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPlaylist = [];
             document.getElementById('eventForm').reset();
             
-            alert(method === 'PUT' ? 'Schedule updated!' : 'Schedule created!');
+            alert(method === 'PUT' ? 'Schedule updated successfully!' : 'Schedule created successfully!');
         })
         .catch(error => {
             console.error('Error saving event:', error);
@@ -522,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Are you sure you want to delete this schedule?')) {
             fetch(`/api/v1/events/${currentEventId}`, {
                 method: 'DELETE',
-                credentials: 'same-origin'  // ✅ REQUIRED for Flask-Login session
+                credentials: 'same-origin'  // Required for Flask-Login session
             })
             .then(response => {
                 if (response.status === 401) {
@@ -551,7 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentPlaylist = [];
                 document.getElementById('eventForm').reset();
                 
-                alert('Schedule deleted!');
+                alert('Schedule deleted successfully!');
             })
             .catch(error => {
                 console.error('Error deleting event:', error);
@@ -565,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateEventDates(event) {
         fetch(`/api/v1/events/${event.id}`, {
             method: 'PUT',
-            credentials: 'same-origin',  // ✅ REQUIRED for Flask-Login session
+            credentials: 'same-origin',  // Required for Flask-Login session
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -584,6 +590,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = '/auth/signin';
                 return;
             }
+            // ✅ Handle overlap error (409) when dragging
+            if (response.status === 409) {
+                return response.json().then(err => {
+                    throw new Error(err.message || err.error || 'This schedule overlaps with an existing one.');
+                });
+            }
             if (!response.ok) {
                 throw new Error('HTTP Error: ' + response.status);
             }
@@ -592,7 +604,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Event update error:', error);
             calendar.refetchEvents();
-            alert('Error when moving the schedule');
+            alert(error.message || 'Error when moving the schedule');
         });
     }
     
@@ -606,10 +618,13 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDefaultMediaPreview(window.currentDeviceMediaId);
     }
     
-    if (defaultMediaPreview) {
+    if (defaultMediaPreview && window.isAdmin === true) {
+        defaultMediaPreview.style.cursor = 'pointer';
         defaultMediaPreview.addEventListener('click', function() {
             mediaPickerModal.show();
         });
+    } else if (defaultMediaPreview) {
+        defaultMediaPreview.style.cursor = 'default';
     }
     
     document.querySelectorAll('.media-picker-item').forEach(item => {

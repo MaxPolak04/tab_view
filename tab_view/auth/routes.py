@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 
 @auth_bp.route('/signin', methods=['GET', 'POST'])
-@limiter.limit("10 per hour")
+@limiter.limit("5 per minute")
 def signin():
     form = SignInForm()
 

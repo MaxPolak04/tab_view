@@ -92,6 +92,7 @@ def create_app():
     from .media import media_bp
     from .users import users_bp
     from .events import events_bp
+    from .maintenance import maintenance_bp
     from .errors import errors_bp
 
 
@@ -100,6 +101,7 @@ def create_app():
     app.register_blueprint(media_bp, url_prefix='/media')
     app.register_blueprint(users_bp, url_prefix='/users')
     app.register_blueprint(events_bp, url_prefix='/api/v1/events')
+    app.register_blueprint(maintenance_bp, url_prefix='/maintenance')
     # app.register_blueprint(errors_bp, url_prefix='/error')
 
 
@@ -114,43 +116,6 @@ def create_app():
 
     with app.app_context():
         wait_for_db(app)
-
-        from datetime import datetime, timedelta
-        from .models import Event
-        
-        def cleanup_old_events():
-            """Removes events that ended more than a month ago"""
-            
-            with app.app_context():
-                try:
-                    cutoff_date = datetime.now() - timedelta(days=30)
-                    old_events = Event.query.filter(Event.end_time < cutoff_date).all()
-                    
-                    deleted_count = len(old_events)
-                    
-                    for event in old_events:
-                        db.session.delete(event)
-                    
-                    db.session.commit()
-                    print(f"[CLEANUP] {deleted_count} old events have been deleted - {datetime.now()}")
-                    
-                except Exception as e:
-                    db.session.rollback()
-                    print(f"[CLEANUP ERROR] {str(e)}")
-        
-        # Add task - runs daily at 3:00 AM.
-        if not scheduler.get_job('cleanup_old_events'):
-            scheduler.add_job(
-                id='cleanup_old_events',
-                func=cleanup_old_events,
-                trigger='cron',
-                hour=3,
-                minute=0
-            )
-        
-        # Start the scheduler
-        scheduler.start()
-        print("[SCHEDULER] Event auto-cleaning enabled")
 
 
     return app

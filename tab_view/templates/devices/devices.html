@@ -34,7 +34,11 @@
     <div class="container">
         <div class="row mb-3">
             <div class="col-md-12">
-                <a class="btn btn-primary btn-lg float-end mb-5" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
+                {% if current_user.is_admin %}
+                    <a class="btn btn-primary btn-lg float-end mb-5" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
+                {% else %}
+                    <a class="btn btn-primary btn-lg float-end mb-5 disabled" role="button">Create New Device</a>
+                {% endif %}
             </div>
         </div>
         <div class="devices-grid">
@@ -47,7 +51,11 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ url_for('devices.update_device', device_id=device.id) }}">Update</a></li>
-                                <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteDeviceModal{{ device.id }}" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">Delete</button></li>
+                                {% if current_user.is_admin %}
+                                    <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteDeviceModal{{ device.id }}" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">Delete</button></li>
+                                {% else %}
+                                    <li><button type="button" class="dropdown-item disabled" data-bs-toggle="modal" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">Delete</button></li>
+                                {% endif %}
                             </ul>
                         </div>
                         {% if device.media.media_type == 'image' %}

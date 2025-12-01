@@ -1,13 +1,10 @@
 from werkzeug.security import generate_password_hash
-from werkzeug.utils import secure_filename
-from flask import redirect, url_for, render_template, current_app, flash, request
-from flask_login import login_required
+from flask import redirect, url_for, render_template, flash, request
 from . import users_bp
 from .forms import CreateUserForm, UpdateUserForm, DeleteUserForm
-from tab_view import db, csrf
+from tab_view import db
 from tab_view.models import User
-from tab_view.utils import detect_type, admin_required
-import os
+from tab_view.utils import admin_required
 
 
 @users_bp.route('/')

@@ -1,0 +1,90 @@
+{% extends 'layout/base.html' %}
+
+
+
+{% block title %}Cleanup old events{% endblock %}
+
+
+
+{% block content %}
+<h1 class="main-heading display-5">Cleanup old events</h1>
+<div class="container">
+    <form action="{{ url_for('maintenance.cleanup_events_view') }}" class="form" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.years.label(class="form-label") }}
+            {{ form.years(class="form-control", min=0) }}
+            {% for error in form.years.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.months.label(class="form-label") }}
+            {{ form.months(class="form-control", min=0, max=11) }}
+            <small class="text-muted">0–11 months.</small>
+            {% for error in form.months.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-check mb-3">
+            {{ form.dry_run(class="form-check-input", id="dryRun") }}
+            {{ form.dry_run.label(class="form-check-label", for="dryRun") }}
+        </div>
+        {{ form.submit(class="btn btn-danger btn-lg") }}
+    </form>
+
+
+    {% if cutoff_date %}
+        <div class="alert {{ 'alert-info' if dry_run_result else 'alert-success' }} mt-3">
+            <h6 class="alert-heading">
+                {% if dry_run_result %}
+                    <i class="bi bi-eye"></i> Preview result
+                {% else %}
+                    <i class="bi bi-check-circle"></i> Cleanup completed
+                {% endif %}
+            </h6>
+            <p class="mb-1">
+                Events with <strong>end time earlier than {{ cutoff_date.strftime('%Y-%m-%d %H:%M') }}</strong> 
+                ({% if form.years.data %}{{ form.years.data }} year{{ 's' if form.years.data != 1 }}{% endif %}
+                {% if form.months.data %}{{ form.months.data }} month{{ 's' if form.months.data != 1 }}{% endif %} ago)
+                will{% if dry_run_result %} would{% endif %} be affected.
+            </p>
+            <p class="mb-0">
+                <strong>{{ affected_count }}</strong> events match this condition.
+                {% if dry_run_result %}
+                    <strong>No events were deleted</strong> (preview mode).
+                {% else %}
+                    <strong>All matching events have been deleted</strong>.
+                {% endif %}
+            </p>
+
+            {% if dry_run_result and events_to_delete %}
+                <hr>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm table-striped table-hover">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Title</th>
+                                <th>Start time</th>
+                                <th>End time</th>
+                                <th>Device ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for event in events_to_delete %}
+                            <tr>
+                                <td>{{ event.title }}</td>
+                                <td>{{ event.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ event.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ event.device_id }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

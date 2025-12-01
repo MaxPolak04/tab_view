@@ -8,9 +8,7 @@ from tab_view.utils import error_response
 from datetime import datetime, timedelta
 import logging
 
-
 logger = logging.getLogger(__name__)
-
 
 class EventResource(Resource):
     """
@@ -91,7 +89,6 @@ class EventResource(Resource):
             logger.error(f"Error in GET /events: {e}", exc_info=True)
             return error_response('Internal server error', 500)
     
-
     @login_required
     @limiter.limit('200 per hour')
     def post(self):
@@ -114,7 +111,6 @@ class EventResource(Resource):
             ]
         }
         """
-        
         try:
             data = request.get_json()
             
@@ -156,7 +152,7 @@ class EventResource(Resource):
             if start_time >= end_time:
                 return error_response('End time must be after start time', 400)
             
-            # Check overlapping events
+            #  Check overlapping events - BLOCK if overlap exists
             overlapping = Event.query.filter(
                 Event.device_id == data['device_id'],
                 Event.start_time < end_time,
@@ -164,16 +160,19 @@ class EventResource(Resource):
             ).first()
             
             if overlapping:
-                logger.warning(f"Overlapping event: {overlapping.id}")
-                # return error_response('Event overlaps with existing event', 409)
+                logger.warning(f"Overlapping event detected: {overlapping.id}")
+                return error_response(
+                    f'This schedule overlaps with existing event "{overlapping.title}"', 
+                    409
+                )
             
-            # create event
+            # Create event
             new_event = Event(
                 title=data['title'].strip(),
                 start_time=start_time,
                 end_time=end_time,
                 device_id=data['device_id'],
-                color=data.get('color', data['color'])
+                color=data.get('color', '#3788d8')
             )
             db.session.add(new_event)
             db.session.flush()  # Get the ID without committing
@@ -207,7 +206,7 @@ class EventResource(Resource):
                 db.session.add(event_media)
             
             db.session.commit()
-            logger.info(f"Event {new_event.id} has been created: {new_event.title}")
+            logger.info(f"Event {new_event.id} created successfully: {new_event.title}")
             
             return {
                 'message': 'Event created successfully',
@@ -218,7 +217,6 @@ class EventResource(Resource):
             db.session.rollback()
             logger.error(f"Error in POST /events: {e}", exc_info=True)
             return error_response('Internal server error', 500)
-
 
     @login_required
     @limiter.limit('200 per hour')
@@ -252,7 +250,7 @@ class EventResource(Resource):
                     return error_response('Title is too long (max 50 characters)', 400)
                 event.title = data['title'].strip()
             
-            # Update date
+            # Update dates
             if 'start_time' in data:
                 try:
                     event.start_time = datetime.fromisoformat(data['start_time'].replace('Z', ''))
@@ -268,6 +266,21 @@ class EventResource(Resource):
             # Date logic validation
             if event.start_time >= event.end_time:
                 return error_response('End time must be after start time', 400)
+            
+            # Check overlapping events when updating (exclude current event)
+            overlapping = Event.query.filter(
+                Event.device_id == event.device_id,
+                Event.id != event.id,
+                Event.start_time < event.end_time,
+                Event.end_time > event.start_time
+            ).first()
+            
+            if overlapping:
+                logger.warning(f"Overlapping event detected on update: {overlapping.id}")
+                return error_response(
+                    f'This schedule overlaps with existing event "{overlapping.title}"', 
+                    409
+                )
             
             # Update color
             if 'color' in data:
@@ -314,7 +327,7 @@ class EventResource(Resource):
                     db.session.add(event_media)
             
             db.session.commit()
-            logger.info(f"Event {event.id} has been updated.")
+            logger.info(f"Event {event.id} updated successfully")
             
             return {
                 'message': 'Event updated successfully',
@@ -326,12 +339,11 @@ class EventResource(Resource):
             logger.error(f"Error in PUT /events/{event_id}: {e}", exc_info=True)
             return error_response('Internal server error', 500)
 
-
     @login_required
     @limiter.limit('200 per hour')
     def delete(self, event_id):
         """
-        DELETE /api/v1/events/<id> - Deletw event
+        DELETE /api/v1/events/<id> - Delete event
         """
         try:
             event = Event.query.get(event_id)
@@ -342,10 +354,10 @@ class EventResource(Resource):
             db.session.delete(event)  # EventMedia will be removed by cascade
             db.session.commit()
             
-            logger.info(f"Event {event_id} has been deleted.: {event_title}")
+            logger.info(f"Event {event_id} deleted successfully: {event_title}")
             
             return {
-                'message': f'Event deleted successfully',
+                'message': 'Event deleted successfully',
                 'event_id': event_id
             }, 200
             
