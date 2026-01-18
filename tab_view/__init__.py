@@ -23,11 +23,11 @@ limiter = Limiter(
 )
 
 
-def create_app():
+def create_app(config_class=Config):
     """Create and configure the Flask application"""
 
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
 
 
     # Logging configuration
@@ -114,8 +114,9 @@ def create_app():
         return redirect(url_for('devices.get_all_devices'))
     
 
-    with app.app_context():
-        wait_for_db(app)
+    if not app.config.get("TESTING"):
+        with app.app_context():
+            wait_for_db(app)
 
 
     return app
