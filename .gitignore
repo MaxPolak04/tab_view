@@ -4,5 +4,5 @@ myenv/
 __pycache__/
 .pytest_cache/
 logs/
-uploads/*
-!uploads/.gitkeep
+tab_view/static/uploads/*
+!tab_view/static/uploads/.gitkeep
