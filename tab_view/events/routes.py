@@ -1,30 +1,28 @@
-from flask import request, jsonify
+import logging
+from flask import request
 from flask_restful import Resource
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import and_
 from tab_view import limiter
 from tab_view.models import Device, Media, Event, EventMedia, db
 from tab_view.utils import error_response
 from datetime import datetime, timedelta
-import logging
+
 
 logger = logging.getLogger(__name__)
+
 
 class EventResource(Resource):
     """
     REST API for event management
     """
+
     @login_required
     @limiter.limit('200 per hour')
     def get(self, event_id=None):
         """
-        GET /api/v1/events/ - List of events (filtered by device and date)
+        GET /api/v1/events/ - List of events
         GET /api/v1/events/<id> - Single event
-        
-        Query params:
-        - device_id: int - filter by device
-        - start: ISO date - start of range (default: first day of the current month)
-        - end: ISO date - end of range (default: last day of the current month)
         """
         try:
             # Single event
@@ -51,24 +49,20 @@ class EventResource(Resource):
                     end_of_month = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
                 end_of_month = end_of_month.replace(hour=23, minute=59, second=59)
             else:
-                # Parse parameters from FullCalendar
                 try:
                     start_of_month = datetime.fromisoformat(start_param.replace('Z', ''))
                     end_of_month = datetime.fromisoformat(end_param.replace('Z', ''))
                 except (ValueError, AttributeError) as e:
-                    logger.error(f"Date parsing error: {e}")
+                    logger.error(f"Date parsing error in GET /events: {e}")
                     return error_response('Invalid date format. Use ISO 8601 format.', 400)
             
-            # Build a query
             query = Event.query
             
-            # Filter by device
             if device_id:
                 if not Device.query.get(device_id):
                     return error_response(f'Device with id {device_id} not found', 404)
                 query = query.filter(Event.device_id == device_id)
             
-            # Filter by date range (events that fall within the selected range)
             query = query.filter(
                 and_(
                     Event.start_time <= end_of_month,
@@ -76,13 +70,11 @@ class EventResource(Resource):
                 )
             )
             
-            # Sort by start date
             query = query.order_by(Event.start_time.asc())
             
             events = query.all()
             result = [event.to_dict() for event in events]
             
-            logger.info(f"{len(result)} events downloaded for device_id={device_id}, range: {start_of_month} - {end_of_month}")
             return result, 200
             
         except Exception as e:
@@ -94,22 +86,6 @@ class EventResource(Resource):
     def post(self):
         """
         POST /api/v1/events/ - Create new event
-        
-        Body JSON:
-        {
-            "title": str,
-            "start_time": ISO datetime,
-            "end_time": ISO datetime,
-            "device_id": int,
-            "color": str (hex color),
-            "media_playlist": [
-                {
-                    "media_id": int,
-                    "order": int,
-                    "duration": int
-                }
-            ]
-        }
         """
         try:
             data = request.get_json()
@@ -117,42 +93,35 @@ class EventResource(Resource):
             if not data:
                 return error_response('Request body must be JSON', 400)
             
-            # Validation of required fields
             required_fields = ['title', 'start_time', 'end_time', 'device_id', 'media_playlist']
             missing_fields = [field for field in required_fields if not data.get(field)]
             
             if missing_fields:
                 return error_response(f'Missing required fields: {", ".join(missing_fields)}', 400)
             
-            # Validation title
             if not isinstance(data['title'], str) or len(data['title'].strip()) == 0:
                 return error_response('Title must be a non-empty string', 400)
             
             if len(data['title']) > 50:
                 return error_response('Title is too long (max 50 characters)', 400)
             
-            # Playlist validation
             if not isinstance(data['media_playlist'], list) or len(data['media_playlist']) == 0:
                 return error_response('Playlist must be a non-empty array', 400)
             
-            # Device validation
             device = Device.query.get(data['device_id'])
             if not device:
                 return error_response(f'Device with id {data["device_id"]} not found', 404)
             
-            # Date parsing
             try:
                 start_time = datetime.fromisoformat(data['start_time'].replace('Z', ''))
                 end_time = datetime.fromisoformat(data['end_time'].replace('Z', ''))
-            except (ValueError, AttributeError) as e:
-                logger.error(f"Date parsing error: {e}")
+            except (ValueError, AttributeError):
                 return error_response('Invalid date format. Use ISO 8601 format.', 400)
             
-            # Date logic validation
             if start_time >= end_time:
                 return error_response('End time must be after start time', 400)
             
-            #  Check overlapping events - BLOCK if overlap exists
+            # Check overlapping
             overlapping = Event.query.filter(
                 Event.device_id == data['device_id'],
                 Event.start_time < end_time,
@@ -160,7 +129,10 @@ class EventResource(Resource):
             ).first()
             
             if overlapping:
-                logger.warning(f"Overlapping event detected: {overlapping.id}")
+                logger.warning(
+                    f"Event creation blocked - Overlap detected for Device {data['device_id']}: "
+                    f"'{overlapping.title}' (User: {current_user.id})"
+                )
                 return error_response(
                     f'This schedule overlaps with existing event "{overlapping.title}"', 
                     409
@@ -175,9 +147,9 @@ class EventResource(Resource):
                 color=data.get('color', '#3788d8')
             )
             db.session.add(new_event)
-            db.session.flush()  # Get the ID without committing
+            db.session.flush()
             
-            # Add media to playlist
+            # Add playlist
             for idx, item in enumerate(data['media_playlist']):
                 if not isinstance(item, dict):
                     db.session.rollback()
@@ -192,7 +164,6 @@ class EventResource(Resource):
                     db.session.rollback()
                     return error_response(f'Media with id {item["media_id"]} not found', 404)
                 
-                # Duration validation
                 duration = item.get('duration', 10)
                 if not isinstance(duration, int) or duration < 1 or duration > 300:
                     duration = 10
@@ -206,7 +177,11 @@ class EventResource(Resource):
                 db.session.add(event_media)
             
             db.session.commit()
-            logger.info(f"Event {new_event.id} created successfully: {new_event.title}")
+            
+            logger.info(
+                f"Event created: '{new_event.title}' (ID: {new_event.id}) "
+                f"for Device {data['device_id']} by User {current_user.id}"
+            )
             
             return {
                 'message': 'Event created successfully',
@@ -223,15 +198,6 @@ class EventResource(Resource):
     def put(self, event_id):
         """
         PUT /api/v1/events/<id> - Update event
-        
-        Body JSON: (all optional fields)
-        {
-            "title": str,
-            "start_time": ISO datetime,
-            "end_time": ISO datetime,
-            "color": str,
-            "media_playlist": [...]
-        }
         """
         try:
             event = Event.query.get(event_id)
@@ -263,11 +229,10 @@ class EventResource(Resource):
                 except (ValueError, AttributeError):
                     return error_response('Invalid end_time format', 400)
             
-            # Date logic validation
             if event.start_time >= event.end_time:
                 return error_response('End time must be after start time', 400)
             
-            # Check overlapping events when updating (exclude current event)
+            # Check overlapping
             overlapping = Event.query.filter(
                 Event.device_id == event.device_id,
                 Event.id != event.id,
@@ -276,7 +241,10 @@ class EventResource(Resource):
             ).first()
             
             if overlapping:
-                logger.warning(f"Overlapping event detected on update: {overlapping.id}")
+                logger.warning(
+                    f"Event update blocked - Overlap detected for Device {event.device_id}: "
+                    f"'{overlapping.title}' (User: {current_user.id})"
+                )
                 return error_response(
                     f'This schedule overlaps with existing event "{overlapping.title}"', 
                     409
@@ -296,10 +264,8 @@ class EventResource(Resource):
                 if len(data['media_playlist']) == 0:
                     return error_response('Playlist cannot be empty', 400)
                 
-                # Delete old playlist
                 EventMedia.query.filter_by(event_id=event.id).delete()
                 
-                # Add new playlist
                 for idx, item in enumerate(data['media_playlist']):
                     if not isinstance(item, dict):
                         db.session.rollback()
@@ -327,7 +293,11 @@ class EventResource(Resource):
                     db.session.add(event_media)
             
             db.session.commit()
-            logger.info(f"Event {event.id} updated successfully")
+            
+            logger.info(
+                f"Event updated: '{event.title}' (ID: {event.id}) "
+                f"by User {current_user.id}"
+            )
             
             return {
                 'message': 'Event updated successfully',
@@ -351,10 +321,15 @@ class EventResource(Resource):
                 return error_response(f'Event with id {event_id} not found', 404)
             
             event_title = event.title
-            db.session.delete(event)  # EventMedia will be removed by cascade
+            event_id_val = event.id
+            
+            db.session.delete(event)
             db.session.commit()
             
-            logger.info(f"Event {event_id} deleted successfully: {event_title}")
+            logger.info(
+                f"Event deleted: '{event_title}' (ID: {event_id_val}) "
+                f"by User {current_user.id}"
+            )
             
             return {
                 'message': 'Event deleted successfully',
@@ -365,3 +340,4 @@ class EventResource(Resource):
             db.session.rollback()
             logger.error(f"Error in DELETE /events/{event_id}: {e}", exc_info=True)
             return error_response('Internal server error', 500)
+        
