@@ -6,7 +6,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_apscheduler import APScheduler
 from flask_limiter import Limiter
 from tab_view.utils import wait_for_db, get_user_or_ip
-from tab_view.config import Config
+from tab_view.config import ProductionConfig
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -23,7 +23,7 @@ limiter = Limiter(
 )
 
 
-def create_app(config_class=Config):
+def create_app(config_class=ProductionConfig):
     """Create and configure the Flask application"""
 
     app = Flask(__name__)
@@ -31,7 +31,7 @@ def create_app(config_class=Config):
 
 
     # Logging configuration
-    if not app.debug:
+    if isinstance(config_class, ProductionConfig):
         if not os.path.exists('logs'):
             os.mkdir('logs')
         

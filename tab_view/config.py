@@ -3,19 +3,57 @@ from tab_view.utils import str_to_bool
 import os
 
 
-load_dotenv()
+load_dotenv(override=False)
 
 
 class Config:
-    """Base Configuration"""
+    """
+    Base configuration class.
+
+    Common settings shared across all environments:
+    - SECRET_KEY: Flask secret key for sessions and CSRF
+    - SQLALCHEMY_DATABASE_URI: Database connection string
+    """
+
     SECRET_KEY = os.getenv('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    SQLALCHEMY_TRACK_MODIFICATIONS = str_to_bool(os.getenv('DATABASE_TRACK_MODIFICATIONS', 'False'))
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    if not SECRET_KEY:
+        raise RuntimeError('SECRET_KEY is not set')
+
+    if not SQLALCHEMY_DATABASE_URI:
+        raise RuntimeError('DATABASE_URL is not set')
+    
+
+class ProductionConfig(Config):
+    """
+    Production configuration.
+
+    - Debugging disabled
+    - Relies on environment variables
+    - Intended to be run via Gunicorn
+    """
+    
+    DEBUG = False
+    TESTING = False
 
 
-class TestingConfig(Config):
+class TestingConfig:
+    """
+    Configuration used for automated tests.
+
+    Uses in-memory SQLite database and disables:
+    - CSRF protection
+    - Authentication
+    - Rate limiting
+    - Scheduler
+    """
+
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SECRET_KEY = 'test-secret'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
     LOGIN_DISABLED = True
     RATELIMIT_ENABLED = False
