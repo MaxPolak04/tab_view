@@ -7,3 +7,4 @@ __pycache__/
 logs/
 tab_view/static/uploads/*
 !tab_view/static/uploads/.gitkeep
+!tab_view/static/uploads/default.jpg

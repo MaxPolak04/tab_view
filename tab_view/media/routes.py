@@ -110,7 +110,7 @@ def update_media(media_id):
             
         except FileNotFoundError:
             logger.warning(f"Rename failed - physical file missing: {old_path} (User: {current_user.id})")
-            flash('Nie znaleziono pliku fizycznego do zmiany nazwy.', 'warning')
+            flash('Physical file not found for renaming.', 'warning')
             return redirect(url_for('media.update_media', media_id=media.id))
         except Exception as e:
             logger.error(f"Error renaming file {media.filename}: {str(e)} (User: {current_user.id})")
@@ -127,7 +127,7 @@ def delete_media(media_id):
 
     if media_id == 1:
         logger.warning(f"User {current_user.id} attempted to delete DEFAULT media (ID 1) - Action blocked")
-        flash('Nie można usunąć domyślnego obrazka.', 'danger')
+        flash('Cannot delete the default image.', 'danger')
         return redirect(url_for('media.get_all_media'))
     
     media = Media.query.get_or_404(media_id)
@@ -152,16 +152,16 @@ def delete_media(media_id):
             logger.warning(f"Physical file not found: {filename}")
         
         logger.info(f"Media deleted successfully: {filename} (ID: {media_id})")
-        flash('Plik został usunięty pomyślnie.', 'success')
+        flash('File deleted successfully.', 'success')
 
     except IntegrityError:
         db.session.rollback()
         logger.warning(f"Delete failed: Media {media_id} is in use elsewhere (IntegrityError).")
-        flash('Nie można usunąć tego pliku, ponieważ jest on przypisany do Wydarzenia (Events). Usuń powiązanie w wydarzeniu najpierw.', 'danger')
+        flash('Cannot delete this file because it is assigned to an Event. Please remove the association in the event first.', 'danger')
 
     except Exception as e:
         db.session.rollback()
         logger.error(f"Critical error during media deletion ID {media_id}: {str(e)}")
-        flash(f'Wystąpił nieoczekiwany błąd: {str(e)}', 'danger')
+        flash(f'An unexpected error occurred: {str(e)}', 'danger')
 
     return redirect(url_for('media.get_all_media'))
