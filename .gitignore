@@ -1,8 +1,9 @@
-myenv/
+.venv/
 .env
 .flaskenv
 __pycache__/
 .pytest_cache/
+*.pyc
 logs/
 tab_view/static/uploads/*
 !tab_view/static/uploads/.gitkeep

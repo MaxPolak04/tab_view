@@ -10,7 +10,6 @@ zrobić freeze zainstalowanych paczek
 ## TODO:
 - dokończyć testy
 - upiększyć (pozmieniać kolory na te od eNki, większe teksty w inputach)
-- środowisko wirtualne uv (?)
 
 
 ## Funkcje:

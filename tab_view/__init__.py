@@ -85,7 +85,7 @@ def create_app(config_class=ProductionConfig):
     app.register_blueprint(users_bp, url_prefix='/users')
     app.register_blueprint(events_bp, url_prefix='/api/v1/events')
     app.register_blueprint(maintenance_bp, url_prefix='/maintenance')
-    # app.register_blueprint(errors_bp)
+    app.register_blueprint(errors_bp)
 
 
     csrf.exempt(events_bp)
