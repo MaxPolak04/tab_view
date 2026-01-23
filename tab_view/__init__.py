@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, redirect, url_for, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -5,11 +6,8 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_apscheduler import APScheduler
 from flask_limiter import Limiter
-from tab_view.utils import wait_for_db, get_user_or_ip
-from tab_view.config import Config
-import logging
-from logging.handlers import RotatingFileHandler
-import os
+from tab_view.utils import wait_for_db, get_user_or_ip, configure_logging
+from tab_view.config import ProductionConfig
 
 
 db = SQLAlchemy()
@@ -23,32 +21,14 @@ limiter = Limiter(
 )
 
 
-def create_app(config_class=Config):
+def create_app(config_class=ProductionConfig):
     """Create and configure the Flask application"""
 
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-
-    # Logging configuration
-    if not app.debug:
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
-        
-        file_handler = RotatingFileHandler(
-            'logs/tab_view.log', 
-            maxBytes=10240000,  # 10MB
-            backupCount=10
-        )
-        file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-        ))
-        file_handler.setLevel(logging.INFO)
-        app.logger.addHandler(file_handler)
-        
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('Tab View startup')
-
+    configure_logging(app)    
+    app.logger.info("Application starting up...")
 
     app.config['SCHEDULER_API_ENABLED'] = False
 
@@ -67,7 +47,10 @@ def create_app(config_class=Config):
 
     @login_manager.unauthorized_handler
     def unauthorized():
-        # Check if request is to API endpoint
+        client_ip = request.remote_addr
+        requested_path = request.path
+        app.logger.warning(f"Unauthorized access attempt to '{requested_path}' from IP: {client_ip}")
+
         if request.path.startswith('/api/'):
             response = jsonify({
                 'error': 'Unauthorized',
@@ -102,7 +85,7 @@ def create_app(config_class=Config):
     app.register_blueprint(users_bp, url_prefix='/users')
     app.register_blueprint(events_bp, url_prefix='/api/v1/events')
     app.register_blueprint(maintenance_bp, url_prefix='/maintenance')
-    # app.register_blueprint(errors_bp, url_prefix='/error')
+    app.register_blueprint(errors_bp)
 
 
     csrf.exempt(events_bp)
@@ -117,6 +100,7 @@ def create_app(config_class=Config):
     if not app.config.get("TESTING"):
         with app.app_context():
             wait_for_db(app)
+            app.logger.info("Application initialization complete. Database ready.")
 
 
     return app

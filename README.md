@@ -8,11 +8,8 @@ flask db upgrade
 zrobić freeze zainstalowanych paczek
 
 ## TODO:
-- synchronizacja z czasem na serwerze NTP (nie warto)
-- testy (pytest i Flask-Testing)
+- dokończyć testy
 - upiększyć (pozmieniać kolory na te od eNki, większe teksty w inputach)
-- dodać brakujące linki do nav
-- dodać logi (?)
 
 
 ## Funkcje:

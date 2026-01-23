@@ -1,4 +1,10 @@
-myenv/
+.venv/
 .env
+.flaskenv
 __pycache__/
-uploads/*
+.pytest_cache/
+*.pyc
+logs/
+tab_view/static/uploads/*
+!tab_view/static/uploads/.gitkeep
+!tab_view/static/uploads/default.jpg

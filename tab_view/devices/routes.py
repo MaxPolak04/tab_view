@@ -1,10 +1,14 @@
+import logging
+from flask import request, render_template, flash, redirect, url_for
+from flask_login import login_required, current_user
 from . import devices_bp
 from tab_view import db
 from tab_view.models import Device, Media, Event
 from .forms import NewDevice, UpdateDevice, DeleteDevice
-from flask import request, render_template, flash, redirect, url_for
 from tab_view.utils import admin_required
-from flask_login import login_required, current_user
+
+
+logger = logging.getLogger(__name__)
 
 
 @devices_bp.route('/', methods=['GET'])
@@ -30,7 +34,6 @@ def show_device(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
     media = device.media
 
-    # Download events with media playlist
     events = Event.query.filter_by(device_id=device.id).all()
 
     schedule = []
@@ -77,23 +80,35 @@ def create_device():
         name = form.name.data
         device_url = form.device_url.data
         media_id = form.media_id.data
+        
+        try:
+            new_device = Device(name=name, device_url=device_url, media_id=media_id)
+            db.session.add(new_device)
+            db.session.commit()
 
-        new_device = Device(name=name, device_url=device_url, media_id=media_id)
-        db.session.add(new_device)
-        db.session.commit()
-        flash('Device added successfully!', 'success')
-        return redirect(url_for('devices.get_all_devices'))
+            logger.info(
+                f"Device created: {new_device.name} (ID: {new_device.id}) "
+                f"URL: {new_device.device_url} by User {current_user.id}"
+            )
+
+            flash('Device added successfully!', 'success')
+            return redirect(url_for('devices.get_all_devices'))
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error creating device '{name}': {str(e)} (User: {current_user.id})")
+            flash(f"Error creating device: {str(e)}", "danger")
+
     return render_template('devices/new-device.html', form=form)
 
 
-@devices_bp.route('/update/<device_id>', methods=['GET', 'POST'])
+@devices_bp.route('/update/<int:device_id>', methods=['GET', 'POST'])
 @login_required
 def update_device(device_id):
     device = Device.query.get_or_404(device_id)
     media_list = Media.query.all()
 
     if not media_list:
-        flash("No media available. Add a file before creating the device.", "warning")
+        flash("No media available. Add a file before updating the device.", "warning")
         return redirect(url_for('media.new_media'))
     
     form = UpdateDevice(obj=device)
@@ -107,26 +122,51 @@ def update_device(device_id):
 
     if form.validate_on_submit():
         if not current_user.is_admin:
+            logger.warning(
+                f"Unauthorized device update attempt: Device ID {device.id} "
+                f"by non-admin User {current_user.id}"
+            )
             flash('Device settings can only be modified by administrators.', 'warning')
             return render_template('devices/update-device.html', form=form, device=device, media_list=media_list)
-    
+
         existing_name = Device.query.filter_by(name=form.name.data).first()
         if existing_name and existing_name.id != device.id:
+            logger.warning(
+                f"Update failed - duplicate name '{form.name.data}' "
+                f"for Device ID {device.id} (User: {current_user.id})"
+            )
             flash('This device name is already in use.', 'danger')
             return redirect(url_for('devices.update_device', device_id=device.id))
 
         existing_url = Device.query.filter_by(device_url=form.device_url.data).first()
         if existing_url and existing_url.id != device.id:
+            logger.warning(
+                f"Update failed - duplicate URL '{form.device_url.data}' "
+                f"for Device ID {device.id} (User: {current_user.id})"
+            )
             flash('This URL is already assigned to another device.', 'danger')
             return redirect(url_for('devices.update_device', device_id=device.id))
 
-        device.name = form.name.data
-        device.device_url = form.device_url.data
-        device.media_id = form.media_id.data
+        try:
+            old_name = device.name
+            device.name = form.name.data
+            device.device_url = form.device_url.data
+            device.media_id = form.media_id.data
 
-        db.session.commit()
-        flash('Device updated successfully!', 'success')
-        return redirect(url_for('devices.get_all_devices'))
+            db.session.commit()
+
+            logger.info(
+                f"Device updated: {old_name} -> {device.name} (ID: {device.id}) "
+                f"by User {current_user.id}"
+            )
+
+            flash('Device updated successfully!', 'success')
+            return redirect(url_for('devices.get_all_devices'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error updating device ID {device.id}: {str(e)} (User: {current_user.id})")
+            flash(f"Error updating device: {str(e)}", "danger")
     
     return render_template(
         'devices/update-device.html', 
@@ -140,11 +180,28 @@ def update_device(device_id):
     )
 
 
-@devices_bp.route('/delete/<device_id>', methods=['POST'])
+@devices_bp.route('/delete/<int:device_id>', methods=['POST'])
 @admin_required
 def delete_device(device_id):
+    logger.info(f"User {current_user.id} requesting deletion of device ID {device_id}")
+
     device = Device.query.get_or_404(device_id)
-    db.session.delete(device)
-    db.session.commit()
-    flash('Device deleted successfully!', 'success')
+    device_name = device.name
+
+    try:
+        db.session.delete(device)
+        db.session.commit()
+
+        logger.info(
+            f"Device deleted from DB: {device_name} (ID: {device_id}) "
+            f"by User {current_user.id}"
+        )
+
+        flash('Device deleted successfully!', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Critical error deleting device ID {device_id}: {str(e)} (User: {current_user.id})")
+        flash(f"Error deleting device: {str(e)}", "danger")
+
     return redirect(url_for('devices.get_all_devices'))

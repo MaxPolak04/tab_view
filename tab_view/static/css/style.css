@@ -218,31 +218,16 @@ main {
   transition: opacity 0.5s ease-out;
 }
 
-.error-box {
-    max-width: 45em;
+/* Error */
+.bi-geo-alt-fill, .bi-shield-lock-fill, .bi-hdd-network-fill, .bi-exclamation-triangle-fill {
+    display: inline-block;
+    animation: float 3s ease-in-out infinite;
 }
 
-.error-heading {
-    margin-bottom: 1em;
-    padding: 0;
-    color: #dc3545;
-}
-
-.error-text {
-    font-size: 2.5rem;
-}
-
-.flex-box {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 80vh;
-}
-
-.readonly-preview {
-    cursor: default !important;
-    pointer-events: none;
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
 }
 
 
