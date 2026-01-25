@@ -1,12 +1,5 @@
 # TabView
 
-How to init migration:
-flask db init
-flask db migrate
-flask db upgrade
-
-zrobić freeze zainstalowanych paczek
-
 ## TODO:
 - dokończyć testy
 - upiększyć (pozmieniać kolory na te od eNki, większe teksty w inputach)
