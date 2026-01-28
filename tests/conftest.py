@@ -9,13 +9,15 @@ from tab_view.models import User
 def app():
     """
     Creates an application instance for the entire test module.
+    Pushes an application context so url_for and other Flask helpers work in tests.
     """
     app = create_app(TestingConfig)
-    return app
+    with app.app_context():
+        yield app
 
 
-@pytest.fixture(scope='module')
-def test_client(app):
+@pytest.fixture(scope='function')
+def client(app):
     """
     A client for testing HTTP endpoints.
     """

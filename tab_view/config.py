@@ -51,10 +51,11 @@ class TestingConfig:
     """
 
     TESTING = True
+    SERVER_NAME = 'localhost.localdomain'
     SECRET_KEY = 'test-secret'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
-    LOGIN_DISABLED = True
+    LOGIN_DISABLED = False
     RATELIMIT_ENABLED = False
     SCHEDULER_API_ENABLED = False
