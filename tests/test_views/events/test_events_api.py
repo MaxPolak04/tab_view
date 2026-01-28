@@ -1,6 +1,5 @@
-import pytest
-from datetime import datetime, timedelta, timezone
-from tab_view.models import Device, Event, Media, EventMedia
+from datetime import datetime, timedelta
+from tab_view.models import Device, Event, Media
 
 # --- ACCESS CONTROL TESTS ---
 

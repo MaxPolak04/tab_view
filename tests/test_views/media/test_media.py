@@ -1,4 +1,3 @@
-import pytest
 import os
 import io
 from flask import url_for

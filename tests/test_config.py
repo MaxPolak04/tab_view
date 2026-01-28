@@ -1,5 +1,4 @@
-import os
-from tab_view.config import TestingConfig, ProductionConfig
+from tab_view.config import ProductionConfig
 from tab_view import create_app
 
 

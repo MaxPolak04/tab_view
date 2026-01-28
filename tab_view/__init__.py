@@ -1,4 +1,3 @@
-import logging
 from flask import Flask, redirect, url_for, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate

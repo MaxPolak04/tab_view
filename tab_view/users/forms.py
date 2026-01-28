@@ -1,7 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, StringField, PasswordField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, Regexp, ValidationError, Optional
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from wtforms.validators import DataRequired, Length, EqualTo, Regexp, Optional
 
 
 class CreateUserForm(FlaskForm):

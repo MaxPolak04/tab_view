@@ -1,4 +1,3 @@
-import pytest
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from flask import url_for

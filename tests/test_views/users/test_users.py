@@ -1,4 +1,3 @@
-import pytest
 from flask import url_for
 from werkzeug.security import check_password_hash
 from tab_view.models import User

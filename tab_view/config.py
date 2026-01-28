@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-from tab_view.utils import str_to_bool
 import os
 
 

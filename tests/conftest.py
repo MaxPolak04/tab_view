@@ -1,7 +1,4 @@
-# tests/conftest.py
 import pytest
-import os
-import shutil
 from werkzeug.security import generate_password_hash
 from tab_view import create_app, db
 from tab_view.config import TestingConfig

@@ -1,5 +1,3 @@
-from flask import current_app
-from tab_view.config import TestingConfig
 
 
 def test_app_exists(app):

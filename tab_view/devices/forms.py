@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, EmailField, BooleanField, SelectField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, Regexp, ValidationError
+from wtforms import StringField, SubmitField, SelectField
+from wtforms.validators import DataRequired, Length, Regexp, ValidationError
 from tab_view.models import Device
 
 
