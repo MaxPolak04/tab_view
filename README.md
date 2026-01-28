@@ -1,7 +1,6 @@
 # TabView
 
 ## TODO:
-- dokończyć testy
 - upiększyć (pozmieniać kolory na te od eNki, większe teksty w inputach)
 
 
