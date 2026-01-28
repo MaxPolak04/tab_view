@@ -2,7 +2,13 @@ from datetime import datetime
 from tab_view.models import Device, Media, Event, EventMedia
 
 
-def test_event_to_dict_returns_sorted_media_playlist(database):
+def test_event_to_dict_returns_sorted_media_playlist(init_database):
+    """
+    Verifies that the media playlist returned by to_dict is sorted by the 'order' field ascending.
+    
+    This ensures that even if media items are added to the database out of sequence,
+    the API returns them in the correct playback order defined by the 'order' column.
+    """
     device = Device(
         name='N.200',
         device_url='n200'
@@ -32,8 +38,8 @@ def test_event_to_dict_returns_sorted_media_playlist(database):
         duration=10
     )
 
-    database.session.add_all([device, media1, media2, event, em1, em2])
-    database.session.commit()
+    init_database.session.add_all([device, media1, media2, event, em1, em2])
+    init_database.session.commit()
 
     data = event.to_dict()
     playlist = data['extendedProps']['media_playlist']
