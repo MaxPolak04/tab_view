@@ -51,30 +51,51 @@ def init_database(app):
 @pytest.fixture(scope='function')
 def new_user(init_database):
     """
-    Creates a sample user
+    Creates a sample user with a known password.
+    Returns the user object.
     """
-    user = User(username='testuser', password='hashed_password_placeholder')
-    db.session.add(user)
-    db.session.commit()
+    password = 'test_password'
+    hashed = generate_password_hash(password)
+    
+    user = User(username='testuser', password=hashed, is_admin=False)
+    
+    init_database.session.add(user)
+    init_database.session.commit()
+    
+    user.raw_password = password
+    
     return user
 
 
 @pytest.fixture(scope='function')
-def auth_client(client, init_database):
+def auth_client(client, new_user):
     """
-    Returns a test client that is already logged in as a regular user.
+    Returns a test client logged in as 'new_user'.
+    Notice how we request 'new_user' as an argument!
     """
-    # 1. Create a user
-    password = 'test_password'
+    client.post('/auth/signin', data={
+        'username': new_user.username,
+        'password': new_user.raw_password
+    }, follow_redirects=True)
+
+    return client
+
+
+@pytest.fixture(scope='function')
+def admin_client(client, init_database):
+    """
+    Returns a test client logged in as an Administrator.
+    """
+    password = 'admin_password'
     hashed = generate_password_hash(password)
-    user = User(username='api_tester', password=hashed, is_admin=False)
-    init_database.session.add(user)
+    
+    admin = User(username='admin', password=hashed, is_admin=True)
+    
+    init_database.session.add(admin)
     init_database.session.commit()
 
-    # 2. Login
-    # We use the existing auth route to establish a session
     client.post('/auth/signin', data={
-        'username': 'api_tester',
+        'username': 'admin',
         'password': password
     }, follow_redirects=True)
 
