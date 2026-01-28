@@ -1,5 +1,7 @@
 # tests/conftest.py
 import pytest
+import os
+import shutil
 from werkzeug.security import generate_password_hash
 from tab_view import create_app, db
 from tab_view.config import TestingConfig
@@ -7,12 +9,16 @@ from tab_view.models import User
 
 
 @pytest.fixture(scope='module')
-def app():
+def app(tmp_path_factory):
     """
-    Creates an application instance for the entire test module.
-    Pushes an application context so url_for and other Flask helpers work in tests.
+    Creates an application instance using a temporary directory for static files.
     """
+    temp_static_dir = tmp_path_factory.mktemp("static")
+    temp_uploads_dir = temp_static_dir / "uploads"
+    temp_uploads_dir.mkdir()
+
     app = create_app(TestingConfig)
+    app.static_folder = str(temp_static_dir)
     with app.app_context():
         yield app
 
