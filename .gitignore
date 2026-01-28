@@ -3,6 +3,7 @@
 .env
 .flaskenv
 .coverage
+.ruff_cache/
 __pycache__/
 .pytest_cache/
 *.pyc
