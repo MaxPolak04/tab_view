@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_restful import Api
-from .routes import EventResource
+from .api import EventResource
 
 
 events_bp = Blueprint('events', __name__)

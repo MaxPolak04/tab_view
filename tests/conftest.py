@@ -1,5 +1,6 @@
 # tests/conftest.py
 import pytest
+from werkzeug.security import generate_password_hash
 from tab_view import create_app, db
 from tab_view.config import TestingConfig
 from tab_view.models import User
@@ -56,3 +57,25 @@ def new_user(init_database):
     db.session.add(user)
     db.session.commit()
     return user
+
+
+@pytest.fixture(scope='function')
+def auth_client(client, init_database):
+    """
+    Returns a test client that is already logged in as a regular user.
+    """
+    # 1. Create a user
+    password = 'test_password'
+    hashed = generate_password_hash(password)
+    user = User(username='api_tester', password=hashed, is_admin=False)
+    init_database.session.add(user)
+    init_database.session.commit()
+
+    # 2. Login
+    # We use the existing auth route to establish a session
+    client.post('/auth/signin', data={
+        'username': 'api_tester',
+        'password': password
+    }, follow_redirects=True)
+
+    return client
