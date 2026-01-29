@@ -1,7 +1,7 @@
 # TabView
 
 ## TODO:
-- upiększyć (pozmieniać kolory na te od eNki, większe teksty w inputach)
+- upiększyć (pozmieniać kolory na te od eNki)
 
 
 ## Funkcje:

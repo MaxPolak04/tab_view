@@ -22,6 +22,11 @@ main {
     padding-bottom: 2em;
 }
 
+.form-control,
+.input-group-text {
+    font-size: 1.6rem;
+}
+
 .wrapper {
     width: 100%;
     max-width: 1200px;
