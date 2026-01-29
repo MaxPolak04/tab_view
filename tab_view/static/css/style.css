@@ -372,6 +372,138 @@ main {
     }
 }
 
+/* Poprawka dla kontenera, aby nie był za wąski przy układzie bocznym */
+.container-fluid {
+    max-width: 1600px;
+}
+
+/* Customowy wygląd formularza wewnątrz karty */
+.form-custom .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+/* Podgląd mediów */
+.media-preview-box {
+    min-height: 180px;
+    transition: all 0.3s ease;
+    border: 2px dashed #dee2e6 !important;
+    overflow: hidden;
+    position: relative;
+}
+
+.media-preview-box:hover {
+    background-color: #f0f7ff !important;
+    border-color: #0d6efd !important;
+    cursor: pointer;
+}
+
+/* Upiększenie Kalendarza FullCalendar */
+.modern-calendar {
+    background: #fff;
+    padding: 10px;
+}
+
+/* Dostosowanie nagłówka kalendarza do Montserrat */
+.fc .fc-toolbar-title {
+    font-size: 1.5rem !important;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.fc .fc-button-primary {
+    background-color: #fff !important;
+    border-color: #dee2e6 !important;
+    color: #444 !important;
+    text-transform: capitalize !important;
+    font-weight: 500 !important;
+    font-size: 0.9em !important;
+}
+
+.fc .fc-button-primary:hover {
+    background-color: #f8f9fa !important;
+    color: #0d6efd !important;
+}
+
+.fc .fc-button-active {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+/* Zaokrąglenie eventów w kalendarzu */
+.fc-event {
+    border-radius: 4px !important;
+    padding: 2px 4px !important;
+    font-size: 0.85em !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Nowoczesne Modale */
+.modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 1.2rem;
+}
+
+/* Elementy na liście odtwarzania (Playlist Items) */
+.playlist-item {
+    background: #fff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 10px !important;
+    padding: 12px !important;
+    margin-bottom: 10px !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.playlist-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    border-color: #0d6efd !important;
+}
+
+.playlist-item-preview {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* Stylizacja scrollbara wewnątrz modala */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+.modal-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #0d6efd;
+}
+
+/* Inputy w modalu */
+.modal-body .form-control, 
+.modal-body .form-select {
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    border-color: #dee2e6;
+}
+
 
 
 /* ================================================================= */
@@ -395,5 +527,10 @@ main {
     .devices-grid,
     .media-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+
+    .sticky-lg-top {
+        position: sticky;
+        top: 2rem;
     }
 }

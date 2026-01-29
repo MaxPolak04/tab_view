@@ -4,108 +4,78 @@
 
 {% block content %}
     <h1 class="main-heading display-5">Update Device: {{ device.name }}</h1>
-    <div class="container">
-        <!-- Device editing form -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Device settings</h5>
-            </div>
-            <div class="card-body">
-                {% if current_user.is_admin %}
-                    <!-- Active form -->
-                    <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form" method="POST">
-                        {{ form.hidden_tag() }}
-                        <div class="mb-3">
-                            {{ form.name.label(class="form-label") }}
-                            {{ form.name(class="form-control") }}
-                            {% for error in form.name.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.device_url.label(class="form-label") }}
-                            <div class="input-group">
-                                <span class="input-group-text">http://example.com/devices/</span>
-                                {{ form.device_url(class="form-control") }}
-                            </div>
-                            {% for error in form.device_url.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.media_id.label(class="form-label") }}
-                            <small class="text-muted d-block mb-2">(Default media displayed outside the schedule)</small>
-                            
-                            <!-- Hidden select -->
-                            {{ form.media_id(class="form-control d-none", id="defaultMediaSelect", value=device.media_id) }}
-                            
-                            <!-- Preview of selected media -->
-                            <div id="defaultMediaPreview" class="border rounded p-3 text-center" style="cursor: pointer; min-height: 150px;">
-                                <i class="bi bi-image" style="font-size: 3rem;"></i>
-                                <p class="mt-2">Click to select default media</p>
-                            </div>
-                            
-                            {% for error in form.media_id.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        {{ form.submit(class="btn btn-primary btn-lg") }}
-                    </form>
-                {% else %}
-                    <form action="" class="form" method="POST">
-                        {{ form.hidden_tag() }}
-                        <fieldset disabled>
-                            <div class="mb-3">
-                                {{ form.name.label(class="form-label") }}
-                                {{ form.name(class="form-control") }}
+    <div class="container-fluid px-4">
+    <div class="row g-4">
+        <div class="col-lg-4 col-xl-3">
+            <div class="card border-0 shadow-sm sticky-lg-top" style="top: 2rem; z-index: 1020;">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="bi bi-gear-fill me-2"></i>Device settings
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if current_user.is_admin %}
+                        <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form-custom" method="POST">
+                            {{ form.hidden_tag() }}
+                            <div class="mb-4">
+                                {{ form.name.label(class="form-label fw-semibold") }}
+                                {{ form.name(class="form-control form-control-lg") }}
                                 {% for error in form.name.errors %}
-                                    <div class="text-danger">{{ error }}</div>
+                                    <div class="text-danger small mt-1">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            <div class="mb-3">
-                                {{ form.device_url.label(class="form-label") }}
+                            <div class="mb-4">
+                                {{ form.device_url.label(class="form-label fw-semibold") }}
                                 <div class="input-group">
-                                    <span class="input-group-text">http://example.com/devices/</span>
-                                    {{ form.device_url(class="form-control") }}
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-link-45deg"></i></span>
+                                    {{ form.device_url(class="form-control border-start-0", placeholder="device-slug") }}
                                 </div>
                                 {% for error in form.device_url.errors %}
-                                    <div class="text-danger">{{ error }}</div>
+                                    <div class="text-danger small mt-1">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            <div class="mb-3">
-                                {{ form.media_id.label(class="form-label") }}
-                                <small class="text-muted d-block mb-2">(Default media displayed outside the schedule)</small>
+                            <div class="mb-4">
+                                {{ form.media_id.label(class="form-label fw-semibold") }}
+                                <p class="text-muted small mb-3">Default media displayed outside the schedule</p>
                                 
-                                <!-- Hidden select -->
-                                {{ form.media_id(class="form-control d-none", id="defaultMediaSelect", value=device.media_id) }}
+                                {{ form.media_id(class="d-none", id="defaultMediaSelect") }}
                                 
-                                <!-- Preview of selected media -->
-                                <div id="defaultMediaPreview" class="border rounded p-3 text-center readonly-preview" style="min-height: 150px;">
-                                    <i class="bi bi-image" style="font-size: 3rem;"></i>
-                                    <p class="mt-2">Click to select default media</p>
+                                <div id="defaultMediaPreview" class="media-preview-box border rounded-3 d-flex flex-column align-items-center justify-content-center bg-light">
+                                    <i class="bi bi-plus-circle-dotted text-primary mb-2" style="font-size: 2.5rem;"></i>
+                                    <span class="small fw-medium">Click to select media</span>
                                 </div>
                                 
                                 {% for error in form.media_id.errors %}
-                                    <div class="text-danger">{{ error }}</div>
+                                    <div class="text-danger small mt-1">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            {{ form.submit(class="btn btn-primary btn-lg") }}
-                        </fieldset>
-                    </form>
-                {% endif %}
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-primary btn-lg shadow-sm") }}
+                            </div>
+                        </form>
+                    {% else %}
+                        <fieldset disabled>
+                            </fieldset>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
-        <!-- Schedule calendar -->
-        <div class="card">
-            <div class="card-header">
-                <h5>Display schedule (overrides default media)</h5>
-            </div>
-            <div class="card-body">
-                <div id="calendar"></div>
+        <div class="col-lg-8 col-xl-9">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="bi bi-calendar3 me-2"></i>Display schedule
+                    </h5>
+                    <span class="badge bg-light text-dark border fw-normal">Overrides default media</span>
+                </div>
+                <div class="card-body p-4">
+                    <div id="calendar" class="modern-calendar"></div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Default media selection modal -->
     <div class="modal fade" id="mediaPickerModal" tabindex="-1" aria-hidden="true">
