@@ -558,6 +558,48 @@ main {
     border-bottom: none !important;
 }
 
+/* Media Card Styling */
+.media-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+}
+
+.media-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Ujednolicenie wyświetlania mediów */
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.opacity-hover {
+    transition: opacity 0.3s ease;
+}
+
+.media-card:hover .opacity-hover {
+    opacity: 0.8;
+}
+
+/* Ukrywanie/Pokazywanie overlayu (opcjonalnie) */
+.card-overlay {
+    opacity: 1; /* Zmień na 0, jeśli chcesz, żeby przyciski pojawiały się tylko po najechaniu */
+    transition: opacity 0.3s ease;
+}
+
+/* Styl dla typów mediów */
+.badge.bg-dark {
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(4px);
+}
+
+/* Video Play Icon Overlay */
+.pointer-events-none {
+    pointer-events: none;
+}
+
 
 
 /* ================================================================= */
