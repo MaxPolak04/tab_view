@@ -35,9 +35,9 @@
         <div class="row mb-3">
             <div class="col-md-12">
                 {% if current_user.is_admin %}
-                    <a class="btn btn-primary btn-lg float-end mb-5" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
+                    <a class="btn btn-primary btn-lg float-end mb-5 shadow-sm px-4 rounded-pill" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
                 {% else %}
-                    <a class="btn btn-primary btn-lg float-end mb-5 disabled" role="button">Create New Device</a>
+                    <a class="btn btn-primary btn-lg float-end mb-5 shadow-sm px-4 rounded-pill disabled" role="button">Create New Device</a>
                 {% endif %}
             </div>
         </div>
