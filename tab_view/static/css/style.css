@@ -505,6 +505,60 @@ main {
 }
 
 
+/* Styl dla tabeli użytkowników */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(13, 110, 253, 0.2);
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8fbff;
+    transition: background-color 0.2s ease;
+}
+
+/* Customowe przyciski w tabeli */
+.btn-white {
+    background: white;
+    border: 1px solid #dee2e6;
+}
+.btn-white:hover {
+    background: #f8f9fa;
+}
+
+/* Paginacja */
+.pagination-custom .page-link {
+    border: 1px solid #dee2e6;
+    color: #444;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+}
+
+.pagination-custom .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+/* Badges */
+.bg-primary-subtle {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+/* Poprawka dla nagłówka w tej widoku */
+.main-heading {
+    border-bottom: none !important;
+}
+
+
 
 /* ================================================================= */
 
