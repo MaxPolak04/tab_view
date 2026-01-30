@@ -1,7 +1,8 @@
 # TabView
 
+
 ## TODO:
-- upiększyć (pozmieniać kolory na te od eNki)
+- GitHub Actions i wdrożenie
 
 
 ## Funkcje:

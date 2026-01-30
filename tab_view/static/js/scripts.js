@@ -12,34 +12,6 @@ document.addEventListener('click', () => {
     }
 })
 
-document.addEventListener("DOMContentLoaded", function () {
-    const errorMessages = [
-        "Doctor, heal thyself. The admin panel needs a hug.",
-        "Well, this escalated quickly. Error 500 has entered the chat.",
-        "The server tripped over its own code. Please stand by.",
-        "Even the backend needs a coffee break sometimes ☕.",
-        "Error 500: The system is currently questioning its life choices.",
-        "Oops! Something broke. You're the admin, so... good luck!",
-        "The server is down. Probably watching cat videos again.",
-        "500 Internal Server Error. Have you tried turning it off and on again?",
-        "This is fine 🔥. Everything is fine.",
-        "Congratulations! You've unlocked the rare and majestic Error 500."
-    ]
-
-    function getRandomErrorMessage() {
-        const index = Math.floor(Math.random() * errorMessages.length);
-        return errorMessages[index];
-    }
-
-    function showError500() {
-        const message = getRandomErrorMessage();
-        console.error(message);
-        document.getElementById("error-text").innerText = message;
-    }
-
-    showError500()
-})
-
 document.querySelector('form').addEventListener('submit', function(e) {
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
@@ -52,6 +24,39 @@ setTimeout(() => {
         setTimeout(() => alert.remove(), 500);
     });
 }, 3000);
+
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const htmlElement = document.documentElement;
+
+    // Icon update function
+    const updateIcon = (theme) => {
+        if (theme === 'dark') {
+            themeIcon.classList.remove('bi-moon-stars-fill');
+            themeIcon.classList.add('bi-sun-fill');
+        } else {
+            themeIcon.classList.remove('bi-sun-fill');
+            themeIcon.classList.add('bi-moon-stars-fill');
+        }
+    };
+
+    // Set icon on startup
+    const currentTheme = htmlElement.getAttribute('data-bs-theme');
+    updateIcon(currentTheme);
+
+    // Click handling
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateIcon(newTheme);
+        });
+    }
+});
 
 // Calendar with media playlist
 
