@@ -26,6 +26,5 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
-    # 4. Uruchom testy
     - name: Run Tests
       run: uv run pytest

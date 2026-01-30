@@ -1,0 +1,30 @@
+services:
+  web:
+    # GitHub substitutes the appropriate image
+    image: ghcr.io/maxpolak04/tab_view:latest
+    restart: always
+    ports:
+      - "8000:8000"  # Mapping a container port to a server port
+    env_file: .env   # Environmental variables from a file on the server
+    depends_on:
+      - db
+      - redis
+    volumes:
+      # Mapping the uploads folder so that photos don't disappear after restarting the container!
+      - ./uploads:/app/tab_view/static/uploads
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: tabview_db
+      MYSQL_ROOT_PASSWORD: twoje_tajne_haslo_root
+    volumes:
+      - db_data:/var/lib/mysql
+
+  redis:
+    image: redis:alpine
+    restart: always
+
+volumes:
+  db_data:

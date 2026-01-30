@@ -8,7 +8,7 @@
     <div class="row g-4">
         <div class="col-lg-4 col-xl-3">
             <div class="card border-0 shadow-sm sticky-lg-top" style="top: 2rem; z-index: 1020;">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-body-tertiary py-3">
                     <h5 class="mb-0 fw-bold text-primary">
                         <i class="bi bi-gear-fill me-2"></i>Device settings
                     </h5>
@@ -27,7 +27,7 @@
                             <div class="mb-4">
                                 {{ form.device_url.label(class="form-label fw-semibold") }}
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-link-45deg"></i></span>
+                                    <span class="input-group-text bg-body-secondary border-end-0"><i class="bi bi-link-45deg"></i></span>
                                     {{ form.device_url(class="form-control border-start-0", placeholder="device-slug") }}
                                 </div>
                                 {% for error in form.device_url.errors %}
@@ -40,7 +40,7 @@
                                 
                                 {{ form.media_id(class="d-none", id="defaultMediaSelect") }}
                                 
-                                <div id="defaultMediaPreview" class="media-preview-box border rounded-3 d-flex flex-column align-items-center justify-content-center bg-light">
+                                <div id="defaultMediaPreview" class="media-preview-box border rounded-3 d-flex flex-column align-items-center justify-content-center bg-body-secondary">
                                     <i class="bi bi-plus-circle-dotted text-primary mb-2" style="font-size: 2.5rem;"></i>
                                     <span class="small fw-medium">Click to select media</span>
                                 </div>
@@ -63,11 +63,11 @@
 
         <div class="col-lg-8 col-xl-9">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <div class="card-header bg-body-tertiary py-3 d-flex align-items-center justify-content-between">
                     <h5 class="mb-0 fw-bold text-primary">
                         <i class="bi bi-calendar3 me-2"></i>Display schedule
                     </h5>
-                    <span class="badge bg-light text-dark border fw-normal">Overrides default media</span>
+                    <span class="badge bg-body-secondary text-body-secondary border fw-normal">Overrides default media</span>
                 </div>
                 <div class="card-body p-4">
                     <div id="calendar" class="modern-calendar"></div>

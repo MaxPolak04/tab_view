@@ -3,20 +3,23 @@
 
 ## TODO:
 - GitHub Actions i wdrożenie
+- tagowanie media, filtry, tag pozostałe, nie da się dodać grafiki bez przypisania lub dodania tagu
+- keep aspect ratio (nie może ucinać grafik)
 
 
 ## Funkcje:
 - CRUD użytkowników, mediów, urządzeń, eventów
-- kalendarz pod urządzeniem
+- harmonogramy
 - kolejki zdjęć i filmów
-- usuwanie starych eventów automatycznie
+- ręczne usuwanie starych eventów (by nie puchła baza danych)
 - podział na role - admin może dodawać użytkowników
+- możliwość przęłączania theme (light mode/dark mode)
+- testy jednostkowe i integracyjne + mockowanie obiektów
 
 
 ## Zabezpieczenia:
 - szyfrowanie formularzy
 - zabezpieczenie basy danych przed SQLinjection
 - API - ograniczona liczba zapytań na minutę
-- podział na role
+- podział użytkowników na role (admin/user)
 - zabezpieczone widoki
-- jak ma wyglądać synchronizacja z czasem na serwerze?
