@@ -1,6 +1,9 @@
 FROM python:3.12-slim
 
-# 2. Installation of system dependencies (e.g., for MySQL client or media support)
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# 2. Installation of system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     gcc \
@@ -16,16 +19,17 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 WORKDIR /app
 
 # 5. Copying configuration files and installing dependencies
+# Kopiujemy najpierw pliki zależności, żeby Docker wykorzystał cache, jeśli kod się zmienił, a deps nie.
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen
+RUN uv sync --frozen --no-install-project --no-dev
 
 # 6. Copying application code
 COPY . .
 
-# 7. Setting an environment variable so that Python can see the venv created by uv
+# 7. Setting env so Python uses the venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-# 8. Opening port 8000 (standard for Gunicorn)
+# 8. Opening port
 EXPOSE 8000
 
 # 9. Starting Gunicorn
