@@ -3,6 +3,7 @@
 set -e
 
 echo "🛠️ Applying database migrations..."
+export FLASK_APP=tab_view
 uv run flask db upgrade
 
 echo "🚀 Starting application..."
