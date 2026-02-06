@@ -26,11 +26,13 @@ RUN uv sync --frozen --no-install-project --no-dev
 # 6. Copying application code
 COPY . .
 
+RUN chmod +x run.sh
+
 # 7. Setting env so Python uses the venv
 ENV PATH="/app/.venv/bin:$PATH"
 
 # 8. Opening port
 EXPOSE 8000
 
-# 9. Starting Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "run:app"]
+# 9. Starting Gunicorn via run.sh
+CMD ["./run.sh"]

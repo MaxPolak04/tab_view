@@ -2,11 +2,7 @@
 
 set -e
 
-echo "📦 Syncing dependencies..."
-uv sync --locked
-
 echo "🛠️ Applying database migrations..."
-export FLASK_APP=tab_view
 uv run flask db upgrade
 
 echo "🚀 Starting application..."
