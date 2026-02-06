@@ -114,14 +114,10 @@ jobs:
         run: |
           cd /opt/tab_view
 
-          # 1. Download the latest images
-          docker compose pull
-
-          # 2. Restart containers
-          # Wymuszamy małe litery dla nazwy repozytorium
           export GITHUB_REPOSITORY_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+
+          docker compose pull
           
           docker compose up -d --remove-orphans
 
-          # 3. Cleaning old images
           docker image prune -f
