@@ -5,6 +5,7 @@
 - GitHub Actions i wdrożenie
 - tagowanie media, filtry, tag pozostałe, nie da się dodać grafiki bez przypisania lub dodania tagu
 - keep aspect ratio (nie może ucinać grafik)
+- błędy nie będą trafiać do sysloga, tylko na stdin (tak mają kontenery)
 
 
 ## Funkcje:

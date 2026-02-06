@@ -7,6 +7,7 @@ import logging
 from logging.handlers import SysLogHandler
 from functools import wraps
 import time
+import sys
 
 
 def wait_for_db(app):
@@ -66,10 +67,11 @@ def configure_logging(app):
     """
     if app.config.get("TESTING"):
         return
+    
+    handler = logging.StreamHandler(sys.stdout)
 
-    handler = SysLogHandler(address="/dev/log")
     formatter = logging.Formatter(
-        "tab_view[%(process)d]: %(levelname)s %(name)s - %(message)s"
+        "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
     )
     handler.setFormatter(formatter)
     
