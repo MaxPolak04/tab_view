@@ -6,6 +6,9 @@ echo "🛠️ Applying database migrations..."
 export FLASK_APP=tab_view
 uv run flask db upgrade
 
+echo "🌱 Seeding media..."
+uv run python tab_view/seed.py
+
 echo "🚀 Starting application..."
 exec uv run gunicorn "tab_view:create_app()" \
     --bind 0.0.0.0:8000 \

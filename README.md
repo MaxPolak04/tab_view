@@ -5,10 +5,7 @@
 - GitHub Actions i wdrożenie
 - tagowanie media, filtry, tag pozostałe, nie da się dodać grafiki bez przypisania lub dodania tagu
 - keep aspect ratio (nie może ucinać grafik)
-- błędy nie będą trafiać do sysloga, tylko na stdin (tak mają kontenery)
-- Podpiąc redisa do Flask-Limiter
-- Jak będą wyglądały migrację do tej pory? Czy trzeba zrobić nowy obraz?
-- Dodać automatyczne dodawanie danych do bazy (użytkownicy i domyślny obraz)
+- Dodać automatyczne dodawanie danych do bazy (logo)
 - Dodać Talismana (?)
 - DevSecOps, testy bezpieczeństwa, dobre praktyki DevOps
 

@@ -50,6 +50,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "python-dotenv==1.1.1",
     "pytz==2025.2",
+    "redis>=7.1.1",
     "rich==14.2.0",
     "ruff>=0.14.14",
     "six==1.17.0",
