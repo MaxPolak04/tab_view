@@ -62,6 +62,7 @@ def create_app(config_class=ProductionConfig):
             
         return redirect(url_for('auth.signin', next=request.url))
 
+
     from .models import User
 
     @login_manager.user_loader
@@ -88,6 +89,10 @@ def create_app(config_class=ProductionConfig):
 
 
     csrf.exempt(events_bp)
+
+
+    from .commands import create_user_command
+    app.cli.add_command(create_user_command)
 
 
     @app.route('/')
