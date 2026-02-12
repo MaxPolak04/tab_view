@@ -2,12 +2,11 @@
 
 
 ## TODO:
-- GitHub Actions i wdrożenie
 - tagowanie media, filtry, tag pozostałe, nie da się dodać grafiki bez przypisania lub dodania tagu
 - keep aspect ratio (nie może ucinać grafik)
-- Dodać automatyczne dodawanie danych do bazy (logo)
 - Dodać Talismana (?)
 - DevSecOps, testy bezpieczeństwa, dobre praktyki DevOps
+- dodać czytanie przez Google Calendar (na razie moje konto)
 
 
 ## Funkcje:

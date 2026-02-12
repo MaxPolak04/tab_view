@@ -1,23 +1,33 @@
+// --- TOOLTIPS AND POPOVERs ---
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
 const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
-const nav = document.querySelector('.navbar-collapse')
+// --- NAVBAR HANDLER ---
+const nav = document.querySelector('.navbar-collapse');
+if (nav) {
+    document.addEventListener('click', (e) => {
+        if (nav.classList.contains('show')) {
+            nav.classList.remove('show');
+        }
+    });
+}
 
-document.addEventListener('click', () => {
-    if (nav.classList.contains('show')) {
-        nav.classList.remove('show')
-    }
-})
+// --- FORM PROCESSING ---
+const mainForm = document.querySelector('form');
+if (mainForm) {
+    mainForm.addEventListener('submit', function(e) {
+        const btn = this.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = 'Uploading...';
+        }
+    });
+}
 
-document.querySelector('form').addEventListener('submit', function(e) {
-    const btn = this.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.innerText = 'Uploading...';
-});
-
+// --- FLASH MESSAGES ---
 setTimeout(() => {
     document.querySelectorAll('.flash-overlay .alert').forEach(alert => {
         alert.classList.add('fade-out');
@@ -25,13 +35,17 @@ setTimeout(() => {
     });
 }, 3000);
 
+// --- THEME MANAGER ---
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     const htmlElement = document.documentElement;
 
-    // Icon update function
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-bs-theme', savedTheme);
+
     const updateIcon = (theme) => {
+        if (!themeIcon) return; 
         if (theme === 'dark') {
             themeIcon.classList.remove('bi-moon-stars-fill');
             themeIcon.classList.add('bi-sun-fill');
@@ -41,11 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Set icon on startup
-    const currentTheme = htmlElement.getAttribute('data-bs-theme');
-    updateIcon(currentTheme);
-
-    // Click handling
+    updateIcon(savedTheme);
+    
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             const currentTheme = htmlElement.getAttribute('data-bs-theme');

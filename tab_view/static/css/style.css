@@ -378,6 +378,19 @@ main {
     box-shadow: 0 0 0 2px rgba(var(--bs-body-color-rgb), 0.2);
 }
 
+/* LOGO */
+.logo-dark {
+    display: none;
+}
+
+[data-bs-theme="dark"] .logo-dark {
+    display: block;
+}
+
+[data-bs-theme="dark"] .logo-light {
+    display: none;
+}
+
 
 @keyframes fadeIn {
     from { 

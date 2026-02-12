@@ -19,6 +19,8 @@ services:
     volumes:
       - uploads_data:/app/tab_view/static/uploads
       - ./branding/default.png:/app/tab_view/static/assets/default.png:ro
+      - ./branding/logo_black.png:/app/tab_view/static/img/logo_black.png:ro
+      - ./branding/logo_white.png:/app/tab_view/static/img/logo_white.png:ro
     networks:
       - flasknet
 

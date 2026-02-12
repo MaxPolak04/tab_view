@@ -8,5 +8,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 logs/
+tab_view/static/img/*
+!tab_view/static/img/.gitkeep
 tab_view/static/uploads/*
 !tab_view/static/uploads/.gitkeep
