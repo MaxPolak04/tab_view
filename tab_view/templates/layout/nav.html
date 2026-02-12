@@ -1,16 +1,21 @@
 <nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary top-0 shadow-sm z-index-1000">
     <div class="container">
-        <a class="navbar-brand text-primary" href="{{ url_for('devices.get_all_devices') }}">
+        <a class="navbar-brand text-primary d-flex align-items-center" href="{{ url_for('devices.get_all_devices') }}">
             <img src="{{ url_for('static', filename='img/logo_black.png') }}" 
-                alt="Logo" 
-                class="logo-light" 
-                height="50">
+                 alt="Logo" 
+                 class="logo-light" 
+                 height="50"
+                 onerror="this.style.display='none'; document.getElementById('brand-text').style.display='block';">
             
             <img src="{{ url_for('static', filename='img/logo_white.png') }}" 
-                alt="Logo" 
-                class="logo-dark" 
-                height="50">
-                </a>
+                 alt="Logo" 
+                 class="logo-dark" 
+                 height="50"
+                 onerror="this.style.display='none'; document.getElementById('brand-text').style.display='block';">
+            
+            <span id="brand-text" style="display: none;">TabView</span>
+        </a>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
             aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

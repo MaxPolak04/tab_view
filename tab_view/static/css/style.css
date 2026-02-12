@@ -210,9 +210,14 @@ main {
 
 .display-menu,
 .default-menu {
-    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
     padding: 0;
     margin: 0;
+    background-color: #212121;
     overflow: hidden;
 }
 
@@ -220,11 +225,12 @@ main {
 .display-video,
 .default-img {
     display: block;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
+    width: 100%;
+    height: 100%;
     padding: 0;
     margin: 0;
+    object-fit: contain;
+    background-color: #212121;
 }
 
 .flash-overlay {
@@ -389,6 +395,11 @@ main {
 
 [data-bs-theme="dark"] .logo-light {
     display: none;
+}
+
+#brand-text {
+    font-weight: 700;
+    font-size: 2.5rem;
 }
 
 
