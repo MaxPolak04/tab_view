@@ -1,13 +1,15 @@
 import logging
-from werkzeug.security import generate_password_hash
-from flask import redirect, url_for, render_template, flash, request
+
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user
-from . import users_bp
-from .forms import CreateUserForm, UpdateUserForm, DeleteUserForm
+from werkzeug.security import generate_password_hash
+
 from tab_view import db
 from tab_view.models import User
 from tab_view.utils import admin_required
 
+from . import users_bp
+from .forms import CreateUserForm, DeleteUserForm, UpdateUserForm
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,8 @@ def create_user():
 
         if User.query.filter_by(username=username).first():
             logger.warning(
-                f"Create user failed - username '{username}' exists (Admin: {current_user.id})"
+                f"Create user failed - username '{username}' exists \
+                    (Admin: {current_user.id})"
             )
             flash("Username already exists.", "danger")
             return render_template("users/new-user.html", form=form)
@@ -50,7 +53,8 @@ def create_user():
             db.session.commit()
 
             logger.info(
-                f"User created: {username} (ID: {new_user.id}, Admin: {is_admin}) by Admin {current_user.id}"
+                f"User created: {username} (ID: {new_user.id}, Admin: \
+                    {is_admin}) by Admin {current_user.id}"
             )
             flash("User created successfully!", "success")
             return redirect(url_for("users.get_all_users"))
@@ -58,7 +62,8 @@ def create_user():
         except Exception as e:
             db.session.rollback()
             logger.error(
-                f"Error creating user '{username}': {str(e)} (Admin: {current_user.id})"
+                f"Error creating user '{username}': {str(e)} \
+                    (Admin: {current_user.id})"
             )
             flash(f"Error creating user: {str(e)}", "danger")
 
@@ -78,7 +83,8 @@ def update_user(user_id):
         if form.password.data:
             user.password = generate_password_hash(form.password.data)
             logger.info(
-                f"Password changed for user ID {user.id} by Admin {current_user.id}"
+                f"Password changed for user ID {user.id} \
+                    by Admin {current_user.id}"
             )
 
         user.is_admin = form.is_admin.data
@@ -87,7 +93,8 @@ def update_user(user_id):
             db.session.commit()
 
             logger.info(
-                f"User updated: {old_username} -> {user.username} (ID: {user.id}) by Admin {current_user.id}"
+                f"User updated: {old_username} -> {user.username} \
+                    (ID: {user.id}) by Admin {current_user.id}"
             )
             flash("User updated successfully!", "success")
             return redirect(url_for("users.get_all_users"))
@@ -95,7 +102,8 @@ def update_user(user_id):
         except Exception as e:
             db.session.rollback()
             logger.error(
-                f"Error updating user ID {user_id}: {str(e)} (Admin: {current_user.id})"
+                f"Error updating user ID {user_id}: {str(e)} \
+                    (Admin: {current_user.id})"
             )
             flash(f"Error updating user: {str(e)}", "danger")
 
@@ -107,7 +115,8 @@ def update_user(user_id):
 def delete_user(user_id):
     if user_id == current_user.id:
         logger.warning(
-            f"Admin {current_user.id} attempted to delete their own account - Action blocked"
+            f"Admin {current_user.id} attempted to delete their own account \
+              - Action blocked"
         )
         flash("You cannot delete your own account.", "danger")
         return redirect(url_for("users.get_all_users"))

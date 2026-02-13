@@ -1,5 +1,6 @@
-from tab_view.models import User
 from unittest.mock import patch
+
+from tab_view.models import User
 
 
 def test_seed_db_command(runner, init_database):

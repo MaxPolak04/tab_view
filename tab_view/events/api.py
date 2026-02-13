@@ -1,13 +1,14 @@
 import logging
-from flask import request
-from flask_restful import Resource
-from flask_login import login_required, current_user
-from sqlalchemy import and_
-from tab_view import limiter
-from tab_view.models import Device, Media, Event, EventMedia, db
-from tab_view.utils import error_response
 from datetime import datetime, timedelta
 
+from flask import request
+from flask_login import current_user, login_required
+from flask_restful import Resource
+from sqlalchemy import and_
+
+from tab_view import limiter
+from tab_view.models import Device, Event, EventMedia, Media, db
+from tab_view.utils import error_response
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +151,8 @@ class EventResource(Resource):
 
             if overlapping:
                 logger.warning(
-                    f"Event creation blocked - Overlap detected for Device {data['device_id']}: "
+                    f"Event creation blocked - Overlap detected for Device \
+                        {data['device_id']}: "
                     f"'{overlapping.title}' (User: {current_user.id})"
                 )
                 return error_response(
@@ -271,11 +273,13 @@ class EventResource(Resource):
 
             if overlapping:
                 logger.warning(
-                    f"Event update blocked - Overlap detected for Device {event.device_id}: "
+                    f"Event update blocked - Overlap detected for \
+                        Device {event.device_id}: "
                     f"'{overlapping.title}' (User: {current_user.id})"
                 )
                 return error_response(
-                    f'This schedule overlaps with existing event "{overlapping.title}"',
+                    f'This schedule overlaps with \
+                        existing event "{overlapping.title}"',
                     409,
                 )
 
@@ -353,7 +357,11 @@ class EventResource(Resource):
         try:
             event = Event.query.get(event_id)
             if not event:
-                return error_response(f"Event with id {event_id} not found", 404)
+                return error_response(
+                    f"Event with id {event_id} \
+                                      not found",
+                    404,
+                )
 
             event_title = event.title
             event_id_val = event.id

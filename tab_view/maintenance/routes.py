@@ -1,13 +1,15 @@
 import logging
-from flask import render_template, flash
-from flask_login import current_user
-from . import maintenance_bp
-from tab_view.models import Event, db
-from tab_view.utils import admin_required
-from .forms import CleanupEventsForm
-from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
+from dateutil.relativedelta import relativedelta
+from flask import flash, render_template
+from flask_login import current_user
+
+from tab_view.models import Event, db
+from tab_view.utils import admin_required
+
+from . import maintenance_bp
+from .forms import CleanupEventsForm
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +43,8 @@ def cleanup_events_view():
             )
 
             flash(
-                f"Preview: {affected_count} events would be deleted (end_time < {cutoff_date}).",
+                f"Preview: {affected_count} events would be \
+                    deleted (end_time < {cutoff_date}).",
                 "info",
             )
         else:
@@ -58,18 +61,21 @@ def cleanup_events_view():
                 db.session.commit()
 
                 logger.info(
-                    f"Maintenance Cleanup COMPLETED successfully by Admin {current_user.id}. "
+                    f"Maintenance Cleanup COMPLETED successfully by \
+                        Admin {current_user.id}. "
                     f"Deleted {len(deleted_events)} events."
                 )
 
                 flash(
-                    f"{len(deleted_events)} events deleted successfully (end_time < {cutoff_date}).",
+                    f"{len(deleted_events)} events deleted successfully \
+                        (end_time < {cutoff_date}).",
                     "success",
                 )
             except Exception as e:
                 db.session.rollback()
                 logger.error(
-                    f"Error during maintenance cleanup: {str(e)} (Admin: {current_user.id})"
+                    f"Error during maintenance cleanup: {str(e)} \
+                        (Admin: {current_user.id})"
                 )
                 flash(f"An error occurred during cleanup: {str(e)}", "danger")
 

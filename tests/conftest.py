@@ -1,5 +1,6 @@
 import pytest
 from werkzeug.security import generate_password_hash
+
 from tab_view import create_app, db
 from tab_view.config import TestingConfig
 from tab_view.models import User
@@ -57,10 +58,10 @@ def new_user(init_database):
     Creates a sample user with a known password.
     Returns the user object.
     """
-    password = "test_password"
+    password = "test_password"  # nosec
     hashed = generate_password_hash(password)
 
-    user = User(username="testuser", password=hashed, is_admin=False)
+    user = User(username="testuser", password=hashed, is_admin=False)  # nosec
 
     init_database.session.add(user)
     init_database.session.commit()
@@ -90,10 +91,10 @@ def admin_client(client, init_database):
     """
     Returns a test client logged in as an Administrator.
     """
-    password = "admin_password"
+    password = "admin_password"  # nosec
     hashed = generate_password_hash(password)
 
-    admin = User(username="admin", password=hashed, is_admin=True)
+    admin = User(username="admin", password=hashed, is_admin=True)  # nosec
 
     init_database.session.add(admin)
     init_database.session.commit()

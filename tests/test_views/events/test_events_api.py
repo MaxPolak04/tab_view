@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+
 from tab_view.models import Device, Event, Media, Tag  # Added Tag import
 
 # --- ACCESS CONTROL TESTS ---
@@ -104,7 +105,8 @@ def test_create_event_success(auth_client, init_database):
 
 def test_create_event_overlap_error(auth_client, init_database):
     """
-    Test that the API rejects an event that overlaps with an existing one on the same device.
+    Test that the API rejects an event that overlaps with
+     an existing one on the same device.
     """
     # 1. Setup: Create an existing event 10:00 - 11:00
     # Create Tag first

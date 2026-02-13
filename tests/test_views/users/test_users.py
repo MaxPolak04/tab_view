@@ -1,5 +1,6 @@
 from flask import url_for
 from werkzeug.security import check_password_hash
+
 from tab_view.models import User
 
 # --- PERMISSIONS TESTS ---
@@ -24,20 +25,17 @@ def test_create_user_forbidden_for_non_admin(auth_client):
 # --- CREATE USER TESTS ---
 
 
-def test_create_user_success(admin_client, init_database):
+def test_create_user_success(admin_client):
     """
     Test successful creation of a new user by an admin.
     """
     # 1. Submit form
-    # UWAGA: Aby checkbox 'is_admin' był False, NIE WYSYŁAMY go w ogóle w data.
-    # Wysłanie 'is_admin': False zamienia się na string "False", co WTForms uznaje za True!
     response = admin_client.post(
         url_for("users.create_user"),
         data={
             "username": "new_emp",
             "password": "SecretPassword123!",
             "confirm_password": "SecretPassword123!",
-            # 'is_admin': False  <--- USUNIĘTO (to oznacza False)
         },
         follow_redirects=True,
     )
@@ -58,7 +56,7 @@ def test_create_duplicate_user_fails(admin_client, init_database):
     Test that creating a user with an existing username shows an error.
     """
     # 1. Create user manually
-    user = User(username="existing_user", password="x")
+    user = User(username="existing_user", password="x")  # nosec
     init_database.session.add(user)
     init_database.session.commit()
 
@@ -67,18 +65,15 @@ def test_create_duplicate_user_fails(admin_client, init_database):
         url_for("users.create_user"),
         data={
             "username": "existing_user",
-            "password": "SecretPassword123!",  # Używamy silnego hasła dla pewności
-            "confirm_password": "SecretPassword123!",  # Ważne: potwierdzenie hasła
-            # 'is_admin': ... (brak klucza = False)
+            "password": "SecretPassword123!",
+            "confirm_password": "SecretPassword123!",
         },
         follow_redirects=True,
     )
 
     # 3. Assert
-    # Sprawdzamy, czy formularz wrócił z błędem o duplikacie
     assert b"Username already exists" in response.data
 
-    # Upewniamy się, że w bazie nadal jest tylko 1 taki użytkownik
     assert User.query.filter_by(username="existing_user").count() == 1
 
 
@@ -88,7 +83,7 @@ def test_update_user_change_password(admin_client, init_database):
     Verifies that the password hash in the database actually changes.
     """
     # 1. Setup victim user
-    user = User(username="staff", password="OldPassword")
+    user = User(username="staff", password="OldPassword")  # nosec
     init_database.session.add(user)
     init_database.session.commit()
 
@@ -101,7 +96,6 @@ def test_update_user_change_password(admin_client, init_database):
             "username": "staff",
             "password": "NewPassword123!",
             "confirm_password": "NewPassword123!",
-            # 'is_admin': ... (brak klucza = False)
         },
         follow_redirects=True,
     )
@@ -124,7 +118,7 @@ def test_delete_other_user_success(admin_client, init_database):
     Test that admin can delete another user.
     """
     # 1. Setup
-    user = User(username="fired_emp", password="x")
+    user = User(username="fired_emp", password="x")  # nosec
     init_database.session.add(user)
     init_database.session.commit()
 

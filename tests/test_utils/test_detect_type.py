@@ -1,4 +1,5 @@
 import pytest
+
 from tab_view.utils import detect_type
 
 

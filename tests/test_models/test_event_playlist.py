@@ -1,13 +1,17 @@
 from datetime import datetime
-from tab_view.models import Device, Media, Event, EventMedia, Tag
+
+from tab_view.models import Device, Event, EventMedia, Media, Tag
 
 
 def test_event_to_dict_returns_sorted_media_playlist(init_database):
     """
-    Verifies that the media playlist returned by to_dict is sorted by the 'order' field ascending.
+    Verifies that the media playlist returned by to_dict is sorted
+    by the 'order' field ascending.
 
-    This ensures that even if media items are added to the database out of sequence,
-    the API returns them in the correct playback order defined by the 'order' column.
+    This ensures that even if media items are added
+    to the database out of sequence,
+    the API returns them in the correct playback
+    order defined by the 'order' column.
     """
     # Create a dummy tag first
     tag = Tag(name="Playlist Tag")

@@ -1,9 +1,12 @@
+# Use the official lightweight Python 3.12 image
 FROM python:3.12-slim
 
+# Set environment variables to prevent Python from writing .pyc files
+# and to ensure stdout/stderr are sent straight to terminal (unbuffered)
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# 2. Installation of system dependencies
+# 1. Install system-level dependencies required for building Python packages and media handling
 RUN apt-get update && apt-get install -y \
     curl \
     gcc \
@@ -12,27 +15,43 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. UV installation
+# 2. Install 'uv' using the official binary from the provided image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 4. Setting the working directory
+# 3. Set the application working directory
 WORKDIR /app
 
-# 5. Copying configuration files and installing dependencies
-# Kopiujemy najpierw pliki zależności, żeby Docker wykorzystał cache, jeśli kod się zmienił, a deps nie.
+# 4. Copy dependency files first to leverage Docker layer caching
+# This ensures 'uv sync' is only re-run if dependencies actually change
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project --no-dev
 
-# 6. Copying application code
+# 5. Copy the rest of the application source code
 COPY . .
 
+# Ensure the startup script is executable
 RUN chmod +x run.sh
 
-# 7. Setting env so Python uses the venv
+# --- SECURITY SECTION (NON-ROOT USER) ---
+
+# 6. Create a dedicated system group and user to run the application
+# Using a non-privileged user mitigates potential container breakout attacks
+RUN addgroup --system appgroup && adduser --system --group appuser
+
+# 7. Grant the new user ownership over the application directory
+# Necessary for the user to read source files and write to the static/uploads directory
+RUN chown -R appuser:appgroup /app
+
+# 8. Switch from 'root' to the restricted user
+USER appuser
+
+# ----------------------------------------
+
+# 9. Update PATH to use the virtual environment created by 'uv'
 ENV PATH="/app/.venv/bin:$PATH"
 
-# 8. Opening port
+# 10. Expose the port the application listens on
 EXPOSE 8000
 
-# 9. Starting Gunicorn via run.sh
+# 11. Define the entry point for the container
 CMD ["./run.sh"]

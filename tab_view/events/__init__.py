@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from flask_restful import Api
-from .api import EventResource
 
+from .api import EventResource
 
 events_bp = Blueprint("events", __name__)
 events_api = Api(events_bp)

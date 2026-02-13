@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField
+from wtforms import SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Regexp, ValidationError
+
 from tab_view.models import Device
 
 
@@ -12,7 +13,8 @@ class NewDevice(FlaskForm):
             DataRequired(),
             Regexp(
                 r"^[a-zA-Z0-9_-]+$",
-                message="The URL can only contain letters, numbers, hyphens, and underscores.",
+                message="The URL can only contain letters, \
+                    numbers, hyphens, and underscores.",
             ),
         ],
     )
@@ -35,7 +37,8 @@ class UpdateDevice(FlaskForm):
             DataRequired(),
             Regexp(
                 r"^[a-zA-Z0-9_-]+$",
-                message="The URL can only contain letters, numbers, hyphens, and underscores.",
+                message="The URL can only contain letters, \
+                    numbers, hyphens, and underscores.",
             ),
         ],
     )

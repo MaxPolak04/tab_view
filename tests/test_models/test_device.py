@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
+
 from tab_view.models import Device, Media, Tag
 
 

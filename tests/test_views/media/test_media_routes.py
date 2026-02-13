@@ -1,6 +1,8 @@
-import os
 import io
+import os
+
 from flask import url_for
+
 from tab_view.models import Media, Tag
 
 # --- GET & ACCESS TESTS ---

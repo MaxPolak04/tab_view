@@ -1,4 +1,5 @@
 from flask import url_for
+
 from tab_view.models import Device, Media, Tag
 
 # --- PUBLIC ACCESS TESTS ---

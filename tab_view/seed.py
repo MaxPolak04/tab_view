@@ -1,5 +1,6 @@
 import os
 import shutil
+
 from tab_view import db
 from tab_view.models import Media, Tag
 

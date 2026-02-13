@@ -1,4 +1,5 @@
 import pytest
+
 from tab_view import create_app
 from tab_view.config import TestingConfig
 
@@ -53,7 +54,8 @@ def test_404_json_via_accept_header(client):
 
 # --- 500 Error Tests ---
 # We cannot use the shared 'app' fixture here because we need to register
-# new routes (@app.route), which is forbidden after the app has started handling requests.
+# new routes (@app.route), which is forbidden after
+#  the app has started handling requests.
 # Instead, we create a fresh app instance locally for these specific tests.
 
 

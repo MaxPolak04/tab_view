@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, PasswordField, BooleanField
-from wtforms.validators import DataRequired, Length, EqualTo, Regexp, Optional
+from wtforms import BooleanField, PasswordField, StringField, SubmitField
+from wtforms.validators import DataRequired, EqualTo, Length, Optional, Regexp
 
 
 class CreateUserForm(FlaskForm):
@@ -14,7 +14,10 @@ class CreateUserForm(FlaskForm):
             Length(min=6, max=20),
             Regexp(
                 r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])[\w!@#$%^&*()\-_=+{}\[\]:;,.?]{6,20}$",
-                message="Password must be 6–20 characters long, contain at least one lowercase letter, one uppercase letter, and one special character. Spaces and disallowed characters are not allowed.",
+                message="Password must be 6–20 characters long, contain \
+                    at least one lowercase letter, one uppercase letter, \
+                        and one special character. \
+                        Spaces and disallowed characters are not allowed.",
             ),
         ],
     )
@@ -40,7 +43,10 @@ class UpdateUserForm(FlaskForm):
             Length(min=6, max=20),
             Regexp(
                 r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])[\w!@#$%^&*()\-_=+{}\[\]:;,.?]{6,20}$",
-                message="Password must be 6–20 characters long, contain at least one lowercase letter, one uppercase letter, and one special character. Spaces and disallowed characters are not allowed.",
+                message="Password must be 6–20 characters long, contain \
+                    at least one lowercase letter, \
+                    one uppercase letter, and one special character. \
+                        Spaces and disallowed characters are not allowed.",
             ),
         ],
     )

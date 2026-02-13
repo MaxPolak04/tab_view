@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, SelectField
-from wtforms.validators import DataRequired, Optional
 from flask_wtf.file import FileField
+from wtforms import SelectField, StringField, SubmitField
+from wtforms.validators import DataRequired, Optional
 
 
 class MediaUploadForm(FlaskForm):

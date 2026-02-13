@@ -1,11 +1,14 @@
-from tab_view.models import Device, Media, Tag, Event, EventMedia
 from datetime import datetime
+
+from tab_view.models import Device, Event, EventMedia, Media, Tag
 
 
 def test_event_to_dict_returns_expected_keys(init_database):
     """
-    Verifies that the to_dict method returns a dictionary with the correct structure and keys.
-    Checks specifically for the presence of 'extendedProps' and the correct mapping of the device ID.
+    Verifies that the to_dict method returns a dictionary with
+    the correct structure and keys.
+    Checks specifically for the presence of 'extendedProps'
+    and the correct mapping of the device ID.
     """
     device = Device(name="N.100", device_url="n100")
 
@@ -28,8 +31,10 @@ def test_event_to_dict_returns_expected_keys(init_database):
 
 def test_event_dates_are_returned_as_iso_strings(init_database):
     """
-    Tests that start_time and end_time datetime objects are correctly converted into ISO 8601 strings.
-    This format is required for proper parsing by frontend calendar libraries (e.g., FullCalendar).
+    Tests that start_time and end_time datetime objects
+    are correctly converted into ISO 8601 strings.
+    This format is required for proper parsing
+    by frontend calendar libraries (e.g., FullCalendar).
     """
     device = Device(name="N.100", device_url="n100")
 
@@ -51,8 +56,10 @@ def test_event_dates_are_returned_as_iso_strings(init_database):
 
 def test_event_to_dict_returns_media_playlist(init_database):
     """
-    Verifies that the to_dict method correctly serializes related Media objects.
-    Ensures that the 'media_playlist' list contains nested dictionaries with Media details
+    Verifies that the to_dict method correctly serializes
+    related Media objects.
+    Ensures that the 'media_playlist' list contains
+    nested dictionaries with Media details
     and EventMedia specific fields (order, duration).
     """
     # 1. Tworzymy pomocniczy Tag, aby spełnić wymogi bazy danych

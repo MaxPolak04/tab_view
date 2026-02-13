@@ -1,5 +1,5 @@
-from tab_view.config import ProductionConfig
 from tab_view import create_app
+from tab_view.config import ProductionConfig
 
 
 def test_checking_config(app):
@@ -19,7 +19,7 @@ def test_production_config(mocker):
     mocker.patch("tab_view.wait_for_db")
 
     fake_db_url = "mysql+pymysql://user:pass@localhost/prod_db"
-    fake_secret = "prod-secret-key"
+    fake_secret = "prod-secret-key"  # nosec
 
     mocker.patch.object(ProductionConfig, "SQLALCHEMY_DATABASE_URI", fake_db_url)
     mocker.patch.object(ProductionConfig, "SECRET_KEY", fake_secret)

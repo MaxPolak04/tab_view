@@ -1,8 +1,10 @@
 import click
 from flask.cli import with_appcontext
+from werkzeug.security import generate_password_hash
+
 from tab_view import db
 from tab_view.models import User
-from werkzeug.security import generate_password_hash
+
 from .seed import seed_data  # Importujemy naszą nową funkcję
 
 

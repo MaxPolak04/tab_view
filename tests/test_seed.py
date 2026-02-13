@@ -1,11 +1,13 @@
 from unittest.mock import patch
-from tab_view.seed import seed_data
+
 from tab_view.models import Media, Tag
+from tab_view.seed import seed_data
 
 
 def test_seed_data_full_execution(init_database):
     """
-    Test verifies that seed_data creates required system tags ('Other', 'eNStudios', 'System')
+    Test verifies that seed_data creates required system tags
+    ('Other', 'eNStudios', 'System')
     and creates the default Media record assigned to the 'System' tag.
 
     It uses mocking to avoid actual file system operations during tests.
@@ -16,7 +18,8 @@ def test_seed_data_full_execution(init_database):
         patch("shutil.copy") as mock_copy,
     ):
         # Simulate that the source asset file exists so copying can proceed
-        # The lambda function returns True if checking for 'assets', otherwise False (initially)
+        # The lambda function returns True if checking for 'assets',
+        # otherwise False (initially)
         mock_exists.side_effect = lambda path: "assets" in path
 
         # Execute the seed function
@@ -48,7 +51,8 @@ def test_seed_data_full_execution(init_database):
 
 def test_seed_data_is_idempotent(init_database):
     """
-    Test verifies that running seed_data multiple times does not create duplicate records
+    Test verifies that running seed_data multiple times
+    does not create duplicate records
     or raise IntegrityErrors.
     """
     with (

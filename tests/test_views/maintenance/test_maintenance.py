@@ -1,7 +1,9 @@
 from datetime import datetime
+
 from dateutil.relativedelta import relativedelta
 from flask import url_for
-from tab_view.models import Event, Device
+
+from tab_view.models import Device, Event
 
 # --- ACCESS TEST ---
 

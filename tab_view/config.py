@@ -1,6 +1,6 @@
-from dotenv import load_dotenv
 import os
 
+from dotenv import load_dotenv
 
 load_dotenv(override=False)
 
@@ -52,7 +52,7 @@ class TestingConfig:
 
     TESTING = True
     SERVER_NAME = "localhost.localdomain"
-    SECRET_KEY = "test-secret"
+    SECRET_KEY = "test-secret"  # nosec
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False

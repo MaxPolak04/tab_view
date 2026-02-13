@@ -1,12 +1,15 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
-from tab_view.models import Tag, Media
+
+from tab_view.models import Media, Tag
 
 
 def test_create_tag(init_database):
     """
-    Verifies that a new Tag can be successfully created and saved to the database.
-    Checks if the ID is assigned and the __repr__ method works as expected.
+    Verifies that a new Tag can be successfully created
+    and saved to the database.
+    Checks if the ID is assigned and the __repr__ method
+    works as expected.
     """
     tag = Tag(name="Summer Vacation")
     init_database.session.add(tag)
@@ -20,7 +23,8 @@ def test_create_tag(init_database):
 def test_tag_name_must_be_unique(init_database):
     """
     Verifies the unique constraint on the 'name' column.
-    Attempting to create two tags with the same name should raise an IntegrityError.
+    Attempting to create two tags with the same name should
+    raise an IntegrityError.
     """
     tag1 = Tag(name="Duplicate Name")
     init_database.session.add(tag1)
@@ -50,7 +54,8 @@ def test_tag_defaults(init_database):
 def test_tag_media_relationship(init_database):
     """
     Verifies the one-to-many relationship between Tag and Media.
-    Ensures that media items assigned to a tag are accessible via the tag.media relationship.
+    Ensures that media items assigned to a tag are accessible via
+    the tag.media relationship.
     """
     tag = Tag(name="Nature")
     init_database.session.add(tag)

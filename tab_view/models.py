@@ -1,4 +1,5 @@
 from flask_login import UserMixin
+
 from tab_view import db
 
 
@@ -69,7 +70,8 @@ class EventMedia(db.Model):
     media = db.relationship("Media")
 
     def __repr__(self):
-        return f"<EventMedia event={self.event_id} media={self.media_id} order={self.order}>"
+        return f"<EventMedia event={self.event_id} media={self.media_id} \
+            order={self.order}>"
 
 
 class Event(db.Model):

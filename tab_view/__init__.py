@@ -1,13 +1,13 @@
-from flask import Flask, redirect, url_for, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
-from flask_wtf.csrf import CSRFProtect
+from flask import Flask, jsonify, redirect, request, url_for
 from flask_apscheduler import APScheduler
 from flask_limiter import Limiter
-from tab_view.utils import wait_for_db, get_user_or_ip, configure_logging
-from tab_view.config import ProductionConfig
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 
+from tab_view.config import ProductionConfig
+from tab_view.utils import configure_logging, get_user_or_ip, wait_for_db
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -69,11 +69,11 @@ def create_app(config_class=ProductionConfig):
 
     from .auth import auth_bp
     from .devices import devices_bp
-    from .media import media_bp
-    from .users import users_bp
+    from .errors import errors_bp
     from .events import events_bp
     from .maintenance import maintenance_bp
-    from .errors import errors_bp
+    from .media import media_bp
+    from .users import users_bp
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(devices_bp, url_prefix="/devices")

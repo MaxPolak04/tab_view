@@ -1,9 +1,10 @@
 import logging
-from flask import render_template, request, jsonify
-from werkzeug.exceptions import HTTPException
-from . import errors_bp
-from flask_login import current_user
 
+from flask import jsonify, render_template, request
+from flask_login import current_user
+from werkzeug.exceptions import HTTPException
+
+from . import errors_bp
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,8 @@ def handle_http_error(error):
         else f"IP: {request.remote_addr}"
     )
     logger.warning(
-        f"HTTP {error.code}: {error.name} - Path: {request.path} ({user_info})"
+        f"HTTP {error.code}: {error.name} - Path: \
+            {request.path} ({user_info})"
     )
 
     if wants_json_response():
@@ -54,7 +56,8 @@ def handle_exception(error):
         else f"IP: {request.remote_addr}"
     )
     logger.error(
-        f"Critical Exception: {str(error)} - Path: {request.path} ({user_info})",
+        f"Critical Exception: {str(error)} - \
+            Path: {request.path} ({user_info})",
         exc_info=True,
     )
 
@@ -71,5 +74,6 @@ def handle_exception(error):
         "errors/error.html",
         error_code=500,
         error_name="Internal Server Error",
-        error_desc="Something went wrong on our end. Administrators have been notified.",
+        error_desc="Something went wrong on our end. \
+            Administrators have been notified.",
     ), 500

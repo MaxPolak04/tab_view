@@ -1,15 +1,17 @@
-from werkzeug.utils import secure_filename
-from flask import redirect, url_for, render_template, current_app, flash, request
-from flask_login import login_required, current_user
-from sqlalchemy.exc import IntegrityError
-from . import media_bp
-from .forms import MediaUploadForm, TagForm, MediaUpdateForm, MediaDeleteForm
-from tab_view import db
-from tab_view.models import Media, Tag, Device
-from tab_view.utils import detect_type, admin_required
 import logging
 import os
 
+from flask import current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
+
+from tab_view import db
+from tab_view.models import Device, Media, Tag
+from tab_view.utils import admin_required, detect_type
+
+from . import media_bp
+from .forms import MediaDeleteForm, MediaUpdateForm, MediaUploadForm, TagForm
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +98,8 @@ def new_media():
                     db.session.commit()
                     final_tag_id = new_tag.id
                     logger.info(
-                        f"Created new tag '{clean_tag_name}' (ID: {new_tag.id}) during upload by User {current_user.id}"
+                        f"Created new tag '{clean_tag_name}' (ID: {new_tag.id}) \
+                            during upload by User {current_user.id}"
                     )
                 except Exception as e:
                     db.session.rollback()
@@ -128,7 +131,8 @@ def new_media():
                 db.session.commit()
 
                 logger.info(
-                    f"Media added successfully: {filename} (ID: {media.id}) with Tag ID {final_tag_id} by User {current_user.id}"
+                    f"Media added successfully: {filename} (ID: {media.id}) with \
+                        Tag ID {final_tag_id} by User {current_user.id}"
                 )
                 flash("Media added successfully!", "success")
                 return redirect(url_for("media.get_all_media"))
@@ -141,7 +145,8 @@ def new_media():
                 flash(f"Error saving file: {str(e)}", "danger")
         else:
             logger.warning(
-                f"Upload failed - duplicate filename: {filename} (User: {current_user.id})"
+                f"Upload failed - duplicate filename: {filename} \
+                    (User: {current_user.id})"
             )
             flash("A file with this name already exists in the database.", "danger")
 
@@ -212,7 +217,8 @@ def delete_media(media_id):
 
     if media_id == 1:
         logger.warning(
-            f"User {current_user.id} attempted to delete DEFAULT media (ID 1) - Action blocked"
+            f"User {current_user.id} attempted to delete DEFAULT media (ID 1) - \
+                Action blocked"
         )
         flash("Cannot delete the default image.", "danger")
         return redirect(url_for("media.get_all_media"))
@@ -225,7 +231,8 @@ def delete_media(media_id):
     if devices_using_media:
         count = len(devices_using_media)
         logger.info(
-            f"Resetting media to default for {count} devices linked to media ID {media_id}"
+            f"Resetting media to default for {count} devices \
+                linked to media ID {media_id}"
         )
         for device in devices_using_media:
             device.media_id = 1
@@ -249,7 +256,8 @@ def delete_media(media_id):
             f"Delete failed: Media {media_id} is in use elsewhere (IntegrityError)."
         )
         flash(
-            "Cannot delete this file because it is assigned to an Event. Please remove the association in the event first.",
+            "Cannot delete this file because it is assigned to an Event. \
+                Please remove the association in the event first.",
             "danger",
         )
 
@@ -317,10 +325,12 @@ def delete_tag(tag_id):
         db.session.commit()
 
         logger.info(
-            f"Tag '{tag.name}' deleted along with {media_count} files by User {current_user.id}"
+            f"Tag '{tag.name}' deleted along with {media_count} files b\
+                y User {current_user.id}"
         )
         flash(
-            f'Tag "{tag.name}" and {media_count} associated file(s) were deleted successfully.',
+            f'Tag "{tag.name}" and {media_count} associated file(s) \
+                were deleted successfully.',
             "success",
         )
 
