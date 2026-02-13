@@ -33,8 +33,10 @@ def signin():
         remember_me = form.remember_me.data
         client_ip = request.remote_addr
 
-        logger.info(f"Login attempt for user '{username}' \
-                    from IP: {client_ip}")
+        logger.info(
+            f"Login attempt for user '{username}' \
+                    from IP: {client_ip}"
+        )
 
         user = User.query.filter_by(username=username).first()
 
@@ -67,8 +69,10 @@ def signin():
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error updating last_login_at \
-                         for user {user.id}: {str(e)}")
+            logger.error(
+                f"Error updating last_login_at \
+                         for user {user.id}: {str(e)}"
+            )
 
         logger.info(
             f"User logged in successfully: {user.username} \
@@ -89,8 +93,10 @@ def signout():
 
     logout_user()
 
-    logger.info(f"User logged out: {username} \
-                (ID: {user_id})")
+    logger.info(
+        f"User logged out: {username} \
+                (ID: {user_id})"
+    )
 
     flash("Logged out successfully!", "success")
     return redirect(url_for("index"))

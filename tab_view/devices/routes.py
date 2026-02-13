@@ -191,8 +191,10 @@ def update_device(device_id):
 @devices_bp.route("/delete/<int:device_id>", methods=["POST"])
 @admin_required
 def delete_device(device_id):
-    logger.info(f"User {current_user.id} requesting \
-                deletion of device ID {device_id}")
+    logger.info(
+        f"User {current_user.id} requesting \
+                deletion of device ID {device_id}"
+    )
 
     device = Device.query.get_or_404(device_id)
     device_name = device.name
