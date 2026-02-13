@@ -11,25 +11,22 @@ from tab_view.utils import admin_required
 logger = logging.getLogger(__name__)
 
 
-@devices_bp.route('/', methods=['GET'])
+@devices_bp.route("/", methods=["GET"])
 @login_required
 def get_all_devices():
     form = DeleteDevice()
 
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
     per_page = 9
-    pagination = Device.query \
-        .order_by(Device.id) \
-        .paginate(page=page, per_page=per_page)
-    
+    pagination = Device.query.order_by(Device.id).paginate(page=page, per_page=per_page)
+
     devices = pagination.items
-    return render_template('devices/devices.html',
-                           devices=devices,
-                           pagination=pagination,
-                           form=form)
+    return render_template(
+        "devices/devices.html", devices=devices, pagination=pagination, form=form
+    )
 
 
-@devices_bp.route('/<device_url>')
+@devices_bp.route("/<device_url>")
 def show_device(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
     media = device.media
@@ -40,38 +37,37 @@ def show_device(device_url):
     for event in events:
         playlist = [
             {
-                'media_id': em.media_id,
-                'filename': em.media.filename,
-                'media_type': em.media.media_type,
-                'order': em.order,
-                'duration': em.duration
+                "media_id": em.media_id,
+                "filename": em.media.filename,
+                "media_type": em.media.media_type,
+                "order": em.order,
+                "duration": em.duration,
             }
             for em in sorted(event.event_media, key=lambda x: x.order)
         ]
-        
-        schedule.append({
-            'id': event.id,
-            'title': event.title,
-            'start': event.start_time.isoformat(),
-            'end': event.end_time.isoformat(),
-            'media_playlist': playlist
-        })
+
+        schedule.append(
+            {
+                "id": event.id,
+                "title": event.title,
+                "start": event.start_time.isoformat(),
+                "end": event.end_time.isoformat(),
+                "media_playlist": playlist,
+            }
+        )
 
     return render_template(
-        'devices/display.html', 
-        device=device, 
-        media=media,
-        schedule=schedule
+        "devices/display.html", device=device, media=media, schedule=schedule
     )
 
 
-@devices_bp.route('/new', methods=['GET', 'POST'])
+@devices_bp.route("/new", methods=["GET", "POST"])
 @admin_required
 def create_device():
     media_list = Media.query.all()
     if not media_list:
         flash("No media available. Add a file before creating the device.", "warning")
-        return redirect(url_for('media.new_media'))
+        return redirect(url_for("media.new_media"))
 
     form = NewDevice()
     form.media_id.choices = [(media.id, media.filename) for media in media_list]
@@ -80,7 +76,7 @@ def create_device():
         name = form.name.data
         device_url = form.device_url.data
         media_id = form.media_id.data
-        
+
         try:
             new_device = Device(name=name, device_url=device_url, media_id=media_id)
             db.session.add(new_device)
@@ -91,17 +87,19 @@ def create_device():
                 f"URL: {new_device.device_url} by User {current_user.id}"
             )
 
-            flash('Device added successfully!', 'success')
-            return redirect(url_for('devices.get_all_devices'))
+            flash("Device added successfully!", "success")
+            return redirect(url_for("devices.get_all_devices"))
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error creating device '{name}': {str(e)} (User: {current_user.id})")
+            logger.error(
+                f"Error creating device '{name}': {str(e)} (User: {current_user.id})"
+            )
             flash(f"Error creating device: {str(e)}", "danger")
 
-    return render_template('devices/new-device.html', form=form)
+    return render_template("devices/new-device.html", form=form)
 
 
-@devices_bp.route('/update/<int:device_id>', methods=['GET', 'POST'])
+@devices_bp.route("/update/<int:device_id>", methods=["GET", "POST"])
 @login_required
 def update_device(device_id):
     device = Device.query.get_or_404(device_id)
@@ -109,13 +107,13 @@ def update_device(device_id):
 
     if not media_list:
         flash("No media available. Add a file before updating the device.", "warning")
-        return redirect(url_for('media.new_media'))
-    
+        return redirect(url_for("media.new_media"))
+
     form = UpdateDevice(obj=device)
     form.device_id = device.id
     form.media_id.choices = [(media.id, media.filename) for media in media_list]
 
-    if request.method == 'GET':
+    if request.method == "GET":
         form.name.data = device.name
         form.device_url.data = device.device_url
         form.media_id.data = device.media_id
@@ -126,8 +124,13 @@ def update_device(device_id):
                 f"Unauthorized device update attempt: Device ID {device.id} "
                 f"by non-admin User {current_user.id}"
             )
-            flash('Device settings can only be modified by administrators.', 'warning')
-            return render_template('devices/update-device.html', form=form, device=device, media_list=media_list)
+            flash("Device settings can only be modified by administrators.", "warning")
+            return render_template(
+                "devices/update-device.html",
+                form=form,
+                device=device,
+                media_list=media_list,
+            )
 
         existing_name = Device.query.filter_by(name=form.name.data).first()
         if existing_name and existing_name.id != device.id:
@@ -135,8 +138,8 @@ def update_device(device_id):
                 f"Update failed - duplicate name '{form.name.data}' "
                 f"for Device ID {device.id} (User: {current_user.id})"
             )
-            flash('This device name is already in use.', 'danger')
-            return redirect(url_for('devices.update_device', device_id=device.id))
+            flash("This device name is already in use.", "danger")
+            return redirect(url_for("devices.update_device", device_id=device.id))
 
         existing_url = Device.query.filter_by(device_url=form.device_url.data).first()
         if existing_url and existing_url.id != device.id:
@@ -144,8 +147,8 @@ def update_device(device_id):
                 f"Update failed - duplicate URL '{form.device_url.data}' "
                 f"for Device ID {device.id} (User: {current_user.id})"
             )
-            flash('This URL is already assigned to another device.', 'danger')
-            return redirect(url_for('devices.update_device', device_id=device.id))
+            flash("This URL is already assigned to another device.", "danger")
+            return redirect(url_for("devices.update_device", device_id=device.id))
 
         try:
             old_name = device.name
@@ -160,27 +163,28 @@ def update_device(device_id):
                 f"by User {current_user.id}"
             )
 
-            flash('Device updated successfully!', 'success')
-            return redirect(url_for('devices.get_all_devices'))
-            
+            flash("Device updated successfully!", "success")
+            return redirect(url_for("devices.get_all_devices"))
+
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error updating device ID {device.id}: {str(e)} (User: {current_user.id})")
+            logger.error(
+                f"Error updating device ID {device.id}: {str(e)} (User: {current_user.id})"
+            )
             flash(f"Error updating device: {str(e)}", "danger")
-    
+
     return render_template(
-        'devices/update-device.html', 
-        form=form, 
+        "devices/update-device.html",
+        form=form,
         device=device,
-        media_list=[{
-            'id': m.id, 
-            'filename': m.filename,
-            'media_type': m.media_type
-        } for m in media_list]
+        media_list=[
+            {"id": m.id, "filename": m.filename, "media_type": m.media_type}
+            for m in media_list
+        ],
     )
 
 
-@devices_bp.route('/delete/<int:device_id>', methods=['POST'])
+@devices_bp.route("/delete/<int:device_id>", methods=["POST"])
 @admin_required
 def delete_device(device_id):
     logger.info(f"User {current_user.id} requesting deletion of device ID {device_id}")
@@ -197,11 +201,13 @@ def delete_device(device_id):
             f"by User {current_user.id}"
         )
 
-        flash('Device deleted successfully!', 'success')
+        flash("Device deleted successfully!", "success")
 
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Critical error deleting device ID {device_id}: {str(e)} (User: {current_user.id})")
+        logger.error(
+            f"Critical error deleting device ID {device_id}: {str(e)} (User: {current_user.id})"
+        )
         flash(f"Error deleting device: {str(e)}", "danger")
 
-    return redirect(url_for('devices.get_all_devices'))
+    return redirect(url_for("devices.get_all_devices"))

@@ -1,6 +1,6 @@
 from flask import Blueprint
 
 
-devices_bp = Blueprint('devices', __name__)
+devices_bp = Blueprint("devices", __name__)
 
-from . import routes
+from . import routes  # noqa: F401, E402

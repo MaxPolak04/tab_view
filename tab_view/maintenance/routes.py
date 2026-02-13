@@ -12,11 +12,11 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-@maintenance_bp.route('/cleanup-events', methods=['GET', 'POST'])
+@maintenance_bp.route("/cleanup-events", methods=["GET", "POST"])
 @admin_required
 def cleanup_events_view():
     form = CleanupEventsForm()
-    
+
     cutoff_date = None
     affected_count = None
     dry_run_result = False
@@ -25,10 +25,9 @@ def cleanup_events_view():
     if form.validate_on_submit():
         now = datetime.now()
         cutoff_date = now - relativedelta(
-            years=form.years.data, 
-            months=form.months.data
+            years=form.years.data, months=form.months.data
         )
-        
+
         query = Event.query.filter(Event.end_time < cutoff_date)
         affected_count = query.count()
 
@@ -42,41 +41,43 @@ def cleanup_events_view():
             )
 
             flash(
-                f'Preview: {affected_count} events would be deleted (end_time < {cutoff_date}).',
-                'info'
+                f"Preview: {affected_count} events would be deleted (end_time < {cutoff_date}).",
+                "info",
             )
         else:
             logger.info(
                 f"Maintenance Cleanup STARTED by Admin {current_user.id}. "
                 f"Target: events older than {cutoff_date}. Count: {affected_count}"
             )
-            
+
             try:
                 deleted_events = query.all()
                 for event in deleted_events:
                     db.session.delete(event)
-                
+
                 db.session.commit()
-                
+
                 logger.info(
                     f"Maintenance Cleanup COMPLETED successfully by Admin {current_user.id}. "
                     f"Deleted {len(deleted_events)} events."
                 )
-                
+
                 flash(
-                    f'{len(deleted_events)} events deleted successfully (end_time < {cutoff_date}).',
-                    'success'
+                    f"{len(deleted_events)} events deleted successfully (end_time < {cutoff_date}).",
+                    "success",
                 )
             except Exception as e:
                 db.session.rollback()
-                logger.error(f"Error during maintenance cleanup: {str(e)} (Admin: {current_user.id})")
-                flash(f"An error occurred during cleanup: {str(e)}", 'danger')
+                logger.error(
+                    f"Error during maintenance cleanup: {str(e)} (Admin: {current_user.id})"
+                )
+                flash(f"An error occurred during cleanup: {str(e)}", "danger")
 
     return render_template(
-        'admin/maintenance.html',
+        "admin/maintenance.html",
         form=form,
         cutoff_date=cutoff_date,
         affected_count=affected_count,
         dry_run_result=dry_run_result,
-        events_to_delete=events_to_delete
+        events_to_delete=events_to_delete,
     )

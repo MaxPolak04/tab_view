@@ -14,17 +14,17 @@ class Config:
     - SQLALCHEMY_DATABASE_URI: Database connection string
     """
 
-    SECRET_KEY = os.getenv('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    RATELIMIT_STORAGE_URI = os.getenv('RATELIMIT_STORAGE_URI', 'memory://')
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
 
     if not SECRET_KEY:
-        raise RuntimeError('SECRET_KEY is not set')
+        raise RuntimeError("SECRET_KEY is not set")
 
     if not SQLALCHEMY_DATABASE_URI:
-        raise RuntimeError('DATABASE_URL is not set')
-    
+        raise RuntimeError("DATABASE_URL is not set")
+
 
 class ProductionConfig(Config):
     """
@@ -34,7 +34,7 @@ class ProductionConfig(Config):
     - Relies on environment variables
     - Intended to be run via Gunicorn
     """
-    
+
     DEBUG = False
     TESTING = False
 
@@ -51,9 +51,9 @@ class TestingConfig:
     """
 
     TESTING = True
-    SERVER_NAME = 'localhost.localdomain'
-    SECRET_KEY = 'test-secret'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SERVER_NAME = "localhost.localdomain"
+    SECRET_KEY = "test-secret"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
     LOGIN_DISABLED = False

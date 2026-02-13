@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
-from tab_view.models import Device, Media
+from tab_view.models import Device, Media, Tag
 
 
 def test_create_device(init_database):
@@ -8,17 +8,14 @@ def test_create_device(init_database):
     Test successful creation of a Device.
     Verifies that ID is assigned and defaults are set.
     """
-    device = Device(
-        name="N.100",
-        device_url="n100"
-    )
+    device = Device(name="N.100", device_url="n100")
 
     init_database.session.add(device)
     init_database.session.commit()
 
     assert device.id is not None
     assert device.name == "N.100"
-    
+
     init_database.session.refresh(device)
     assert device.uploaded_at is not None
 
@@ -36,7 +33,7 @@ def test_device_unique_name(init_database):
 
     with pytest.raises(IntegrityError):
         init_database.session.commit()
-    
+
     init_database.session.rollback()
 
 
@@ -53,7 +50,7 @@ def test_device_unique_url(init_database):
 
     with pytest.raises(IntegrityError):
         init_database.session.commit()
-    
+
     init_database.session.rollback()
 
 
@@ -61,20 +58,21 @@ def test_device_media_relationship(init_database):
     """
     Test the relationship between Device and Media.
     """
-    media = Media(filename="promo.mp4", media_type="video")
-    init_database.session.add(media)
-    init_database.session.flush() 
+    # Create a dummy tag first to satisfy the foreign key constraint
+    tag = Tag(name="Device Test Tag")
+    init_database.session.add(tag)
+    init_database.session.commit()
 
-    device = Device(
-        name="N.100",
-        device_url="n100",
-        media=media
-    )
+    # Now create media linked to the tag
+    media = Media(filename="promo.mp4", media_type="video", tag_id=tag.id)
+    init_database.session.add(media)
+    init_database.session.flush()
+
+    device = Device(name="N.100", device_url="n100", media=media)
     init_database.session.add(device)
     init_database.session.commit()
 
     saved_device = Device.query.filter_by(name="N.100").first()
-    
+
     assert saved_device.media_id == media.id
     assert saved_device.media.filename == "promo.mp4"
-    

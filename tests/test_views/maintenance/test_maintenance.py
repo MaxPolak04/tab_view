@@ -5,48 +5,50 @@ from tab_view.models import Event, Device
 
 # --- ACCESS TEST ---
 
+
 def test_cleanup_page_forbidden_for_non_admin(auth_client):
     """
     Verify that regular users cannot access maintenance tools.
     """
-    response = auth_client.get(url_for('maintenance.cleanup_events_view'))
+    response = auth_client.get(url_for("maintenance.cleanup_events_view"))
     assert response.status_code == 403
 
 
 # --- LOGIC TESTS ---
+
 
 def test_cleanup_dry_run_does_not_delete(admin_client, init_database):
     """
     Test 'Dry Run' mode. It should find old events but NOT delete them.
     """
     # 1. Setup Data
-    device = Device(name='Maintenance Screen', device_url='maint-url')
-    
+    device = Device(name="Maintenance Screen", device_url="maint-url")
+
     # Create an 'OLD' event (2 years ago)
     old_date = datetime.now() - relativedelta(years=2)
     old_event = Event(
         title="Old Event",
         start_time=old_date,
         end_time=old_date + relativedelta(hours=1),
-        device=device
+        device=device,
     )
-    
+
     init_database.session.add_all([device, old_event])
     init_database.session.commit()
 
     # 2. Act: Submit form with dry_run=True (simulate checkbox checked)
     # We want to delete events older than 1 year.
-    response = admin_client.post(url_for('maintenance.cleanup_events_view'), data={
-        'years': 1,
-        'months': 0,
-        'dry_run': 'y'
-    }, follow_redirects=True)
+    response = admin_client.post(
+        url_for("maintenance.cleanup_events_view"),
+        data={"years": 1, "months": 0, "dry_run": "y"},
+        follow_redirects=True,
+    )
 
     # 3. Assert
     assert response.status_code == 200
     # Check flash message for "Preview"
     assert b"Preview:" in response.data
-    
+
     # CRITICAL: Verify the event still exists!
     assert Event.query.count() == 1
 
@@ -56,26 +58,34 @@ def test_cleanup_execute_deletes_old_events(admin_client, init_database):
     Test actual execution. Should delete old events and keep new ones.
     """
     # 1. Setup Data
-    device = Device(name='Cleanup Screen', device_url='clean-url')
-    
+    device = Device(name="Cleanup Screen", device_url="clean-url")
+
     # Event A: 2 years old (Should be deleted)
     date_old = datetime.now() - relativedelta(years=2)
-    event_old = Event(title="To Delete", start_time=date_old, end_time=date_old, device=device)
+    event_old = Event(
+        title="To Delete", start_time=date_old, end_time=date_old, device=device
+    )
 
     # Event B: 1 month old (Should stay)
     date_new = datetime.now() - relativedelta(months=1)
-    event_new = Event(title="To Keep", start_time=date_new, end_time=date_new, device=device)
+    event_new = Event(
+        title="To Keep", start_time=date_new, end_time=date_new, device=device
+    )
 
     init_database.session.add_all([device, event_old, event_new])
     init_database.session.commit()
 
     # 2. Act: Submit form WITHOUT dry_run (simulate checkbox unchecked)
     # Cutoff: 1 year
-    response = admin_client.post(url_for('maintenance.cleanup_events_view'), data={
-        'years': 1,
-        'months': 0
-        # 'dry_run': ... (missing key means False/Unchecked)
-    }, follow_redirects=True)
+    response = admin_client.post(
+        url_for("maintenance.cleanup_events_view"),
+        data={
+            "years": 1,
+            "months": 0,
+            # 'dry_run': ... (missing key means False/Unchecked)
+        },
+        follow_redirects=True,
+    )
 
     # 3. Assert
     assert response.status_code == 200

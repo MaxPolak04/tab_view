@@ -7,28 +7,24 @@ def test_create_user(init_database):
     """
     Verifies that a user can be successfully created with valid data.
     """
-    user = User(
-        username='testuser',
-        password='hashedpassword',
-        is_admin=False
-    )
+    user = User(username="testuser", password="hashedpassword", is_admin=False)
 
     init_database.session.add(user)
     init_database.session.commit()
 
     assert user.id is not None
-    assert user.username == 'testuser'
+    assert user.username == "testuser"
 
 
 def test_user_repr(init_database):
     """
     Tests the string representation (__repr__) of the User model.
     """
-    user = User(username='john', password='secret')
+    user = User(username="john", password="secret")
     init_database.session.add(user)
     init_database.session.commit()
 
-    assert repr(user) == '<User john>'
+    assert repr(user) == "<User john>"
 
 
 def test_user_requires_username(init_database):
@@ -41,7 +37,7 @@ def test_user_requires_username(init_database):
 
     with pytest.raises(IntegrityError):
         init_database.session.commit()
-    
+
     init_database.session.rollback()
 
 
@@ -59,7 +55,7 @@ def test_username_must_be_unique(init_database):
     init_database.session.add(user2)
     with pytest.raises(IntegrityError):
         init_database.session.commit()
-    
+
     init_database.session.rollback()
 
 
