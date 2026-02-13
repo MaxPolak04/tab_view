@@ -1,12 +1,12 @@
 # Use the official lightweight Python 3.12 image
 FROM python:3.12-slim
 
-# Set environment variables to prevent Python from writing .pyc files
-# and to ensure stdout/stderr are sent straight to terminal (unbuffered)
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# 1. Install system-level dependencies required for building Python packages and media handling
+# 1. Install system dependencies
+# Curl is needed for HEALTHCHECK
 RUN apt-get update && apt-get install -y \
     curl \
     gcc \
@@ -15,48 +15,45 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Install 'uv' using the official binary from the provided image
+# 2. Install 'uv'
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 3. Set the application working directory
+# 3. Set working directory
 WORKDIR /app
 
-# 4. Copy dependency files first to leverage Docker layer caching
-# This ensures 'uv sync' is only re-run if dependencies actually change
+# 4. Install dependencies (Root does this, but we fix permissions later)
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project --no-dev
 
-# 5. Copy the rest of the application source code
+# 5. Copy source code
 COPY . .
 
-# Ensure the startup script is executable
+# Ensure executable
 RUN chmod +x run.sh
 
-# --- SECURITY SECTION (NON-ROOT USER) ---
+# --- SECURITY SECTION ---
 
-# 6. Create a dedicated system group and user to run the application
-# Using a non-privileged user mitigates potential container breakout attacks
-RUN addgroup --system appgroup && adduser --system --group appuser
+# 6. Create user WITH HOME DIRECTORY (Fixes the cache issue)
+RUN addgroup --system appgroup && \
+    adduser --system --group --create-home --home /home/appuser appuser
 
-# 7. Grant the new user ownership over the application directory
-# Necessary for the user to read source files and write to the static/uploads directory
+# 7. Grant ownership to application files
+# This fixes the ownership of .venv created by root in step 4
 RUN chown -R appuser:appgroup /app
 
-# Check every 30 seconds, wait a maximum of 3 seconds for a response,
-# try 3 times before declaring failure.
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/ || exit 1
 
-# 8. Switch from 'root' to the restricted user
+# 8. Switch user
 USER appuser
 
-# ----------------------------------------
+# ----------------------
 
-# 9. Update PATH to use the virtual environment created by 'uv'
+# 9. Set HOME and PATH
+ENV HOME=/home/appuser
 ENV PATH="/app/.venv/bin:$PATH"
 
-# 10. Expose the port the application listens on
+# 10. Expose & Run
 EXPOSE 8000
-
-# 11. Define the entry point for the container
 CMD ["./run.sh"]
