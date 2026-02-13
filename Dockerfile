@@ -33,9 +33,13 @@ RUN chmod +x run.sh
 
 # --- SECURITY SECTION ---
 
-# 6. Create user WITH HOME DIRECTORY (Fixes the cache issue)
-RUN addgroup --system appgroup && \
-    adduser --system --group --create-home --home /home/appuser appuser
+# 6. Create user WITH HOME DIRECTORY using low-level tools (Safe & Standard)
+# -r: system account
+# -g appgroup: primary group
+# -m: create home directory
+# -d /home/appuser: specific home path
+RUN groupadd -r appgroup && \
+    useradd -r -g appgroup -m -d /home/appuser appuser
 
 # 7. Grant ownership to application files
 # This fixes the ownership of .venv created by root in step 4
