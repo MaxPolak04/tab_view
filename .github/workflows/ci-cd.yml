@@ -13,16 +13,16 @@ env:
   GHCR_IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
-  # 1. TESTING
+  # 1. TESTING & SECURITY & QUALITY
   test:
-    name: Run Tests
+    name: Run Tests & Security Checks
     runs-on: ubuntu-latest
     env:
       SECRET_KEY: test-key
       DATABASE_URL: 'sqlite:///:memory:'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -30,6 +30,22 @@ jobs:
 
       - name: Install dependencies
         run: uv sync
+
+      - name: Lint Code (Ruff)
+        # Checks for syntax errors and imports
+        run: uv run ruff check .
+
+      - name: Check Formatting (Ruff)
+        # Checks if the code is nicely formatted
+        run: uv run ruff format --check .
+
+      - name: Security Scan (Bandit)
+        # Scans code for security vulnerabilities (ignores B101 assertions)
+        run: uv run bandit -r tab_view/ -s B101
+
+      - name: Dependency Audit (Pip-Audit)
+        # Checks whether libraries have any known viruses/vulnerabilities
+        run: uv run pip-audit
 
       - name: Run Pytest
         run: uv run pytest
@@ -42,7 +58,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -97,7 +113,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     name: Deploy to Server
     runs-on: self-hosted
-    
+
     steps:
       # We download the code to the runner's working directory (e.g., actions-runner/_work/...)
       - name: Checkout repository
@@ -117,7 +133,7 @@ jobs:
           export GITHUB_REPOSITORY_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
 
           docker compose pull
-          
+
           docker compose up -d --remove-orphans
 
           docker image prune -f

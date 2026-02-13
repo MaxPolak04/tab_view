@@ -42,6 +42,11 @@ RUN addgroup --system appgroup && adduser --system --group appuser
 # Necessary for the user to read source files and write to the static/uploads directory
 RUN chown -R appuser:appgroup /app
 
+# Check every 30 seconds, wait a maximum of 3 seconds for a response,
+# try 3 times before declaring failure.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/ || exit 1
+
 # 8. Switch from 'root' to the restricted user
 USER appuser
 
