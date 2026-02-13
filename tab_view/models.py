@@ -37,9 +37,22 @@ class Media(db.Model):
     filename = db.Column(db.String(255), nullable=False)
     media_type = db.Column(db.String(10))  # 'image' or 'video'
     uploaded_at = db.Column(db.DateTime, server_default=db.func.now())
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), nullable=False)
 
     def __repr__(self):
         return f'<Media {self.filename}>'
+    
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    is_system = db.Column(db.Boolean, default=False)  # for "Other" and "eNStudios"
+    media = db.relationship('Media', backref='tag', lazy=True)
+
+    def __repr__(self):
+        return f'<Tag {self.name}>'
     
 
 class EventMedia(db.Model):

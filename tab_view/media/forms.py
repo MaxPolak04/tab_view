@@ -1,16 +1,24 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField
-from wtforms.validators import DataRequired, Length
+from wtforms import SubmitField, StringField, SelectField
+from wtforms.validators import DataRequired, Length, Optional
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 
 
 class MediaUploadForm(FlaskForm):
-    file = FileField('Upload File', validators=[FileRequired(), FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'mp4'], 'Images, Gifs and Videos only!')])
-    submit = SubmitField('Add')
+    file = FileField('File', validators=[DataRequired()])
+    tag_id = SelectField('Existing Tag', coerce=int, validators=[Optional()])
+    new_tag_name = StringField('Or create new tag', validators=[Optional()])
+    submit = SubmitField('Upload')
+
+
+class TagForm(FlaskForm):
+    name = StringField('Tag Name', validators=[DataRequired()])
+    submit = SubmitField('Save')
 
 
 class MediaUpdateForm(FlaskForm):
-    filename = StringField('Filename', validators=[DataRequired(), FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'mp4'], 'Images, Gifs and Videos only!'), Length(max=255)])
+    tag_id = SelectField('Tag', coerce=int, validators=[DataRequired()])
+    filename = StringField('Filename', validators=[DataRequired()])
     submit = SubmitField('Update')
 
 

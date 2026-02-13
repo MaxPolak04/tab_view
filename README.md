@@ -2,7 +2,6 @@
 
 
 ## TODO:
-- tagowanie media, filtry, tag pozostałe, nie da się dodać grafiki bez przypisania lub dodania tagu
 - Dodać Talismana (?)
 - DevSecOps, testy bezpieczeństwa, dobre praktyki DevOps
 - dodać czytanie przez Google Calendar (na razie moje konto)

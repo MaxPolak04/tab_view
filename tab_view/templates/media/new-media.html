@@ -1,24 +1,106 @@
 {% extends 'layout/base.html' %}
 
-
-
 {% block title %}Add New Media{% endblock %}
 
-
-
 {% block content %}
-    <h1 class="main-heading display-5">Add New Media</h1>
+    <h1 class="main-heading display-5 mb-5">Add New Media</h1>
+    
     <div class="container">
-        <form action="{{ url_for('media.new_media') }}" class="form" method="POST" enctype="multipart/form-data">
+        <form action="{{ url_for('media.new_media') }}" class="form" style="max-width: 1000px;" method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
-            <div class="mb-3">
-                {{ form.file.label(class="form-label") }}
-                {{ form.file(class="form-control", accept=".jpg,.jpeg,.png,.gif,.mp4", placeholder="Upload a new file") }}
-                {% for error in form.file.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                {% endfor %}
+            
+            <div class="row g-4 g-lg-5"> <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0 bg-body-tertiary">
+                        <div class="card-body p-4 p-lg-5 d-flex flex-column justify-content-center">
+                            
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                    <i class="bi bi-cloud-arrow-up-fill fs-3"></i>
+                                </div>
+                                <h3 class="fs-3 fw-bold mb-0">Select File</h3>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.file.label(class="form-label fw-bold text-uppercase small ls-1 text-muted") }}
+                                {{ form.file(class="form-control form-control-lg", accept=".jpg,.jpeg,.png,.gif,.mp4") }}
+                                {% for error in form.file.errors %}
+                                    <div class="text-danger mt-2 fw-bold"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                                <div class="form-text mt-3 text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>Supported formats: Images (JPG, PNG) and Videos (MP4).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0 bg-body-tertiary">
+                        <div class="card-body p-4 p-lg-5">
+                            
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                    <i class="bi bi-tags-fill fs-3"></i>
+                                </div>
+                                <h3 class="fs-3 fw-bold mb-0">Assign Tag</h3>
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form.tag_id.label(class="form-label fw-bold text-uppercase small ls-1 text-muted") }}
+                                {{ form.tag_id(class="form-select form-select-lg", id="tagSelect") }}
+                                {% for error in form.tag_id.errors %}
+                                    <div class="text-danger mt-2 fw-bold">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="position-relative text-center my-4">
+                                <hr class="border-secondary opacity-25">
+                                <span class="position-absolute top-50 start-50 translate-middle px-3 bg-body-tertiary text-secondary fw-bold small">
+                                    OR
+                                </span>
+                            </div>
+
+                            <div class="mb-2">
+                                {{ form.new_tag_name.label(class="form-label fw-bold text-uppercase small ls-1 text-muted") }}
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-body border-end-0 text-muted"><i class="bi bi-plus-lg"></i></span>
+                                    {{ form.new_tag_name(class="form-control border-start-0 ps-0", placeholder="Type new tag name...", id="newTagInput") }}
+                                </div>
+                                <div class="form-text mt-2 text-muted">If filled, this will automatically override the selection above.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {{ form.submit(class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill") }}
+
+            <div class="d-flex justify-content-end align-items-center mt-5 gap-3">
+                <a href="{{ url_for('media.get_all_media') }}" class="btn btn-lg btn-link text-decoration-none text-muted px-4">Cancel</a>
+                {{ form.submit(class="btn btn-primary btn-lg shadow px-5 rounded-pill fw-bold") }}
+            </div>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const select = document.getElementById('tagSelect');
+            const input = document.getElementById('newTagInput');
+
+            function updateSelectState() {
+                if (input.value.trim().length > 0) {
+                    select.disabled = true;
+                    select.value = 0; // Reset wyboru na domyślny
+                    select.classList.add('opacity-50'); 
+                } else {
+                    select.disabled = false;
+                    select.classList.remove('opacity-50');
+                }
+            }
+
+            input.addEventListener('input', updateSelectState);
+        });
+    </script>
+    
+    <style>
+        .ls-1 { letter-spacing: 1px; }
+    </style>
 {% endblock %}

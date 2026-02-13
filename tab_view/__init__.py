@@ -104,6 +104,25 @@ def create_app(config_class=ProductionConfig):
     if not app.config.get("TESTING"):
         with app.app_context():
             wait_for_db(app)
+
+            from .models import Tag
+            try:
+                db.create_all()
+
+                system_tags = ['Other', 'eNStudios']
+                tags_created = False
+                for name in system_tags:
+                    if not Tag.query.filter_by(name=name).first():
+                        tag = Tag(name=name, is_system=True)
+                        db.session.add(tag)
+                        tags_created = True
+                
+                if tags_created:
+                    db.session.commit()
+                    app.logger.info("System tags initialized.")
+            except Exception as e:
+                app.logger.error(f"Error initializing tags: {e}")
+
             app.logger.info("Application initialization complete. Database ready.")
 
 
