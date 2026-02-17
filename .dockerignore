@@ -1,0 +1,60 @@
+# --- GIT & IDE ---
+.git
+.gitignore
+.vscode/
+.idea/
+
+# --- Python & Cache ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+# Exclude local virtual environments (Docker builds its own in /app/.venv)
+.venv/
+env/
+venv/
+.flaskenv
+.env
+.env.local
+
+# --- Testing Tools & Code Quality ---
+tests/
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Docker ---
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# --- Configuration files for other services ---
+nginx.conf
+
+# --- Documentation ---
+README.md
+LICENSE
+
+# --- APPLICATION DATA (Static/Media) ---
+# Ignore system logs
+logs/
+*.log
+
+# Ignore uploaded test files (videos, large images from uploads folder)
+tab_view/static/uploads/*
+!tab_view/static/uploads/.gitkeep
+!tab_view/static/uploads/default.png
+
+# Ignore all images in img/ but keep essential UI assets
+tab_view/static/img/*
+!tab_view/static/img/.gitkeep
+!tab_view/static/img/logo_white.png
+!tab_view/static/img/logo_black.png
+!tab_view/static/img/default.png
+
+# --- Migrations ---
+migrations/__pycache__/

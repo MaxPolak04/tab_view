@@ -6,6 +6,7 @@
 .ruff_cache/
 __pycache__/
 .pytest_cache/
+htmlcov/
 *.pyc
 logs/
 tab_view/static/img/*
