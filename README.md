@@ -93,7 +93,7 @@ Requirements: Docker and Docker Compose.
 1.  **Clone the repository:**
 ```bash
 git clone https://github.com/MaxPolak04/tab_view.git
-cd tabview
+cd tab_view
 ```
 
 2.  **Configure environment variables:**
