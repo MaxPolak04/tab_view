@@ -13,6 +13,12 @@
 
 The project was delivered in an end-to-end model: from client problem analysis, through architecture and development, to setting up CI/CD pipelines and production deployment.
 
+<br>
+<div align="center">
+  <img src="docs/tab_view_light.png" alt="TabView Dashboard" width="800">
+</div>
+<br>
+
 ### Key Features
 * **Resource Management:** Full CRUD for Users, Media, and Devices.
 * **Interactive Schedule:** Media display queue management via `FullCalendar.io` interface, integrated with the API (`Flask-RESTful`).
