@@ -56,5 +56,8 @@ tab_view/static/img/*
 !tab_view/static/img/logo_black.png
 !tab_view/static/img/default.png
 
+# Ignore branding dummy files
+branding/
+
 # --- Migrations ---
 migrations/__pycache__/
