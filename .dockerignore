@@ -36,7 +36,6 @@ docker-compose.override.yml
 nginx.conf
 
 # --- Documentation ---
-README.md
 LICENSE
 
 # --- APPLICATION DATA (Static/Media) ---
