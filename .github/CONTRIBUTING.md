@@ -20,7 +20,7 @@ We recommend running the Flask application and MySQL database locally for the fa
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/maxpolak04/tab_view.git](https://github.com/maxpolak04/tab_view.git)
+   git clone https://github.com/MaxPolak04/tab_view.git
    cd tab_view
    ```
 
