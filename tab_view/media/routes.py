@@ -21,18 +21,18 @@ logger = logging.getLogger(__name__)
 def get_all_media():
     form = MediaDeleteForm()
 
-    # Filter and sort parameters
-    tag_filter = request.args.get("tag", type=int)
+    # Pobieramy listę ID tagów (jeśli nie ma parametru 'tag', zwróci pustą listę)
+    tag_filters = request.args.getlist("tag", type=int)
     sort_by = request.args.get("sort", "name_asc")
     page = request.args.get("page", 1, type=int)
 
     query = Media.query
 
-    # Filtering by tag
-    if tag_filter:
-        query = query.filter_by(tag_id=tag_filter)
+    # Filtrowanie po wielu tagach naraz
+    if tag_filters:
+        query = query.filter(Media.tag_id.in_(tag_filters))
 
-    # Alphabetical sorting
+    # Sortowanie alfabetyczne
     if sort_by == "name_asc":
         query = query.order_by(Media.filename.asc())
     elif sort_by == "name_desc":
@@ -43,13 +43,23 @@ def get_all_media():
     pagination = query.paginate(page=page, per_page=12)
     tags = Tag.query.all()
 
+    # Logika dla estetycznego wyświetlania nazwy na przycisku filtra
+    active_tags = [t for t in tags if t.id in tag_filters]
+    if not active_tags:
+        active_tag_names = "All"
+    elif len(active_tags) <= 2:
+        active_tag_names = ", ".join([t.name for t in active_tags])
+    else:
+        active_tag_names = f"{len(active_tags)} tags selected"
+
     return render_template(
         "media/media.html",
         media=pagination.items,
         pagination=pagination,
         tags=tags,
         form=form,
-        current_tag=tag_filter,
+        current_tags=tag_filters,
+        active_tag_names=active_tag_names,
         current_sort=sort_by,
     )
 

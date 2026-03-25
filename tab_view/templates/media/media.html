@@ -10,8 +10,7 @@
             <div class="modal-body text-center py-5">
                 <i class="bi bi-trash3 text-danger mb-3" style="font-size: 3rem;"></i>
                 <h3 class="mb-3">Remove File?</h3>
-                <p class="text-muted px-4">Are you sure you want to delete <strong class="text-dark">{{ m.filename
-                        }}</strong>? This will remove the file permanently.</p>
+                <p class="text-muted px-4">Are you sure you want to delete <strong class="text-dark">{{ m.filename }}</strong>? This will remove the file permanently.</p>
                 <div class="d-flex justify-content-center gap-2 mt-4">
                     <button type="button" class="btn btn-light btn-lg px-4" data-bs-dismiss="modal">Keep it</button>
                     <form action="{{ url_for('media.delete_media', media_id=m.id) }}" method="POST">
@@ -40,27 +39,45 @@
         <div class="card-body p-3">
             <div class="row align-items-center">
                 <div class="col-md-8 d-flex gap-3">
+
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary border dropdown-toggle shadow-sm bg-body text-body"
-                            type="button" data-bs-toggle="dropdown">
+                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
                             <i class="bi bi-tags-fill me-2 text-primary"></i>
-                            Tag: <strong>{{ active_tag_name if active_tag_name else 'All' }}</strong>
+                            Tags: <strong>{{ active_tag_names }}</strong>
                         </button>
-                        <ul class="dropdown-menu shadow-sm border-0">
-                            <li><a class="dropdown-item {{ 'active' if not current_tag }}"
-                                    href="{{ url_for('media.get_all_media', sort=current_sort) }}">All Media</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            {% for t in tags %}
-                            <li>
-                                <a class="dropdown-item {{ 'active' if current_tag == t.id }}"
-                                    href="{{ url_for('media.get_all_media', tag=t.id, sort=current_sort) }}">
-                                    {{ t.name }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
+                        <div class="dropdown-menu shadow-sm border-0 p-3" style="min-width: 260px;">
+                            <form action="{{ url_for('media.get_all_media') }}" method="GET">
+                                <input type="hidden" name="sort" value="{{ current_sort }}">
+
+                                <div class="mb-3 overflow-auto" style="max-height: 250px;">
+
+                                    <div class="form-check mb-2 border-bottom pb-2">
+                                        <input class="form-check-input" type="checkbox" id="tagCheckAll"
+                                            {% if not current_tags %}checked{% endif %}
+                                            onclick="document.querySelectorAll('input[name=tag]').forEach(el => el.checked = false); this.checked = true;">
+                                        <label class="form-check-label fw-bold" for="tagCheckAll">
+                                            All Tags
+                                        </label>
+                                    </div>
+
+                                    {% for t in tags %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="tag" value="{{ t.id }}" id="tagCheck{{ t.id }}"
+                                            {% if t.id in current_tags %}checked{% endif %}
+                                            onclick="document.getElementById('tagCheckAll').checked = false;">
+                                        <label class="form-check-label" for="tagCheck{{ t.id }}">
+                                            {{ t.name }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2">
+                                    <a href="{{ url_for('media.get_all_media', sort=current_sort) }}" class="btn btn-sm btn-light">Clear All</a>
+                                    <button type="submit" class="btn btn-sm btn-primary px-3 shadow-sm">Apply</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <div class="dropdown">
@@ -71,18 +88,16 @@
                         </button>
                         <ul class="dropdown-menu shadow-sm border-0">
                             <li><a class="dropdown-item {{ 'active' if current_sort == 'name_asc' }}"
-                                    href="{{ url_for('media.get_all_media', tag=current_tag, sort='name_asc') }}">Filename
-                                    (A-Z)</a></li>
+                                    href="{{ url_for('media.get_all_media', tag=current_tags, sort='name_asc') }}">Filename (A-Z)</a></li>
                             <li><a class="dropdown-item {{ 'active' if current_sort == 'name_desc' }}"
-                                    href="{{ url_for('media.get_all_media', tag=current_tag, sort='name_desc') }}">Filename
-                                    (Z-A)</a></li>
+                                    href="{{ url_for('media.get_all_media', tag=current_tags, sort='name_desc') }}">Filename (Z-A)</a></li>
                         </ul>
                     </div>
+
                 </div>
 
                 <div class="col-md-4 text-end">
-                    <a href="{{ url_for('media.manage_tags') }}"
-                        class="btn btn-outline-secondary shadow-sm bg-body text-body">
+                    <a href="{{ url_for('media.manage_tags') }}" class="btn btn-outline-secondary shadow-sm bg-body text-body">
                         <i class="bi bi-gear-fill me-1"></i> Manage Tags
                     </a>
                 </div>
@@ -118,10 +133,10 @@
                                     <i class="bi bi-tag-fill me-1"></i>{{ m.tag.name }}
                                 </span>
                             </div>
-                            
+
                             <div class="dropdown">
-                                <button class="btn btn-light btn-sm rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center" 
-                                        style="width: 32px; height: 32px;" 
+                                <button class="btn btn-light btn-sm rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center"
+                                        style="width: 32px; height: 32px;"
                                         type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
@@ -140,8 +155,7 @@
                         {{ m.filename }}
                     </h6>
                     <p class="card-text small text-muted mb-0">
-                        <i class="bi bi-calendar-event me-1"></i> Added: {{ m.uploaded_at.strftime('%d.%m.%Y') if
-                        m.uploaded_at else 'N/A' }}
+                        <i class="bi bi-calendar-event me-1"></i> Added: {{ m.uploaded_at.strftime('%d.%m.%Y') if m.uploaded_at else 'N/A' }}
                     </p>
                 </div>
             </div>
@@ -152,13 +166,33 @@
     <nav class="mt-5 d-flex justify-content-center">
         <ul class="pagination pagination-custom shadow-sm">
             <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
-                <a class="page-link" href="{{ url_for('media.get_all_media', page=1) }}"><i
-                        class="bi bi-chevron-double-left"></i></a>
+                <a class="page-link" href="{{ url_for('media.get_all_media', page=1, tag=current_tags, sort=current_sort) }}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
             </li>
+
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('media.get_all_media', page=pagination.prev_num, tag=current_tags, sort=current_sort) }}">
+                    {{ pagination.prev_num }}
+                </a>
+            </li>
+            {% endif %}
+
             <li class="page-item active"><span class="page-link">{{ pagination.page }}</span></li>
+
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('media.get_all_media', page=pagination.next_num, tag=current_tags, sort=current_sort) }}">
+                    {{ pagination.next_num }}
+                </a>
+            </li>
+            {% endif %}
+
             <li class="page-item {{ 'disabled' if not pagination.page < pagination.pages }}">
-                <a class="page-link" href="{{ url_for('media.get_all_media', page=pagination.pages) }}"><i
-                        class="bi bi-chevron-double-right"></i></a>
+                <a class="page-link" href="{{ url_for('media.get_all_media', page=pagination.pages, tag=current_tags, sort=current_sort) }}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
             </li>
         </ul>
     </nav>
