@@ -26,9 +26,17 @@ def cleanup_events_view():
 
     if form.validate_on_submit():
         now = datetime.now()
-        cutoff_date = now - relativedelta(
-            years=form.years.data, months=form.months.data
+
+        # Get the first day of the current month at 00:00:00
+        current_month_start = now.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
         )
+
+        # If user enters 1 (March), we want events before March 1st (all Feb and older).
+        # We subtract (months - 1). For input=1,
+        # we subtract 0 months -> cutoff is March 1.
+        # For input=2, we subtract 1 month -> cutoff is Feb 1 (all Jan and older).
+        cutoff_date = current_month_start - relativedelta(months=form.months.data - 1)
 
         query = Event.query.filter(Event.end_time < cutoff_date)
         affected_count = query.count()
@@ -43,8 +51,8 @@ def cleanup_events_view():
             )
 
             flash(
-                f"Preview: {affected_count} events would be \
-                    deleted (end_time < {cutoff_date}).",
+                f"Preview: {affected_count} events would be deleted "
+                f"(end_time < {cutoff_date.strftime('%Y-%m-%d %H:%M')}).",
                 "info",
             )
         else:
@@ -67,8 +75,8 @@ def cleanup_events_view():
                 )
 
                 flash(
-                    f"{len(deleted_events)} events deleted successfully \
-                        (end_time < {cutoff_date}).",
+                    f"{len(deleted_events)} events deleted successfully "
+                    f"(end_time < {cutoff_date.strftime('%Y-%m-%d %H:%M')}).",
                     "success",
                 )
             except Exception as e:
