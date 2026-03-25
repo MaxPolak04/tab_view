@@ -1,6 +1,16 @@
 import logging
+import os
+from datetime import datetime
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import (
+    current_app,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import current_user, login_required
 
 from tab_view import db
@@ -76,6 +86,57 @@ def show_device(device_url):
 
     return render_template(
         "devices/display.html", device=device, media=media, schedule=schedule
+    )
+
+
+@devices_bp.route("/api/<device_url>/current_state")
+def api_device_state(device_url):
+    device = Device.query.filter_by(device_url=device_url).first_or_404()
+    now = datetime.now()
+
+    # Funkcja pomocnicza: Zwraca czas modyfikacji pliku, aby ominąć cache
+    # TYLKO gdy plik faktycznie się zmieni
+    def get_cache_buster(filename):
+        try:
+            filepath = os.path.join(
+                current_app.root_path, "static", "uploads", filename
+            )
+            return int(os.path.getmtime(filepath))
+        except Exception:
+            return int(now.timestamp())  # Zabezpieczenie, gdyby plik nie istniał
+
+    # Szukamy aktywnego wydarzenia
+    active_event = Event.query.filter(
+        Event.device_id == device.id, Event.start_time <= now, Event.end_time > now
+    ).first()
+
+    if active_event:
+        playlist = [
+            {
+                "media_id": em.media_id,
+                "filename": em.media.filename,
+                "media_type": em.media.media_type,
+                "order": em.order,
+                "duration": em.duration,
+                "cache_buster": get_cache_buster(em.media.filename),
+            }
+            for em in sorted(active_event.event_media, key=lambda x: x.order)
+        ]
+        return jsonify(
+            {"status": "event", "event_id": active_event.id, "playlist": playlist}
+        )
+
+    # Jeśli nie ma wydarzenia - default
+    default_media_data = None
+    if device.media:
+        default_media_data = {
+            "filename": device.media.filename,
+            "media_type": device.media.media_type,
+            "cache_buster": get_cache_buster(device.media.filename),
+        }
+
+    return jsonify(
+        {"status": "default", "event_id": None, "default_media": default_media_data}
     )
 
 

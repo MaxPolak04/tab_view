@@ -96,8 +96,8 @@
                             alt="Default Image"
                             class="device-box__img device-img">
                     {% endif %}
-                    <h2 class="device-box__heading device-heading display-3 text-center">{{ device.name }}</h2>
-                    <p class="text-center"><a href="{{ url_for('devices.show_device', device_url=device.device_url) }}" class="device-link" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="http://example.com/devices/{{ device.device_url }}" data-bs-custom-class="custom-tooltip">/devices/{{ device.device_url }}</a></p>
+                    <h2 class="device-box__heading device-heading display-3 text-center"><a class="device-link" href="{{ url_for('devices.update_device', device_id=device.id) }}">{{ device.name }}</a></h2>
+                    <p class="text-center"><a href="{{ url_for('devices.show_device', device_url=device.device_url) }}" class="device-link" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="http://10.10.4.201/devices/{{ device.device_url }}" data-bs-custom-class="custom-tooltip">/devices/{{ device.device_url }}</a></p>
                 </div>
             {% endfor %}
         </div>
