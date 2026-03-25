@@ -21,18 +21,15 @@ logger = logging.getLogger(__name__)
 def get_all_media():
     form = MediaDeleteForm()
 
-    # Pobieramy listę ID tagów (jeśli nie ma parametru 'tag', zwróci pustą listę)
     tag_filters = request.args.getlist("tag", type=int)
     sort_by = request.args.get("sort", "name_asc")
     page = request.args.get("page", 1, type=int)
 
     query = Media.query
 
-    # Filtrowanie po wielu tagach naraz
     if tag_filters:
         query = query.filter(Media.tag_id.in_(tag_filters))
 
-    # Sortowanie alfabetyczne
     if sort_by == "name_asc":
         query = query.order_by(Media.filename.asc())
     elif sort_by == "name_desc":
@@ -43,7 +40,6 @@ def get_all_media():
     pagination = query.paginate(page=page, per_page=12)
     tags = Tag.query.all()
 
-    # Logika dla estetycznego wyświetlania nazwy na przycisku filtra
     active_tags = [t for t in tags if t.id in tag_filters]
     if not active_tags:
         active_tag_names = "All"
@@ -75,25 +71,18 @@ def new_media():
     ]
 
     if form.validate_on_submit():
-        file = form.file.data
-        filename = secure_filename(file.filename)
+        files = request.files.getlist(form.file.name)
 
-        logger.info(f"User {current_user.id} attempting to upload file: {filename}")
-
-        if len(filename) > 255:
-            msg = f"Filename is too long: {filename} (User: {current_user.id})"
-            logger.warning(msg)
-            flash("Filename is too long (max 255 characters).", "danger")
+        if not files or not files[0].filename:
+            flash("No files selected for upload.", "warning")
             return render_template("media/new-media.html", form=form)
 
         final_tag_id = None
         new_tag_input = form.new_tag_name.data
         selected_tag_id = form.tag_id.data
 
-        # Scenario A: The user entered a new tag
         if new_tag_input and new_tag_input.strip():
             clean_tag_name = new_tag_input.strip()
-
             existing_tag = Tag.query.filter_by(name=clean_tag_name).first()
             if existing_tag:
                 final_tag_id = existing_tag.id
@@ -108,8 +97,8 @@ def new_media():
                     db.session.commit()
                     final_tag_id = new_tag.id
                     logger.info(
-                        f"Created new tag '{clean_tag_name}' (ID: {new_tag.id}) \
-                            during upload by User {current_user.id}"
+                        f"Created new tag '{clean_tag_name}' \
+                            (ID: {new_tag.id}) during upload by User {current_user.id}"
                     )
                 except Exception as e:
                     db.session.rollback()
@@ -117,17 +106,38 @@ def new_media():
                     flash(f"Error creating new tag: {e}", "danger")
                     return render_template("media/new-media.html", form=form)
 
-        # Scenario B: The user selected a tag from the list
         elif selected_tag_id and selected_tag_id != 0:
             final_tag_id = selected_tag_id
-
-        # Scenario C: No choice
         else:
             flash("Please select an existing tag OR create a new one.", "danger")
             return render_template("media/new-media.html", form=form)
 
-        existing_file = Media.query.filter_by(filename=filename).first()
-        if not existing_file:
+        success_count = 0
+        skipped_files = []
+
+        for file in files:
+            filename = secure_filename(file.filename)
+
+            if not filename:
+                continue
+
+            if len(filename) > 255:
+                skipped_files.append(f"{filename} (name too long)")
+                logger.warning(
+                    f"Skipped file (name too long): {filename} \
+                        (User: {current_user.id})"
+                )
+                continue
+
+            existing_file = Media.query.filter_by(filename=filename).first()
+            if existing_file:
+                skipped_files.append(f"{filename} (already exists)")
+                logger.warning(
+                    f"Upload skipped - duplicate filename: {filename} \
+                        (User: {current_user.id})"
+                )
+                continue
+
             try:
                 save_path = os.path.join(current_app.static_folder, "uploads", filename)
                 file.save(save_path)
@@ -138,27 +148,32 @@ def new_media():
                     tag_id=final_tag_id,
                 )
                 db.session.add(media)
-                db.session.commit()
+                success_count += 1
 
                 logger.info(
-                    f"Media added successfully: {filename} (ID: {media.id}) with \
-                        Tag ID {final_tag_id} by User {current_user.id}"
+                    f"Media added successfully: {filename} with Tag ID {final_tag_id} \
+                        by User {current_user.id}"
                 )
-                flash("Media added successfully!", "success")
-                return redirect(url_for("media.get_all_media"))
 
             except Exception as e:
-                db.session.rollback()
+                skipped_files.append(f"{filename} (error saving)")
                 logger.error(
                     f"Error saving file {filename}: {str(e)} (User: {current_user.id})"
                 )
-                flash(f"Error saving file: {str(e)}", "danger")
-        else:
-            logger.warning(
-                f"Upload failed - duplicate filename: {filename} \
-                    (User: {current_user.id})"
+
+        if success_count > 0:
+            db.session.commit()
+
+        if success_count > 0:
+            flash(f"Successfully uploaded {success_count} file(s)!", "success")
+
+        if skipped_files:
+            flash(
+                f"Skipped {len(skipped_files)} file(s): " + ", ".join(skipped_files),
+                "warning",
             )
-            flash("A file with this name already exists in the database.", "danger")
+
+        return redirect(url_for("media.get_all_media"))
 
     return render_template("media/new-media.html", form=form)
 
