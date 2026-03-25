@@ -19,12 +19,28 @@ def get_all_devices():
     form = DeleteDevice()
 
     page = request.args.get("page", 1, type=int)
+    # Get sort order from URL query parameters, default to ascending ('asc')
+    sort_order = request.args.get("sort", "asc")
     per_page = 9
-    pagination = Device.query.order_by(Device.id).paginate(page=page, per_page=per_page)
+
+    # Determine the sorting column and direction
+    if sort_order == "desc":
+        order_clause = Device.name.desc()
+    else:
+        order_clause = Device.name.asc()
+
+    # Apply the sorting clause to the query
+    pagination = Device.query.order_by(order_clause).paginate(
+        page=page, per_page=per_page
+    )
 
     devices = pagination.items
     return render_template(
-        "devices/devices.html", devices=devices, pagination=pagination, form=form
+        "devices/devices.html",
+        devices=devices,
+        pagination=pagination,
+        form=form,
+        current_sort=sort_order,  # Pass current sort state to the template
     )
 
 

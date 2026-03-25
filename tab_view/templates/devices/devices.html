@@ -32,12 +32,31 @@
 
     <h1 class="main-heading">Devices</h1>
     <div class="container">
-        <div class="row mb-3">
-            <div class="col-md-12">
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-6 mb-5">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle shadow-sm px-4 rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-sort-alpha-down"></i> Sort: {{ 'Z-A' if current_sort == 'desc' else 'A-Z' }}
+                    </button>
+                    <ul class="dropdown-menu shadow">
+                        <li>
+                            <a class="dropdown-item {% if current_sort == 'asc' %}active{% endif %}" href="{{ url_for('devices.get_all_devices', sort='asc', page=1) }}">
+                                Name (A-Z)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if current_sort == 'desc' %}active{% endif %}" href="{{ url_for('devices.get_all_devices', sort='desc', page=1) }}">
+                                Name (Z-A)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6 mb-5">
                 {% if current_user.is_admin %}
-                    <a class="btn btn-primary btn-lg float-end mb-5 shadow-sm px-4 rounded-pill" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
+                    <a class="btn btn-primary btn-lg float-end shadow-sm px-4 rounded-pill" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
                 {% else %}
-                    <a class="btn btn-primary btn-lg float-end mb-5 shadow-sm px-4 rounded-pill disabled" role="button">Create New Device</a>
+                    <a class="btn btn-primary btn-lg float-end shadow-sm px-4 rounded-pill disabled" role="button">Create New Device</a>
                 {% endif %}
             </div>
         </div>
@@ -83,29 +102,27 @@
             {% endfor %}
         </div>
 
-        <!-- pagination -->
         <nav class="mt-4 pagination" aria-label="Page navigation">
             <ul class="pagination mx-auto">
                 <li class="page-item">
                     <a class="page-link {% if pagination.page == 1 %}disabled{% endif %}"
-                        href="{{ url_for('devices.get_all_devices', page=1) }}" {% if pagination.page==1 %}tabindex="-1" {% endif %}
+                        href="{{ url_for('devices.get_all_devices', page=1, sort=current_sort) }}" {% if pagination.page==1 %}tabindex="-1" {% endif %}
                         aria-label="First">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
                 {% if pagination.has_prev %}
                 <li class="page-item"><a class="page-link"
-                        href="{{ url_for('devices.get_all_devices', page=pagination.prev_num) }}">{{ pagination.prev_num }}</a></li>
+                        href="{{ url_for('devices.get_all_devices', page=pagination.prev_num, sort=current_sort) }}">{{ pagination.prev_num }}</a></li>
                 {% endif %}
-                <li class="page-item"><span class="page-link active" href="{{ url_for('devices.get_all_devices', page=page) }}"
-                        aria-current="page">{{ pagination.page }}</span></li>
+                <li class="page-item"><span class="page-link active" aria-current="page">{{ pagination.page }}</span></li>
                 {% if pagination.has_next %}
                 <li class="page-item"><a class="page-link"
-                        href="{{ url_for('devices.get_all_devices', page=pagination.next_num) }}">{{ pagination.next_num }}</a></li>
+                        href="{{ url_for('devices.get_all_devices', page=pagination.next_num, sort=current_sort) }}">{{ pagination.next_num }}</a></li>
                 {% endif %}
                 <li class="page-item">
                     <a class="page-link {% if not pagination.page < pagination.pages %}disabled{% endif %}"
-                        href="{{ url_for('devices.get_all_devices', page=pagination.pages) }}" aria-label="Last">
+                        href="{{ url_for('devices.get_all_devices', page=pagination.pages, sort=current_sort) }}" aria-label="Last">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
