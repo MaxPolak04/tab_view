@@ -9,7 +9,6 @@
 body,
 html {
     background-color: #212121;
-    overflow: hidden;
 }
 
 html {
@@ -667,6 +666,15 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
 }
 
 .ls-1 { letter-spacing: 1px; }
+
+/* Highlight weekends in FullCalendar */
+.fc-day-sat {
+    background-color: rgba(108, 117, 125, 0.10) !important; /* Subtle Bootstrap secondary (gray) */
+}
+
+.fc-day-sun {
+    background-color: rgba(220, 53, 69, 0.10) !important; /* Subtle Bootstrap danger (red) */
+}
 
 /* --- MOBILE TABLE CARD VIEW (< 768px) --- */
 @media (max-width: 576px) {

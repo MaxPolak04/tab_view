@@ -21,12 +21,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Common Flatpickr configuration with an injected "OK" button
+    const flatpickrConfig = {
+        enableTime: true,
+        dateFormat: "Y-m-d\\TH:i",
+        altInput: true,
+        altFormat: "d.m.Y H:i",
+        time_24hr: true,
+        locale: "pl",
+        onReady: function(selectedDates, dateStr, instance) {
+            // Create container for the button
+            const btnContainer = document.createElement("div");
+            btnContainer.className = "d-grid px-2 pb-2 pt-1";
+
+            // Create the OK button
+            const btn = document.createElement("button");
+            btn.className = "btn btn-primary btn-sm shadow-sm";
+            btn.type = "button";
+            btn.innerText = "OK";
+
+            // Close the picker on click
+            btn.addEventListener("click", function() {
+                instance.close();
+            });
+
+            btnContainer.appendChild(btn);
+            instance.calendarContainer.appendChild(btnContainer);
+        }
+    };
+
+    // Initialize both inputs
+    flatpickr("#eventStart", flatpickrConfig);
+    flatpickr("#eventEnd", flatpickrConfig);
+
     // === CALENDAR ===
     const calendarEl = document.getElementById('calendar');
     if (calendarEl) {
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            locale: 'en',
+            locale: 'pl',
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            },
+            slotLabelFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            },
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -121,8 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event) {
             modalTitle.textContent = 'Edit schedule';
             document.getElementById('eventTitle').value = event.title;
-            document.getElementById('eventStart').value = formatDateTimeLocal(event.start);
-            document.getElementById('eventEnd').value = formatDateTimeLocal(event.end);
+            document.getElementById('eventStart')._flatpickr.setDate(event.start);
+            document.getElementById('eventEnd')._flatpickr.setDate(event.end);
             document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
@@ -132,8 +175,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             modalTitle.textContent = 'Add schedule';
             document.getElementById('eventForm').reset();
-            document.getElementById('eventStart').value = startStr ? formatDateTimeLocal(startStr) : '';
-            document.getElementById('eventEnd').value = endStr ? formatDateTimeLocal(endStr) : '';
+            const startFp = document.getElementById('eventStart')._flatpickr;
+            const endFp = document.getElementById('eventEnd')._flatpickr;
+            startStr ? startFp.setDate(startStr) : startFp.clear();
+            endStr ? endFp.setDate(endStr) : endFp.clear();
             document.getElementById('eventColor').value = '#3788d8';
 
             currentPlaylist = [];

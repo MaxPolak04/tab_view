@@ -20,6 +20,9 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
 
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
@@ -40,19 +43,19 @@
     <div class="flash-overlay">
         {{ show_all_flashed_messages() }}
     </div>
-    
+
     {% include 'layout/nav.html' %}
 
     <main>
         {% block content %}
-    
+
         {% endblock %}
     </main>
 
     {% include 'layout/footer.html' %}
 
 
-    
+
     {% block scripts %}
 
     {% endblock %}
@@ -63,6 +66,10 @@
     <!-- FullCalendar.io -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.19/locales/pl.global.min.js'></script>
+
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pl.js"></script>
 
     <!-- JS -->
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
