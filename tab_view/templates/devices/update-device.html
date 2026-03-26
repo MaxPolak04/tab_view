@@ -3,257 +3,129 @@
 {% block title %}Update Device{% endblock %}
 
 {% block content %}
-    <h1 class="main-heading display-5">Update Device: {{ device.name }}</h1>
-    <div class="container-fluid px-4">
-    <div class="row g-4">
-        <div class="col-lg-4 col-xl-3">
-            <div class="card border-0 shadow-sm sticky-lg-top" style="top: 2rem; z-index: 1020;">
+<h1 class="main-heading display-5">Update Device: {{ device.name }}</h1>
+<div class="container-fluid px-4">
+    <div class="row justify-content-center g-4">
+        <div class="col-lg-6 col-xl-5">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-body-tertiary py-3">
                     <h5 class="mb-0 fw-bold text-primary">
                         <i class="bi bi-gear-fill me-2"></i>Device settings
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    {% if current_user.is_admin %}
-                        <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form-custom" method="POST">
-                            {{ form.hidden_tag() }}
-                            <div class="mb-4">
-                                {{ form.name.label(class="form-label fw-semibold") }}
-                                {{ form.name(class="form-control form-control-lg") }}
-                                {% for error in form.name.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                {% endfor %}
+                    <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form-custom" method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-4">
+                            {{ form.name.label(class="form-label fw-semibold") }}
+                            {{ form.name(class="form-control form-control-lg") }}
+                            {% for error in form.name.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.device_url.label(class="form-label fw-semibold") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-secondary border-end-0"><i class="bi bi-link-45deg"></i></span>
+                                {{ form.device_url(class="form-control border-start-0", placeholder="device-slug") }}
                             </div>
-                            <div class="mb-4">
-                                {{ form.device_url.label(class="form-label fw-semibold") }}
-                                <div class="input-group">
-                                    <span class="input-group-text bg-body-secondary border-end-0"><i class="bi bi-link-45deg"></i></span>
-                                    {{ form.device_url(class="form-control border-start-0", placeholder="device-slug") }}
-                                </div>
-                                {% for error in form.device_url.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="mb-4">
-                                {{ form.media_id.label(class="form-label fw-semibold") }}
-                                <p class="text-muted small mb-3">Default media displayed outside the schedule</p>
-                                
-                                {{ form.media_id(class="d-none", id="defaultMediaSelect") }}
-                                
-                                <div id="defaultMediaPreview" class="media-preview-box border rounded-3 d-flex flex-column align-items-center justify-content-center bg-body-secondary">
+                            {% for error in form.device_url.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.media_id.label(class="form-label fw-semibold") }}
+                            <p class="text-muted small mb-3">Default media displayed outside the schedule</p>
+
+                            {{ form.media_id(class="d-none", id="defaultMediaSelect") }}
+
+                            <div id="defaultMediaPreview" class="media-preview-box border rounded-3 d-flex flex-column align-items-center justify-content-center bg-body-secondary overflow-hidden" style="cursor: pointer; min-height: 150px;">
+                                {% if device.media %}
+                                    {% if device.media.media_type == 'image' %}
+                                        <img src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" alt="Selected Media" class="img-fluid" style="max-height: 200px; object-fit: contain;">
+                                    {% elif device.media.media_type == 'video' %}
+                                        <video src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" class="img-fluid" style="max-height: 200px; object-fit: contain;" autoplay loop muted playsinline></video>
+                                    {% endif %}
+                                {% else %}
                                     <i class="bi bi-plus-circle-dotted text-primary mb-2" style="font-size: 2.5rem;"></i>
                                     <span class="small fw-medium">Click to select media</span>
-                                </div>
-                                
-                                {% for error in form.media_id.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                {% endfor %}
+                                {% endif %}
                             </div>
-                            <div class="d-grid">
-                                {{ form.submit(class="btn btn-primary btn-lg shadow-sm") }}
-                            </div>
-                        </form>
-                    {% else %}
-                        <fieldset disabled>
-                            </fieldset>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
 
-        <div class="col-lg-8 col-xl-9">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-body-tertiary py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold text-primary">
-                        <i class="bi bi-calendar3 me-2"></i>Display schedule
-                    </h5>
-                    <span class="badge bg-body-secondary text-body-secondary border fw-normal">Overrides default media</span>
-                </div>
-                <div class="card-body p-4">
-                    <div id="calendar" class="modern-calendar"></div>
+                            {% for error in form.media_id.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg shadow-sm") }}
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-    <!-- Default media selection modal -->
-    <div class="modal fade" id="mediaPickerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Select media</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="mediaPickerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select media</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+
+                <div class="mb-4 d-flex flex-wrap gap-2" id="mediaTagFilters">
+                    <input type="checkbox" class="btn-check tag-filter-checkbox" id="tag-all" data-filter="all" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary btn-sm rounded-pill" for="tag-all">All</label>
+
+                    {% for tag in tags %}
+                        <input type="checkbox" class="btn-check tag-filter-checkbox" id="tag-{{ tag.id }}" data-filter="{{ tag.id }}" autocomplete="off">
+                        <label class="btn btn-outline-primary btn-sm rounded-pill" for="tag-{{ tag.id }}">{{ tag.name }}</label>
+                    {% endfor %}
                 </div>
-                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-                    <div class="row g-3" id="mediaPickerGrid">
-                        {% for media in media_list %}
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <div class="card media-picker-item h-100" 
-                                 data-media-id="{{ media.id }}" 
-                                 data-media-filename="{{ media.filename }}" 
-                                 data-media-type="{{ media.media_type }}" 
-                                 style="cursor: pointer;">
-                                {% if media.media_type == 'image' %}
-                                    <img src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" 
-                                         class="card-img-top"
-                                         alt="{{ media.filename }}"
-                                         loading="lazy"
-                                         onerror="console.error('Cannot load:', '{{ media.filename }}'); this.src='/static/img/default.jpg';">
-                                {% elif media.media_type == 'video' %}
-                                    <video class="card-img-top" preload="metadata">
-                                        <source src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" type="video/mp4">
-                                    </video>
+
+                <div class="row g-3" id="mediaPickerGrid">
+                    {% for media in media_list %}
+                    <div class="col-6 col-md-4 col-lg-3 media-filter-item" data-tag-id="{{ media.tag_id }}">
+                        <div class="card media-picker-item h-100 {% if device.media_id == media.id %}border-primary border-2{% endif %}"
+                             data-media-id="{{ media.id }}"
+                             data-media-filename="{{ media.filename }}"
+                             data-media-type="{{ media.media_type }}"
+                             style="cursor: pointer;">
+                            {% if media.media_type == 'image' %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ media.filename) }}"
+                                     class="card-img-top"
+                                     alt="{{ media.filename }}"
+                                     loading="lazy"
+                                     onerror="console.error('Cannot load:', '{{ media.filename }}'); this.src='/static/img/default.jpg';">
+                            {% elif media.media_type == 'video' %}
+                                <video class="card-img-top" preload="metadata">
+                                    <source src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" type="video/mp4">
+                                </video>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                {% if media.media_type == 'video' %}
+                                <span class="badge bg-primary mb-1">
+                                    <i class="bi bi-play-fill"></i> Video
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success mb-1">
+                                    <i class="bi bi-image"></i> Image
+                                </span>
                                 {% endif %}
-                                <div class="card-body p-2">
-                                    {% if media.media_type == 'video' %}
-                                    <span class="badge bg-primary mb-1">
-                                        <i class="bi bi-play-fill"></i> Video
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-success mb-1">
-                                        <i class="bi bi-image"></i> Image
-                                    </span>
-                                    {% endif %}
-                                    <small class="d-block text-truncate" title="{{ media.filename }}">
-                                        {{ media.filename }}
-                                    </small>
-                                </div>
+                                <small class="d-block text-truncate" title="{{ media.filename }}">
+                                    {{ media.filename }}
+                                </small>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Modal for creating/editing an event with a playlist -->
-    <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="eventModalLabel">Add schedule</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="eventForm">
-                        <div class="mb-3">
-                            <label for="eventTitle" class="form-label">Schedule name:</label>
-                            <input type="text" class="form-control" id="eventTitle" required>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="eventStart" class="form-label">Start date:</label>
-                                <input type="datetime-local" class="form-control" id="eventStart" required>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="eventEnd" class="form-label">End date:</label>
-                                <input type="datetime-local" class="form-control" id="eventEnd" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="eventColor" class="form-label">Event color in calendar:</label>
-                            <div class="d-flex gap-2 align-items-center">
-                                <input type="color" class="form-control form-control-color" id="eventColor" value="#3788d8" title="Choose color">
-                                <div class="color-presets d-flex gap-2">
-                                    <button type="button" class="btn btn-sm color-preset" data-color="#3788d8" style="background-color: #3788d8; width: 30px; height: 30px; border-radius: 4px;" title="Blue"></button>
-                                    <button type="button" class="btn btn-sm color-preset" data-color="#28a745" style="background-color: #28a745; width: 30px; height: 30px; border-radius: 4px;" title="Green"></button>
-                                    <button type="button" class="btn btn-sm color-preset" data-color="#dc3545" style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 4px;" title="Red"></button>
-                                    <button type="button" class="btn btn-sm color-preset" data-color="#ffc107" style="background-color: #ffc107; width: 30px; height: 30px; border-radius: 4px;" title="Yellow"></button>
-                                    <button type="button" class="btn btn-sm color-preset" data-color="#6f42c1" style="background-color: #6f42c1; width: 30px; height: 30px; border-radius: 4px;" title="Purple"></button>
-                                    <button type="button" class="btn btn-sm color-preset" data-color="#fd7e14" style="background-color: #fd7e14; width: 30px; height: 30px; border-radius: 4px;" title="Orange"></button>
-                                </div>
-                            </div>
-                            <small class="text-muted">Click a preset color or choose your own.</small>
-                        </div>
-
-                        <hr>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Media playlist:</label>
-                            <button type="button" class="btn btn-success btn-sm mb-2" id="addMediaToPlaylist">
-                                <i class="bi bi-plus-circle"></i> Add media
-                            </button>
-                            
-                            <!-- List of media in the playlist -->
-                            <div id="playlistContainer" class="border rounded p-2" style="min-height: 100px;">
-                                <p class="text-muted text-center" id="emptyPlaylistMsg">
-                                    <i class="bi bi-info-circle"></i> Click "Add media" to create a playlist
-                                </p>
-                            </div>
-                            <small class="text-muted">Drag items to change their order.</small>
-                        </div>
-
-                        <div class="alert alert-info" role="alert">
-                            <small>
-                                <i class="bi bi-info-circle"></i> Media will be displayed in sequence in a loop for the entire schedule duration.
-                                Images are shown for the specified time, videos play until the end.
-                            </small>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="deleteEventBtn" style="display:none;">Delete</button>
-                    <button type="button" class="btn btn-primary" id="saveEventBtn">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Media selection modal for playlist -->
-    <div class="modal fade" id="playlistMediaPickerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Select media for playlist</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-                    <div class="row g-3">
-                        {% for media in media_list %}
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <div class="card playlist-media-item h-100" 
-                                 data-media-id="{{ media.id }}" 
-                                 data-media-filename="{{ media.filename }}" 
-                                 data-media-type="{{ media.media_type }}" 
-                                 style="cursor: pointer;">
-                                {% if media.media_type == 'image' %}
-                                    <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" 
-                                         class="card-img-top"
-                                         alt="{{ media.filename }}"
-                                         loading="lazy">
-                                {% elif media.media_type == 'video' %}
-                                    <video class="card-img-top" preload="metadata">
-                                        <source src="{{ url_for('static', filename='uploads/' + media.filename) }}" type="video/mp4">
-                                    </video>
-                                {% endif %}
-                                <div class="card-body p-2">
-                                    {% if media.media_type == 'video' %}
-                                    <span class="badge bg-primary mb-1">
-                                        <i class="bi bi-play-fill"></i> Video
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-success mb-1">
-                                        <i class="bi bi-image"></i> Image
-                                    </span>
-                                    {% endif %}
-                                    <small class="d-block text-truncate" title="{{ media.filename }}">
-                                        {{ media.filename }}
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

@@ -1,3 +1,5 @@
+import uuid
+
 from flask_login import UserMixin
 
 from tab_view import db
@@ -78,6 +80,9 @@ class Event(db.Model):
     __tablename__ = "events"
 
     id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(
+        db.String(36), default=lambda: str(uuid.uuid4()), nullable=False
+    )
     title = db.Column(db.String(50), nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)

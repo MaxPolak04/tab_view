@@ -1,10 +1,6 @@
 {% extends 'layout/base.html' %}
 
-
-
 {% block title %}Devices{% endblock %}
-
-
 
 {% block content %}
     {% for device in devices %}
@@ -68,12 +64,30 @@
                             <button class="btn dropdown-toggle device-button" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-three-dots-vertical"></i>
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('devices.update_device', device_id=device.id) }}">Update</a></li>
+                            <ul class="dropdown-menu shadow-sm">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('devices.device_schedule', device_id=device.id) }}">
+                                        <i class="bi bi-calendar-event me-2"></i>Schedule
+                                    </a>
+                                </li>
                                 {% if current_user.is_admin %}
-                                    <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteDeviceModal{{ device.id }}" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">Delete</button></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('devices.update_device', device_id=device.id) }}">
+                                            <i class="bi bi-gear me-2"></i>Update
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteDeviceModal{{ device.id }}" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </button>
+                                    </li>
                                 {% else %}
-                                    <li><button type="button" class="dropdown-item disabled" data-bs-toggle="modal" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">Delete</button></li>
+                                    <li>
+                                        <button type="button" class="dropdown-item disabled" data-bs-toggle="modal" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </button>
+                                    </li>
                                 {% endif %}
                             </ul>
                         </div>
@@ -96,8 +110,12 @@
                             alt="Default Image"
                             class="device-box__img device-img">
                     {% endif %}
-                    <h2 class="device-box__heading device-heading display-3 text-center"><a class="device-link" href="{{ url_for('devices.update_device', device_id=device.id) }}">{{ device.name }}</a></h2>
-                    <p class="text-center"><a href="{{ url_for('devices.show_device', device_url=device.device_url) }}" class="device-link" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="http://10.10.4.201/devices/{{ device.device_url }}" data-bs-custom-class="custom-tooltip">/devices/{{ device.device_url }}</a></p>
+                    <h2 class="device-box__heading device-heading display-3 text-center">
+                        <a class="device-link" href="{{ url_for('devices.device_schedule', device_id=device.id) }}">{{ device.name }}</a>
+                    </h2>
+                    <p class="text-center">
+                        <a href="{{ url_for('devices.show_device', device_url=device.device_url) }}" class="device-link" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="http://10.10.4.201/devices/{{ device.device_url }}" data-bs-custom-class="custom-tooltip">/devices/{{ device.device_url }}</a>
+                    </p>
                 </div>
             {% endfor %}
         </div>

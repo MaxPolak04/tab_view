@@ -14,7 +14,7 @@ from flask import (
 from flask_login import current_user, login_required
 
 from tab_view import db
-from tab_view.models import Device, Event, Media
+from tab_view.models import Device, Event, Media, Tag
 from tab_view.utils import admin_required
 
 from . import devices_bp
@@ -94,8 +94,6 @@ def api_device_state(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
     now = datetime.now()
 
-    # Funkcja pomocnicza: Zwraca czas modyfikacji pliku, aby ominąć cache
-    # TYLKO gdy plik faktycznie się zmieni
     def get_cache_buster(filename):
         try:
             filepath = os.path.join(
@@ -103,9 +101,8 @@ def api_device_state(device_url):
             )
             return int(os.path.getmtime(filepath))
         except Exception:
-            return int(now.timestamp())  # Zabezpieczenie, gdyby plik nie istniał
+            return int(now.timestamp())
 
-    # Szukamy aktywnego wydarzenia
     active_event = Event.query.filter(
         Event.device_id == device.id, Event.start_time <= now, Event.end_time > now
     ).first()
@@ -126,7 +123,6 @@ def api_device_state(device_url):
             {"status": "event", "event_id": active_event.id, "playlist": playlist}
         )
 
-    # Jeśli nie ma wydarzenia - default
     default_media_data = None
     if device.media:
         default_media_data = {
@@ -180,10 +176,15 @@ def create_device():
 
 
 @devices_bp.route("/update/<int:device_id>", methods=["GET", "POST"])
-@login_required
+@admin_required
 def update_device(device_id):
+    if not current_user.is_admin:
+        flash("Device settings can only be modified by administrators.", "warning")
+        return redirect(url_for("devices.get_all_devices"))
+
     device = Device.query.get_or_404(device_id)
     media_list = Media.query.all()
+    tags = Tag.query.all()
 
     if not media_list:
         flash("No media available. Add a file before updating the device.", "warning")
@@ -199,19 +200,6 @@ def update_device(device_id):
         form.media_id.data = device.media_id
 
     if form.validate_on_submit():
-        if not current_user.is_admin:
-            logger.warning(
-                f"Unauthorized device update attempt: Device ID {device.id} "
-                f"by non-admin User {current_user.id}"
-            )
-            flash("Device settings can only be modified by administrators.", "warning")
-            return render_template(
-                "devices/update-device.html",
-                form=form,
-                device=device,
-                media_list=media_list,
-            )
-
         existing_name = Device.query.filter_by(name=form.name.data).first()
         if existing_name and existing_name.id != device.id:
             logger.warning(
@@ -249,8 +237,8 @@ def update_device(device_id):
         except Exception as e:
             db.session.rollback()
             logger.error(
-                f"Error updating device ID {device.id}: {str(e)} \
-                    (User: {current_user.id})"
+                f"Error updating device ID {device.id}: {str(e)} "
+                f"(User: {current_user.id})"
             )
             flash(f"Error updating device: {str(e)}", "danger")
 
@@ -258,8 +246,37 @@ def update_device(device_id):
         "devices/update-device.html",
         form=form,
         device=device,
+        tags=tags,
         media_list=[
-            {"id": m.id, "filename": m.filename, "media_type": m.media_type}
+            {
+                "id": m.id,
+                "filename": m.filename,
+                "media_type": m.media_type,
+                "tag_id": m.tag_id,
+            }
+            for m in media_list
+        ],
+    )
+
+
+@devices_bp.route("/schedule/<int:device_id>", methods=["GET"])
+@login_required
+def device_schedule(device_id):
+    device = Device.query.get_or_404(device_id)
+    media_list = Media.query.all()
+    tags = Tag.query.all()
+
+    return render_template(
+        "devices/device-schedule.html",
+        device=device,
+        tags=tags,
+        media_list=[
+            {
+                "id": m.id,
+                "filename": m.filename,
+                "media_type": m.media_type,
+                "tag_id": m.tag_id,
+            }
             for m in media_list
         ],
     )
