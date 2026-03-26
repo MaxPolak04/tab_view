@@ -68,6 +68,7 @@ def create_app(config_class=ProductionConfig):
         return User.query.get(int(user_id))
 
     from .auth import auth_bp
+    from .dashboard import dashboard_bp
     from .devices import devices_bp
     from .errors import errors_bp
     from .events import events_bp
@@ -75,6 +76,7 @@ def create_app(config_class=ProductionConfig):
     from .media import media_bp
     from .users import users_bp
 
+    app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(devices_bp, url_prefix="/devices")
     app.register_blueprint(media_bp, url_prefix="/media")
@@ -89,11 +91,6 @@ def create_app(config_class=ProductionConfig):
 
     app.cli.add_command(create_user_command)
     app.cli.add_command(seed_db_command)
-
-    @app.route("/")
-    @limiter.exempt
-    def index():
-        return redirect(url_for("devices.get_all_devices"))
 
     if not app.config.get("TESTING"):
         with app.app_context():

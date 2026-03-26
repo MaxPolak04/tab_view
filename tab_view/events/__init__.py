@@ -1,12 +1,13 @@
 from flask import Blueprint, jsonify, request
 from flask_restful import Api
 
-from .api import EventResource
+from .api import EventAvailabilityResource, EventResource
 
 events_bp = Blueprint("events", __name__)
 events_api = Api(events_bp)
 
 events_api.add_resource(EventResource, "/", "/<int:event_id>")
+events_api.add_resource(EventAvailabilityResource, "/availability")
 
 
 @events_bp.before_request

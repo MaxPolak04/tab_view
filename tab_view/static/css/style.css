@@ -6,6 +6,12 @@
     margin: 0;
 }
 
+body,
+html {
+    background-color: #212121;
+    overflow: hidden;
+}
+
 html {
     font-size: 62.5%;
     scroll-behavior: smooth;
@@ -660,9 +666,7 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     pointer-events: none;
 }
 
-.device-link {
-    c
-}
+.ls-1 { letter-spacing: 1px; }
 
 /* --- MOBILE TABLE CARD VIEW (< 768px) --- */
 @media (max-width: 576px) {

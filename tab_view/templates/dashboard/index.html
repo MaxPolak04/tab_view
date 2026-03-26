@@ -1,32 +1,32 @@
 {% extends 'layout/base.html' %}
 
-{% block title %}Device Schedule{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1 class="main-heading display-5">Schedule for: {{ device.name }}</h1>
+<h1 class="main-heading display-5">Global Dashboard</h1>
 <div class="container-fluid px-4">
     <div class="row justify-content-center g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-body-tertiary py-3 d-flex align-items-center justify-content-between">
                     <h5 class="mb-0 fw-bold text-primary">
-                        <i class="bi bi-calendar3 me-2"></i>Display schedule
+                        <i class="bi bi-calendar-range me-2"></i>All Devices Schedule
                     </h5>
-                    <span class="badge bg-body-secondary text-body-secondary border fw-normal">Overrides default media</span>
+                    <a href="{{ url_for('devices.get_all_devices') }}" class="btn btn-outline-primary btn-sm">Manage Devices</a>
                 </div>
                 <div class="card-body p-4">
-                    <div id="calendar" class="modern-calendar"></div>
+                    <div id="dashboardCalendar" class="modern-calendar"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+<div class="modal fade" id="dashboardEventModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="eventModalLabel">Add schedule</h5>
+                <h5 class="modal-title" id="eventModalLabel">Add Global Schedule</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -53,21 +53,43 @@
                         <div class="d-flex gap-2 align-items-center">
                             <input type="color" class="form-control form-control-color" id="eventColor" value="#3788d8" title="Choose color">
                             <div class="color-presets d-flex gap-2">
-                                <button type="button" class="btn btn-sm color-preset" data-color="#3788d8" style="background-color: #3788d8; width: 30px; height: 30px; border-radius: 4px;" title="Blue"></button>
-                                <button type="button" class="btn btn-sm color-preset" data-color="#28a745" style="background-color: #28a745; width: 30px; height: 30px; border-radius: 4px;" title="Green"></button>
-                                <button type="button" class="btn btn-sm color-preset" data-color="#dc3545" style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 4px;" title="Red"></button>
-                                <button type="button" class="btn btn-sm color-preset" data-color="#ffc107" style="background-color: #ffc107; width: 30px; height: 30px; border-radius: 4px;" title="Yellow"></button>
-                                <button type="button" class="btn btn-sm color-preset" data-color="#6f42c1" style="background-color: #6f42c1; width: 30px; height: 30px; border-radius: 4px;" title="Purple"></button>
-                                <button type="button" class="btn btn-sm color-preset" data-color="#fd7e14" style="background-color: #fd7e14; width: 30px; height: 30px; border-radius: 4px;" title="Orange"></button>
+                                <button type="button" class="btn btn-sm color-preset" data-color="#3788d8" style="background-color: #3788d8; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                <button type="button" class="btn btn-sm color-preset" data-color="#28a745" style="background-color: #28a745; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                <button type="button" class="btn btn-sm color-preset" data-color="#dc3545" style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                <button type="button" class="btn btn-sm color-preset" data-color="#ffc107" style="background-color: #ffc107; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                <button type="button" class="btn btn-sm color-preset" data-color="#6f42c1" style="background-color: #6f42c1; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                <button type="button" class="btn btn-sm color-preset" data-color="#fd7e14" style="background-color: #fd7e14; width: 30px; height: 30px; border-radius: 4px;"></button>
                             </div>
                         </div>
-                        <small class="text-muted">Click a preset color or choose your own.</small>
                     </div>
 
                     <hr>
 
                     <div class="mb-3">
-                        <label class="form-label">Media playlist:</label>
+                        <label class="form-label fw-bold">Select Devices:</label>
+                        <div class="alert alert-secondary py-2 small mb-2">
+                            Select the devices where this schedule should be displayed. Unavailable devices based on the selected dates will be disabled.
+                        </div>
+                        <div class="row g-2" id="deviceSelectionGrid">
+                            {% for device in devices %}
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-2 ps-5 device-checkbox-wrapper" id="device-wrapper-{{ device.id }}">
+                                    <input class="form-check-input device-checkbox" type="checkbox" value="{{ device.id }}" id="device-{{ device.id }}">
+                                    <label class="form-check-label w-100" for="device-{{ device.id }}">
+                                        <strong>{{ device.name }}</strong>
+                                        <small class="d-block text-danger device-busy-text" id="busy-text-{{ device.id }}" style="display: none !important;"></small>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Media playlist:</label>
+                        <br>
                         <button type="button" class="btn btn-success btn-sm mb-2" id="addMediaToPlaylist">
                             <i class="bi bi-plus-circle"></i> Add media
                         </button>
@@ -77,21 +99,13 @@
                                 <i class="bi bi-info-circle"></i> Click "Add media" to create a playlist
                             </p>
                         </div>
-                        <small class="text-muted">Drag items to change their order.</small>
-                    </div>
-
-                    <div class="alert alert-info" role="alert">
-                        <small>
-                            <i class="bi bi-info-circle"></i> Media will be displayed in sequence in a loop for the entire schedule duration.
-                            Images are shown for the specified time, videos play until the end.
-                        </small>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="deleteEventBtn" style="display:none;">Delete</button>
-                <button type="button" class="btn btn-primary" id="saveEventBtn">Save</button>
+                <button type="button" class="btn btn-danger" id="deleteEventBtn" style="display:none;">Delete Group</button>
+                <button type="button" class="btn btn-primary" id="saveEventBtn">Save Group Schedule</button>
             </div>
         </div>
     </div>
@@ -105,17 +119,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-
                 <div class="mb-4 d-flex flex-wrap gap-2" id="mediaTagFilters">
                     <input type="checkbox" class="btn-check tag-filter-checkbox" id="tag-all" data-filter="all" autocomplete="off" checked>
                     <label class="btn btn-outline-primary btn-sm rounded-pill" for="tag-all">All</label>
-
                     {% for tag in tags %}
                         <input type="checkbox" class="btn-check tag-filter-checkbox" id="tag-{{ tag.id }}" data-filter="{{ tag.id }}" autocomplete="off">
                         <label class="btn btn-outline-primary btn-sm rounded-pill" for="tag-{{ tag.id }}">{{ tag.name }}</label>
                     {% endfor %}
                 </div>
-
                 <div class="row g-3">
                     {% for media in media_list %}
                     <div class="col-6 col-md-4 col-lg-3 media-filter-item" data-tag-id="{{ media.tag_id }}">
@@ -125,28 +136,12 @@
                              data-media-type="{{ media.media_type }}"
                              style="cursor: pointer;">
                             {% if media.media_type == 'image' %}
-                                <img src="{{ url_for('static', filename='uploads/' + media.filename) }}"
-                                     class="card-img-top"
-                                     alt="{{ media.filename }}"
-                                     loading="lazy">
+                                <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" class="card-img-top" loading="lazy">
                             {% elif media.media_type == 'video' %}
-                                <video class="card-img-top" preload="metadata">
-                                    <source src="{{ url_for('static', filename='uploads/' + media.filename) }}" type="video/mp4">
-                                </video>
+                                <video class="card-img-top" preload="metadata"><source src="{{ url_for('static', filename='uploads/' + media.filename) }}" type="video/mp4"></video>
                             {% endif %}
                             <div class="card-body p-2">
-                                {% if media.media_type == 'video' %}
-                                <span class="badge bg-primary mb-1">
-                                    <i class="bi bi-play-fill"></i> Video
-                                </span>
-                                {% else %}
-                                <span class="badge bg-success mb-1">
-                                    <i class="bi bi-image"></i> Image
-                                </span>
-                                {% endif %}
-                                <small class="d-block text-truncate" title="{{ media.filename }}">
-                                    {{ media.filename }}
-                                </small>
+                                <small class="d-block text-truncate">{{ media.filename }}</small>
                             </div>
                         </div>
                     </div>
@@ -159,10 +154,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    window.currentDeviceId = {{ device.id }};
-    window.mediaList = {{ media_list|tojson }};
-    window.isAdmin = {{ 'true' if current_user.is_admin else 'false' }};
-</script>
-<script src="{{ url_for('static', filename='js/device-schedule.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

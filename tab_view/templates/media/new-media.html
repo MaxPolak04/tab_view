@@ -84,47 +84,4 @@
             </div>
         </form>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Block logic for Tag Selection
-            const select = document.getElementById('tagSelect');
-            const input = document.getElementById('newTagInput');
-
-            function updateSelectState() {
-                if (input.value.trim().length > 0) {
-                    select.disabled = true;
-                    select.value = 0;
-                    select.classList.add('opacity-50');
-                } else {
-                    select.disabled = false;
-                    select.classList.remove('opacity-50');
-                }
-            }
-
-            input.addEventListener('input', updateSelectState);
-
-            // File selection preview logic
-            const fileInput = document.getElementById('fileInput');
-            const fileListPreview = document.getElementById('fileListPreview');
-
-            fileInput.addEventListener('change', function() {
-                const files = fileInput.files;
-                if (files.length === 0) {
-                    fileListPreview.innerHTML = '';
-                    return;
-                }
-
-                if (files.length === 1) {
-                    fileListPreview.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Selected file: ${files[0].name}`;
-                } else {
-                    fileListPreview.innerHTML = `<i class="bi bi-collection-fill me-1"></i> ${files.length} files selected for upload.`;
-                }
-            });
-        });
-    </script>
-
-    <style>
-        .ls-1 { letter-spacing: 1px; }
-    </style>
 {% endblock %}
