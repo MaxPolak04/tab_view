@@ -77,3 +77,40 @@ def test_device_media_relationship(init_database):
 
     assert saved_device.media_id == media.id
     assert saved_device.media.filename == "promo.mp4"
+
+
+def test_device_missing_name(init_database):
+    """
+    Test that creating a Device without a name raises an IntegrityError
+    due to nullable=False constraint.
+    """
+    device = Device(device_url="n100")
+    init_database.session.add(device)
+
+    with pytest.raises(IntegrityError):
+        init_database.session.commit()
+
+    init_database.session.rollback()
+
+
+def test_device_missing_url(init_database):
+    """
+    Test that creating a Device without a device_url raises an IntegrityError
+    due to nullable=False constraint.
+    """
+    device = Device(name="N.100")
+    init_database.session.add(device)
+
+    with pytest.raises(IntegrityError):
+        init_database.session.commit()
+
+    init_database.session.rollback()
+
+
+def test_device_repr():
+    """
+    Test the string representation of the Device model.
+    Crucial for accurate system logging.
+    """
+    device = Device(name="N.100", device_url="n100")
+    assert repr(device) == "<Device N.100>"

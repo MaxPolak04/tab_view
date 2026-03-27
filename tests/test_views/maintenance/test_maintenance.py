@@ -39,10 +39,12 @@ def test_cleanup_dry_run_does_not_delete(admin_client, init_database):
     init_database.session.commit()
 
     # 2. Act: Submit form with dry_run=True (simulate checkbox checked)
-    # We want to delete events older than 1 year.
+    # Route calculates cutoff as:
+    # current_month_start - relativedelta(months=form.months.data - 1)
+    # To simulate 1 year (12 months) cutoff, we must pass 13 (13 - 1 = 12 months ago).
     response = admin_client.post(
         url_for("maintenance.cleanup_events_view"),
-        data={"years": 1, "months": 0, "dry_run": "y"},
+        data={"months": 13, "dry_run": "y"},
         follow_redirects=True,
     )
 
@@ -78,13 +80,11 @@ def test_cleanup_execute_deletes_old_events(admin_client, init_database):
     init_database.session.commit()
 
     # 2. Act: Submit form WITHOUT dry_run (simulate checkbox unchecked)
-    # Cutoff: 1 year
+    # To set cutoff at 1 year ago, we pass months=13
     response = admin_client.post(
         url_for("maintenance.cleanup_events_view"),
         data={
-            "years": 1,
-            "months": 0,
-            # 'dry_run': ... (missing key means False/Unchecked)
+            "months": 13,
         },
         follow_redirects=True,
     )
