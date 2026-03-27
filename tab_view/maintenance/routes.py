@@ -32,10 +32,6 @@ def cleanup_events_view():
             day=1, hour=0, minute=0, second=0, microsecond=0
         )
 
-        # If user enters 1 (March), we want events before March 1st (all Feb and older).
-        # We subtract (months - 1). For input=1,
-        # we subtract 0 months -> cutoff is March 1.
-        # For input=2, we subtract 1 month -> cutoff is Feb 1 (all Jan and older).
         cutoff_date = current_month_start - relativedelta(months=form.months.data - 1)
 
         query = Event.query.filter(Event.end_time < cutoff_date)

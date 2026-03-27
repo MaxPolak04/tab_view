@@ -99,4 +99,4 @@ def signout():
     )
 
     flash("Logged out successfully!", "success")
-    return redirect(url_for("index"))
+    return redirect(url_for("dashboard.index"))

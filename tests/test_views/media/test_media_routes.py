@@ -401,7 +401,6 @@ def test_delete_tag_success(admin_client, init_database, app):
     )
 
     # 3. Assert
-    # Szukamy fragmentów, aby ominąć problem białych znaków ze złamanej linii kodu
     assert b"associated file(s)" in response.data
     assert b"were deleted successfully" in response.data
 

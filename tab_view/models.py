@@ -103,16 +103,14 @@ class Event(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "group_id": self.group_id,  # Zwracamy group_id w słowniku
+            "group_id": self.group_id,
             "title": self.title,
             "start": self.start_time.isoformat() if self.start_time else None,
             "end": self.end_time.isoformat() if self.end_time else None,
             "color": self.color,
             "extendedProps": {
                 "device_id": self.device_id,
-                "device_name": self.device.name
-                if self.device
-                else None,  # Przydatne dla kalendarza głównego
+                "device_name": self.device.name if self.device else None,
                 "media_playlist": [
                     {
                         "media_id": em.media_id,

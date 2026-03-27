@@ -122,7 +122,6 @@ def test_signin_db_error_on_last_login(client, init_database):
     init_database.session.add(user)
     init_database.session.commit()
 
-    # Symulujemy błąd bazy danych w momencie zapisu daty ostatniego logowania
     with patch("tab_view.auth.routes.db.session.commit") as mock_commit:
         mock_commit.side_effect = Exception("Mocked database lock")
 
@@ -132,7 +131,6 @@ def test_signin_db_error_on_last_login(client, init_database):
             follow_redirects=True,
         )
 
-    # Logowanie powinno się udać, aplikacja nie może wybuchnąć mimo błędu DB
     assert response.status_code == 200
     assert b"Logged in successfully!" in response.data
 
