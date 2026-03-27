@@ -47,6 +47,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             btnContainer.appendChild(btn);
             instance.calendarContainer.appendChild(btnContainer);
+        },
+
+        onClose: function(selectedDates, dateStr, instance) {
+            const startInput = document.getElementById('eventStart').value;
+            const endInput = document.getElementById('eventEnd').value;
+
+            if (startInput && endInput && typeof checkAvailability === 'function') {
+                checkAvailability(startInput, endInput, currentGroupId);
+            }
         }
     };
 
@@ -81,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             editable: true,
             selectable: true,
             selectMirror: true,
+            selectOverlap: true,
 
             events: function(info, successCallback, failureCallback) {
                 const params = new URLSearchParams({
@@ -140,10 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             eventResize: function(info) {
                 updateEventDates(info.event);
-            },
-
-            selectOverlap: function(event) {
-                return false;
             },
 
             eventOverlap: function(stillEvent, movingEvent) {

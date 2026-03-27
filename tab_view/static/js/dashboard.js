@@ -41,6 +41,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             btnContainer.appendChild(btn);
             instance.calendarContainer.appendChild(btnContainer);
+        },
+
+        onClose: function(selectedDates, dateStr, instance) {
+            const startInput = document.getElementById('eventStart').value;
+            const endInput = document.getElementById('eventEnd').value;
+
+            if (startInput && endInput && typeof checkAvailability === 'function') {
+                checkAvailability(startInput, endInput, currentGroupId);
+            }
         }
     };
 
