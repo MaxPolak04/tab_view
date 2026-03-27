@@ -45,7 +45,8 @@ jobs:
 
       - name: Dependency Audit (Pip-Audit)
         # Checks whether libraries have any known viruses/vulnerabilities
-        run: uv run pip-audit
+        # Temporarily ignoring CVE-2026-4539 in pygments as no fix is available yet.
+        run: uv run pip-audit --ignore-vuln CVE-2026-4539
 
       - name: Run Pytest
         run: uv run pytest
