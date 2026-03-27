@@ -13,7 +13,11 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
     pkg-config \
     ffmpeg \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
+
+# Set default timezone
+ENV TZ=Europe/Warsaw
 
 # 2. Install 'uv'
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
