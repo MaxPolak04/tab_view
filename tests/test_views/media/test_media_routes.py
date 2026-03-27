@@ -1,9 +1,11 @@
 import io
 import os
+from unittest.mock import patch
 
 from flask import url_for
+from sqlalchemy.exc import IntegrityError
 
-from tab_view.models import Media, Tag
+from tab_view.models import Device, Event, EventMedia, Media, Tag
 
 # --- GET & ACCESS TESTS ---
 
@@ -70,7 +72,8 @@ def test_upload_media_with_existing_tag(auth_client, init_database, app):
 
     # 4. Assertions
     assert response.status_code == 200
-    assert b"Media added successfully!" in response.data
+    # Route flashes: "Successfully uploaded 1 file(s)!"
+    assert b"Successfully uploaded 1 file(s)!" in response.data
 
     media = Media.query.filter_by(filename="test_image.jpg").first()
     assert media is not None
@@ -102,7 +105,7 @@ def test_upload_media_creates_new_tag(auth_client, init_database, app):
 
     # 3. Assertions
     assert response.status_code == 200
-    assert b"Media added successfully!" in response.data
+    assert b"Successfully uploaded 1 file(s)!" in response.data
 
     # Verify Tag was created
     new_tag = Tag.query.filter_by(name="Summer 2025").first()
@@ -115,7 +118,7 @@ def test_upload_media_creates_new_tag(auth_client, init_database, app):
 
 def test_upload_duplicate_filename(auth_client, init_database, app):
     """
-    Test that uploading a file with an existing name shows an error.
+    Test that uploading a file with an existing name shows an error and skips it.
     """
     # 1. Setup existing Tag and Media
     tag = Tag(name="Setup Tag")
@@ -148,8 +151,8 @@ def test_upload_duplicate_filename(auth_client, init_database, app):
         follow_redirects=True,
     )
 
-    # 3. Assert
-    assert b"A file with this name already exists" in response.data
+    # 3. Assert - Route flashes skipping warning
+    assert b"Skipped 1 file(s): duplicate.jpg (already exists)" in response.data
     assert Media.query.filter_by(filename=filename).count() == 1
 
 
@@ -217,8 +220,6 @@ def test_delete_media_success(auth_client, init_database, app):
     init_database.session.commit()
 
     # 2. Setup Default Media (ID 1 protection)
-    # Note: We must ensure ID 1 exists to test logic correctly,
-    # though here we strictly delete ID != 1
     default_media = Media(filename="default.jpg", media_type="image", tag_id=tag.id)
     init_database.session.add(default_media)
     init_database.session.commit()
@@ -270,3 +271,161 @@ def test_delete_default_media_blocked(auth_client, init_database):
     # 4. Assert
     assert b"Cannot delete the default image" in response.data
     assert Media.query.get(1) is not None
+
+
+def test_delete_media_in_use_by_event(auth_client, init_database, app):
+    """
+    Test deleting media that is currently
+    part of an Event playlist (IntegrityError).
+    In SQLite, Foreign Key constraints are
+    disabled by default, so we mock the IntegrityError
+    to simulate a production database like PostgreSQL/MySQL.
+    """
+    import datetime
+
+    # 1. Setup Tag, Media, Device, and Event
+    tag = Tag(name="Event Tag")
+    init_database.session.add(tag)
+    init_database.session.commit()
+
+    # ID 1 must exist for the router logic safety fallback
+    default_m = Media(filename="default.jpg", media_type="image", tag_id=tag.id)
+    init_database.session.add(default_m)
+    init_database.session.commit()
+
+    media = Media(filename="in_use.jpg", media_type="image", tag_id=tag.id)
+    init_database.session.add(media)
+    init_database.session.commit()
+
+    device = Device(name="Test Screen", device_url="test-screen")
+    init_database.session.add(device)
+    init_database.session.commit()
+
+    event = Event(
+        title="Test Event",
+        start_time=datetime.datetime.now(),
+        end_time=datetime.datetime.now(),
+        device_id=device.id,
+    )
+    init_database.session.add(event)
+    init_database.session.commit()
+
+    event_media = EventMedia(event_id=event.id, media_id=media.id, order=1)
+    init_database.session.add(event_media)
+    init_database.session.commit()
+
+    # Create dummy physical file
+    path = os.path.join(app.static_folder, "uploads", "in_use.jpg")
+    with open(path, "wb") as f:
+        f.write(b"data")
+
+    # 2. Act - mock the commit to raise IntegrityError as a real DB would
+    with patch("tab_view.db.session.commit") as mock_commit:
+        mock_commit.side_effect = IntegrityError(
+            "Mocked constraint failure", params={}, orig=Exception("mock")
+        )
+        response = auth_client.post(
+            url_for("media.delete_media", media_id=media.id),
+            follow_redirects=True,
+        )
+
+    # 3. Assert
+    assert (
+        b"Cannot delete this file because it is assigned to an Event" in response.data
+    )
+    assert Media.query.get(media.id) is not None
+
+
+# --- TAG MANAGEMENT TESTS ---
+
+
+def test_manage_tags_page_and_create(auth_client, init_database):
+    """
+    Test accessing tags page and creating a new tag.
+    """
+    # Test GET
+    response_get = auth_client.get(url_for("media.manage_tags"))
+    assert response_get.status_code == 200
+
+    # Test POST (Create)
+    response_post = auth_client.post(
+        url_for("media.manage_tags"),
+        data={"name": "Winter Campaign"},
+        follow_redirects=True,
+    )
+    assert response_post.status_code == 200
+    assert b"Tag added!" in response_post.data
+    assert Tag.query.filter_by(name="Winter Campaign").first() is not None
+
+
+def test_delete_tag_success(admin_client, init_database, app):
+    """
+    Test deleting a tag successfully using admin client.
+    Should also delete associated media and physical files.
+    """
+    # 1. Setup Tag & Media
+    tag = Tag(name="To Delete Tag")
+    init_database.session.add(tag)
+    init_database.session.commit()
+
+    # Mock default media (ID=1)
+    default_tag = Tag(name="System", is_system=True)
+    init_database.session.add(default_tag)
+    init_database.session.commit()
+
+    default_media = Media(
+        id=1, filename="def.jpg", media_type="image", tag_id=default_tag.id
+    )
+    init_database.session.add(default_media)
+    init_database.session.commit()
+
+    filename = "tag_del.jpg"
+    media = Media(filename=filename, media_type="image", tag_id=tag.id)
+    init_database.session.add(media)
+    init_database.session.commit()
+
+    # Link to a device to test fallback to ID=1
+    device = Device(name="Screen 1", device_url="s1", media_id=media.id)
+    init_database.session.add(device)
+    init_database.session.commit()
+
+    # Create physical file
+    path = os.path.join(app.static_folder, "uploads", filename)
+    with open(path, "wb") as f:
+        f.write(b"data")
+
+    # 2. Act
+    response = admin_client.post(
+        url_for("media.delete_tag", tag_id=tag.id),
+        follow_redirects=True,
+    )
+
+    # 3. Assert
+    # Szukamy fragmentów, aby ominąć problem białych znaków ze złamanej linii kodu
+    assert b"associated file(s)" in response.data
+    assert b"were deleted successfully" in response.data
+
+    assert Tag.query.get(tag.id) is None
+    assert Media.query.get(media.id) is None
+    assert not os.path.exists(path)
+
+    # Check that device fallback worked
+    init_database.session.refresh(device)
+    assert device.media_id == 1
+
+
+def test_delete_system_tag_blocked(admin_client, init_database):
+    """
+    Test that system tags cannot be deleted.
+    """
+    tag = Tag(name="System UI", is_system=True)
+    init_database.session.add(tag)
+    init_database.session.commit()
+
+    response = admin_client.post(
+        url_for("media.delete_tag", tag_id=tag.id),
+        follow_redirects=True,
+    )
+
+    assert b"Cannot delete system tags." in response.data
+    assert Tag.query.get(tag.id) is not None

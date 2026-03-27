@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from tab_view.models import Device, Event, Media, Tag  # Added Tag import
+from tab_view.models import Device, Event, Media, Tag
 
 # --- ACCESS CONTROL TESTS ---
 
@@ -68,7 +68,6 @@ def test_create_event_success(auth_client, init_database):
     Test creating a valid event with a media playlist via POST.
     """
     # 1. Setup Dependencies
-    # Create Tag first (Required for Media)
     tag = Tag(name="API Tag")
     init_database.session.add(tag)
     init_database.session.commit()
@@ -83,7 +82,7 @@ def test_create_event_success(auth_client, init_database):
         "title": "New Promo",
         "start_time": "2025-05-20T10:00:00",
         "end_time": "2025-05-20T12:00:00",
-        "device_id": device.id,
+        "device_id": device.id,  # Testing the legacy fallback
         "media_playlist": [{"media_id": media.id, "order": 1, "duration": 30}],
     }
 
@@ -93,8 +92,9 @@ def test_create_event_success(auth_client, init_database):
     # 4. Assert
     assert response.status_code == 201
     data = response.get_json()
-    assert data["message"] == "Event created successfully"
-    assert data["event"]["title"] == "New Promo"
+    # API now returns 'events' (plural) and message in plural due to device_ids support
+    assert data["message"] == "Events created successfully"
+    assert data["events"][0]["title"] == "New Promo"
 
     # Verify DB state
     saved_event = Event.query.filter_by(title="New Promo").first()
@@ -106,16 +106,14 @@ def test_create_event_success(auth_client, init_database):
 def test_create_event_overlap_error(auth_client, init_database):
     """
     Test that the API rejects an event that overlaps with
-     an existing one on the same device.
+    an existing one on the same device.
     """
     # 1. Setup: Create an existing event 10:00 - 11:00
-    # Create Tag first
     tag = Tag(name="Overlap Tag")
     init_database.session.add(tag)
     init_database.session.commit()
 
     device = Device(name="Screen Overlap", device_url="url-ov")
-    # Use Media for playlist requirement
     media = Media(filename="dummy.jpg", media_type="image", tag_id=tag.id)
 
     existing_event = Event(
@@ -140,19 +138,97 @@ def test_create_event_overlap_error(auth_client, init_database):
 
     # 3. Assert
     assert response.status_code == 409  # Conflict
-    assert "overlaps" in response.get_json()["error"]
+    # API returns 'Schedule overlap...' so we check for 'overlap' instead of 'overlaps'
+    assert "overlap" in response.get_json()["error"].lower()
 
 
 def test_create_event_validation_error(auth_client):
     """
     Test missing required fields.
     """
+    # Provide device_ids so we get past the first validation layer
+    # and trigger the general required fields check.
     payload = {
-        "title": "Missing Data"
-        # Missing start_time, end_time, device_id...
+        "device_ids": [1],
+        "title": "Missing Data",
+        # Missing start_time, end_time, media_playlist...
     }
 
     response = auth_client.post("/api/v1/events/", json=payload)
 
     assert response.status_code == 400
     assert "Missing required fields" in response.get_json()["error"]
+
+
+# --- PUT REQUESTS TESTS ---
+
+
+def test_update_event_success(auth_client, init_database):
+    """
+    Test successful update of an existing event via PUT.
+    """
+    # 1. Setup Dependencies
+    device = Device(name="Screen PUT", device_url="url-put")
+    init_database.session.add(device)
+    init_database.session.commit()
+
+    event = Event(
+        title="Old Title",
+        start_time=datetime(2025, 6, 1, 10, 0),
+        end_time=datetime(2025, 6, 1, 12, 0),
+        device_id=device.id,
+    )
+    init_database.session.add(event)
+    init_database.session.commit()
+
+    # 2. Payload for update
+    payload = {
+        "title": "Updated Title",
+        "device_ids": [device.id],
+        # Providing minimal payload to rely on API fallbacks
+    }
+
+    # 3. Act
+    response = auth_client.put(f"/api/v1/events/{event.id}", json=payload)
+
+    # 4. Assert
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["message"] == "Group events updated successfully"
+    assert data["events"][0]["title"] == "Updated Title"
+
+    updated_event = Event.query.filter_by(title="Updated Title").first()
+    assert updated_event is not None
+
+
+# --- DELETE REQUESTS TESTS ---
+
+
+def test_delete_event_success(auth_client, init_database):
+    """
+    Test successful deletion of an event (and its group).
+    """
+    # 1. Setup Dependencies
+    device = Device(name="Screen DELETE", device_url="url-del")
+    init_database.session.add(device)
+    init_database.session.commit()
+
+    event = Event(
+        title="To Delete",
+        start_time=datetime(2025, 7, 1, 10, 0),
+        end_time=datetime(2025, 7, 1, 12, 0),
+        device_id=device.id,
+        group_id="test-group-id",
+    )
+    init_database.session.add(event)
+    init_database.session.commit()
+
+    # 2. Act
+    response = auth_client.delete(f"/api/v1/events/{event.id}")
+
+    # 3. Assert
+    assert response.status_code == 200
+    assert response.get_json()["message"] == "Event group deleted successfully"
+
+    # Verify DB state
+    assert Event.query.get(event.id) is None
