@@ -30,7 +30,6 @@
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
             <div>
-                <h1 class="main-heading text-start p-0 mb-1">Users</h1>
                 <p class="text-body-secondary">Manage system access and user roles</p>
             </div>
             <a class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill" href="{{ url_for('users.create_user') }}">
@@ -62,7 +61,7 @@
                                     </div>
                                 </div>
                             </td>
-                            
+
                             <td class="py-3 text-center">
                                 {% if user.is_admin %}
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
@@ -74,7 +73,7 @@
                                     </span>
                                 {% endif %}
                             </td>
-                            
+
                             <td class="py-3 text-center text-body-secondary">
                                 {% if user.last_login_at %}
                                     <div class="d-flex flex-column align-items-center">
@@ -85,18 +84,18 @@
                                     <span class="text-muted fst-italic">Never logged in</span>
                                 {% endif %}
                             </td>
-                            
+
                             <td class="pe-4 py-3 text-end">
                                 <div class="btn-group shadow-sm rounded">
-                                    <a href="{{ url_for('users.update_user', user_id=user.id) }}" 
-                                       class="btn btn-outline-secondary bg-body border-secondary-subtle p-2 px-3" 
+                                    <a href="{{ url_for('users.update_user', user_id=user.id) }}"
+                                       class="btn btn-outline-secondary bg-body border-secondary-subtle p-2 px-3"
                                        title="Edit">
                                         <i class="bi bi-pencil-square text-primary fs-5"></i>
                                     </a>
-                                    <button type="button" 
-                                            class="btn btn-outline-secondary bg-body border-secondary-subtle p-2 px-3" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteUserModal{{ user.id }}" 
+                                    <button type="button"
+                                            class="btn btn-outline-secondary bg-body border-secondary-subtle p-2 px-3"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteUserModal{{ user.id }}"
                                             title="Delete">
                                         <i class="bi bi-trash3 text-danger fs-5"></i>
                                     </button>

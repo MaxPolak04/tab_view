@@ -7,7 +7,7 @@
 
 
 {% block content %}
-    <h1 class="main-heading display-5">Add New Device</h1>
+    <p class="text-body-secondary">Add New Device</p>
     <div class="container">
         <form action="{{ url_for('devices.create_device') }}" class="form" method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}

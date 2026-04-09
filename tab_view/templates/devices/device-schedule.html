@@ -3,18 +3,20 @@
 {% block title %}Device Schedule{% endblock %}
 
 {% block content %}
-<h1 class="main-heading display-5">Schedule for: {{ device.name }}</h1>
-<div class="container-fluid px-4">
+<div class="container">
+    <div class="alert alert-info text-center shadow-sm py-3 mb-4 border border-info">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Harmonogram urządzenia:</strong> {{ device.name }}
+        <br>
+        <span class="text-muted">Zmiany w tym harmonogramie nadpisują domyślne media urządzenia.</span>
+    </div>
+</div>
+
+<div class="container">
     <div class="row justify-content-center g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-body-tertiary py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold text-primary">
-                        <i class="bi bi-calendar3 me-2"></i>Display schedule
-                    </h5>
-                    <span class="badge bg-body-secondary text-body-secondary border fw-normal">Overrides default media</span>
-                </div>
-                <div class="card-body p-4">
+                <div class="card-body p-2 p-md-4">
                     <div id="calendar" class="modern-calendar"></div>
                 </div>
             </div>

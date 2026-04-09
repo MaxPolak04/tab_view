@@ -16,13 +16,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Common Flatpickr configuration with an injected "OK" button
+    // Function to generate a random HEX color
+    function getRandomHexColor() {
+        return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    }
+
+    // Common Flatpickr configuration with an injected "OK" button
     const flatpickrConfig = {
         enableTime: true,
-        dateFormat: "Y-m-d\\TH:i",
+        dateFormat: "Y-m-d\\TH:i", // Internal format matching backend
         altInput: true,
-        altFormat: "d.m.Y H:i",
+        altFormat: "Y-m-d H:i",    // Display format, easy to type
         time_24hr: true,
         locale: "pl",
+        allowInput: true,          // Allow manual typing
+        clickOpens: false,         // Only open calendar when the button is clicked
+
         onReady: function(selectedDates, dateStr, instance) {
             // Create container for the button
             const btnContainer = document.createElement("div");
@@ -43,6 +52,12 @@ document.addEventListener('DOMContentLoaded', function() {
             instance.calendarContainer.appendChild(btnContainer);
         },
 
+        onChange: function() {
+            // Trigger check automatically if the user types or selects from picker
+            clearTimeout(fetchAvailabilityTimeout);
+            fetchAvailabilityTimeout = setTimeout(checkAvailability, 300);
+        },
+
         onClose: function(selectedDates, dateStr, instance) {
             const startInput = document.getElementById('eventStart').value;
             const endInput = document.getElementById('eventEnd').value;
@@ -54,8 +69,12 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Initialize both inputs
-    flatpickr("#eventStart", flatpickrConfig);
-    flatpickr("#eventEnd", flatpickrConfig);
+    const startFp = flatpickr("#eventStart", flatpickrConfig);
+    const endFp = flatpickr("#eventEnd", flatpickrConfig);
+
+    // Bind the calendar icons to open the Flatpickr modals
+    document.getElementById('btn-start-calendar')?.addEventListener('click', () => { startFp.open(); });
+    document.getElementById('btn-end-calendar')?.addEventListener('click', () => { endFp.open(); });
 
     // Check availability logic
     const startInput = document.getElementById('eventStart');
@@ -208,6 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventTitle').value = rawTitle;
             document.getElementById('eventStart')._flatpickr.setDate(event.start);
             document.getElementById('eventEnd')._flatpickr.setDate(event.end);
+
+            // In edit mode, keep the existing color
             document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
@@ -231,7 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const endFp = document.getElementById('eventEnd')._flatpickr;
             startStr ? startFp.setDate(startStr) : startFp.clear();
             endStr ? endFp.setDate(endStr) : endFp.clear();
-            document.getElementById('eventColor').value = '#3788d8';
+
+            // Apply a random color instead of the hardcoded default
+            document.getElementById('eventColor').value = getRandomHexColor();
 
             currentPlaylist = [];
             currentEventId = null;
