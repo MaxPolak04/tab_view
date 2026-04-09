@@ -98,6 +98,11 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     color: var(--bs-primary);
 }
 
+.nav-link.active {
+    color: var(--bs-primary) !important;
+    font-weight: 600;
+}
+
 .pagination {
     margin-top: 3em;
 }

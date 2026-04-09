@@ -3,17 +3,10 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1 class="main-heading display-5">Global Dashboard</h1>
-<div class="container-fluid px-4">
+<div class="container-fluid px-5">
     <div class="row justify-content-center g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-body-tertiary py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold text-primary">
-                        <i class="bi bi-calendar-range me-2"></i>All Devices Schedule
-                    </h5>
-                    <a href="{{ url_for('devices.get_all_devices') }}" class="btn btn-outline-primary btn-sm">Manage Devices</a>
-                </div>
                 <div class="card-body p-4">
                     <div id="dashboardCalendar" class="modern-calendar"></div>
                 </div>
