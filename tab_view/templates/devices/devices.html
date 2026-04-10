@@ -6,19 +6,20 @@
     {% for device in devices %}
         <div class="modal fade" id="deleteDeviceModal{{ device.id }}" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header border-bottom-0 pb-0">
                         <h1 class="modal-title fs-5" id="modalTitle">Delete {{ device.name }}</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        <p class="text-center my-3">Are you sure you want to delete device <strong class="text-primary">{{ device.name }}</strong>?</p>
+                    <div class="modal-body py-4 text-center">
+                        <i class="bi bi-exclamation-circle text-danger mb-3 d-block" style="font-size: 3rem;"></i>
+                        <p class="mb-0">Are you sure you want to delete device <strong class="text-primary">{{ device.name }}</strong>?</p>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">Close</button>
-                        <form action="{{ url_for('devices.delete_device', device_id=device.id) }}" method="POST">
+                    <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pt-0 pb-4">
+                        <button type="button" class="btn btn-light btn-lg px-4" data-bs-dismiss="modal">Close</button>
+                        <form action="{{ url_for('devices.delete_device', device_id=device.id) }}" method="POST" class="m-0">
                             {{ form.hidden_tag() }}
-                            {{ form.submit(class="btn btn-danger btn-lg") }}
+                            {{ form.submit(class="btn btn-danger btn-lg px-4 shadow-sm") }}
                         </form>
                     </div>
                 </div>
@@ -27,13 +28,13 @@
     {% endfor %}
 
     <div class="container mt-5">
-        <div class="row mb-3 align-items-center">
-            <div class="col-md-6 mb-5">
+        <div class="row mb-5 align-items-center">
+            <div class="col-md-6 mb-3 mb-md-0">
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle shadow-sm px-4 rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-sort-alpha-down"></i> Sort: {{ 'Z-A' if current_sort == 'desc' else 'A-Z' }}
+                    <button class="btn btn-outline-secondary dropdown-toggle shadow-sm px-4 rounded-pill bg-body text-body" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-sort-alpha-down me-2 text-primary"></i> Sort: <strong>{{ 'Z-A' if current_sort == 'desc' else 'A-Z' }}</strong>
                     </button>
-                    <ul class="dropdown-menu shadow">
+                    <ul class="dropdown-menu shadow-sm border-0">
                         <li>
                             <a class="dropdown-item {% if current_sort == 'asc' %}active{% endif %}" href="{{ url_for('devices.get_all_devices', sort='asc', page=1) }}">
                                 Name (A-Z)
@@ -47,103 +48,131 @@
                     </ul>
                 </div>
             </div>
-            <div class="col-md-6 mb-5">
+            <div class="col-md-6 text-md-end">
                 {% if current_user.is_admin %}
-                    <a class="btn btn-primary btn-lg float-end shadow-sm px-4 rounded-pill" role="button" href="{{ url_for('devices.create_device') }}">Create New Device</a>
+                    <a class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill" role="button" href="{{ url_for('devices.create_device') }}">
+                        <i class="bi bi-plus-circle-fill me-2"></i>Create New Device
+                    </a>
                 {% else %}
-                    <a class="btn btn-primary btn-lg float-end shadow-sm px-4 rounded-pill disabled" role="button">Create New Device</a>
+                    <a class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill disabled" role="button">
+                        <i class="bi bi-plus-circle-fill me-2"></i>Create New Device
+                    </a>
                 {% endif %}
             </div>
         </div>
-        <div class="devices-grid">
+
+        <div class="row g-4">
             {% for device in devices %}
-                <div class="device-box">
-                    {% if device.media %}
-                        <div class="dropdown">
-                            <button class="btn dropdown-toggle device-button" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu shadow-sm">
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('devices.device_schedule', device_id=device.id) }}">
-                                        <i class="bi bi-calendar-event me-2"></i>Schedule
-                                    </a>
-                                </li>
-                                {% if current_user.is_admin %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{{ url_for('devices.update_device', device_id=device.id) }}">
-                                            <i class="bi bi-gear me-2"></i>Update
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteDeviceModal{{ device.id }}" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">
-                                            <i class="bi bi-trash me-2"></i>Delete
-                                        </button>
-                                    </li>
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                    <div class="card h-100 border border-secondary-subtle shadow position-relative">
+                        <div class="position-relative overflow-hidden rounded-top bg-dark d-flex align-items-center justify-content-center" style="height: 200px;">
+
+                            {% if device.media %}
+                                {% if device.media.media_type == 'image' %}
+                                    <img src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" alt="{{ device.name }}" class="w-100 h-100 object-fit-cover opacity-hover">
+                                {% elif device.media.media_type == 'video' %}
+                                    <video class="w-100 h-100 object-fit-cover opacity-hover hover-video" muted loop playsinline preload="metadata">
+                                        <source src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" type="video/mp4">
+                                        Your browser does not support video playback.
+                                    </video>
                                 {% else %}
-                                    <li>
-                                        <button type="button" class="dropdown-item disabled" data-bs-toggle="modal" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">
-                                            <i class="bi bi-trash me-2"></i>Delete
-                                        </button>
-                                    </li>
+                                    <img src="{{ url_for('static', filename='img/default.jpg') }}" alt="Default Media" class="w-100 h-100 object-fit-cover opacity-hover">
                                 {% endif %}
-                            </ul>
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/default.jpg') }}" alt="Default Image" class="w-100 h-100 object-fit-cover opacity-hover">
+                            {% endif %}
+
+                            <div class="card-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-between p-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-1">
+                                        <span class="badge rounded-pill bg-dark bg-opacity-50 border border-light border-opacity-25 d-flex align-items-center">
+                                            <i class="bi bi-display me-1"></i>DEVICE
+                                        </span>
+                                    </div>
+
+                                    <div class="dropdown position-relative z-3">
+                                        <button class="btn btn-light btn-sm rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                                            <li>
+                                                <a class="dropdown-item py-2" href="{{ url_for('devices.device_schedule', device_id=device.id) }}">
+                                                    <i class="bi bi-calendar-event me-2"></i>Schedule
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item py-2" href="{{ url_for('devices.show_device', device_url=device.device_url) }}" target="_blank">
+                                                    <i class="bi bi-box-arrow-up-right me-2"></i>Open View
+                                                </a>
+                                            </li>
+                                            {% if current_user.is_admin %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item py-2" href="{{ url_for('devices.update_device', device_id=device.id) }}">
+                                                        <i class="bi bi-gear me-2"></i>Update
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteDeviceModal{{ device.id }}" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">
+                                                        <i class="bi bi-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                            {% else %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item py-2 disabled" data-bs-toggle="modal" data-device-name="{{ device.name }}" data-device-id="{{ device.id }}">
+                                                        <i class="bi bi-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        {% if device.media.media_type == 'image' %}
-                            <img src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}"
-                                alt="{{ device.name }}"
-                                class="device-box__img device-img img-fluid">
-                        {% elif device.media.media_type == 'video' %}
-                            <video class="device-box__video device-video" muted autoplay loop>
-                                <source src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" type="video/mp4">
-                                Your browser does not support video playback.
-                            </video>
-                        {% else %}
-                            <img src="{{ url_for('static', filename='img/default.jpg') }}"
-                                alt="Default Media"
-                                class="device-box__img device-img img-fluid">
-                        {% endif %}
-                    {% else %}
-                        <img src="{{ url_for('static', filename='img/default.jpg') }}"
-                            alt="Default Image"
-                            class="device-box__img device-img">
-                    {% endif %}
-                    <h2 class="device-box__heading device-heading display-3 text-center">
-                        <a class="device-link" href="{{ url_for('devices.device_schedule', device_id=device.id) }}">{{ device.name }}</a>
-                    </h2>
-                    <p class="text-center">
-                        <a href="{{ url_for('devices.show_device', device_url=device.device_url) }}" class="device-link" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="http://10.10.4.201/devices/{{ device.device_url }}" data-bs-custom-class="custom-tooltip">/devices/{{ device.device_url }}</a>
-                    </p>
+
+                        <div class="card-body p-3">
+                            <h6 class="card-title text-truncate mb-1 fw-bold" title="{{ device.name }}">
+                                {% if current_user.is_admin %}
+                                    <a href="{{ url_for('devices.update_device', device_id=device.id) }}" class="stretched-link text-decoration-none text-body">{{ device.name }}</a>
+                                {% else %}
+                                    <span class="text-body">{{ device.name }}</span>
+                                {% endif %}
+                            </h6>
+                            <p class="card-text small text-muted mb-0 text-truncate position-relative z-3">
+                                <i class="bi bi-link-45deg me-1"></i>
+                                <a href="{{ url_for('devices.show_device', device_url=device.device_url) }}" class="text-decoration-none text-muted" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="http://10.10.4.201/devices/{{ device.device_url }}" data-bs-custom-class="custom-tooltip">/devices/{{ device.device_url }}</a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             {% endfor %}
         </div>
 
-        <nav class="mt-4 pagination" aria-label="Page navigation">
-            <ul class="pagination mx-auto">
-                <li class="page-item">
-                    <a class="page-link {% if pagination.page == 1 %}disabled{% endif %}"
-                        href="{{ url_for('devices.get_all_devices', page=1, sort=current_sort) }}" {% if pagination.page==1 %}tabindex="-1" {% endif %}
-                        aria-label="First">
-                        <span aria-hidden="true">&laquo;</span>
+        <nav class="mt-5 d-flex justify-content-center" aria-label="Page navigation">
+            <ul class="pagination pagination-custom shadow-sm mx-auto">
+                <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
+                    <a class="page-link" href="{{ url_for('devices.get_all_devices', page=1, sort=current_sort) }}" aria-label="First">
+                        <i class="bi bi-chevron-double-left"></i>
                     </a>
                 </li>
                 {% if pagination.has_prev %}
-                <li class="page-item"><a class="page-link"
-                        href="{{ url_for('devices.get_all_devices', page=pagination.prev_num, sort=current_sort) }}">{{ pagination.prev_num }}</a></li>
+                <li class="page-item"><a class="page-link" href="{{ url_for('devices.get_all_devices', page=pagination.prev_num, sort=current_sort) }}">{{ pagination.prev_num }}</a></li>
                 {% endif %}
-                <li class="page-item"><span class="page-link active" aria-current="page">{{ pagination.page }}</span></li>
+                <li class="page-item active"><span class="page-link" aria-current="page">{{ pagination.page }}</span></li>
                 {% if pagination.has_next %}
-                <li class="page-item"><a class="page-link"
-                        href="{{ url_for('devices.get_all_devices', page=pagination.next_num, sort=current_sort) }}">{{ pagination.next_num }}</a></li>
+                <li class="page-item"><a class="page-link" href="{{ url_for('devices.get_all_devices', page=pagination.next_num, sort=current_sort) }}">{{ pagination.next_num }}</a></li>
                 {% endif %}
-                <li class="page-item">
-                    <a class="page-link {% if not pagination.page < pagination.pages %}disabled{% endif %}"
-                        href="{{ url_for('devices.get_all_devices', page=pagination.pages, sort=current_sort) }}" aria-label="Last">
-                        <span aria-hidden="true">&raquo;</span>
+                <li class="page-item {{ 'disabled' if not pagination.page < pagination.pages }}">
+                    <a class="page-link" href="{{ url_for('devices.get_all_devices', page=pagination.pages, sort=current_sort) }}" aria-label="Last">
+                        <i class="bi bi-chevron-double-right"></i>
                     </a>
                 </li>
             </ul>
         </nav>
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/hover-video.js') }}"></script>
 {% endblock %}
