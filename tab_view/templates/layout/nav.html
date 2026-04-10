@@ -38,8 +38,8 @@
                 <a href="{{ url_for('users.get_all_users') }}"
                    class="nav-link {% if request.blueprint == 'users' %}active{% endif %}">Users</a>
 
-                <a href="{{ url_for('maintenance.cleanup_events_view') }}"
-                   class="nav-link {% if request.blueprint == 'maintenance' %}active{% endif %}"><i class="bi bi-gear"></i></a>
+                <a href="{{ url_for('settings.settings_view') }}"
+                   class="nav-link {% if request.blueprint == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i></a>
                 {% endif %}
 
                 {% endif %}
