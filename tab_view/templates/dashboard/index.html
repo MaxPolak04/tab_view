@@ -6,7 +6,7 @@
 <div class="container">
     <div class="row justify-content-center g-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary h-100">
                 <div class="card-body p-2 p-md-4">
                     <div id="dashboardCalendar" class="modern-calendar"></div>
                 </div>
@@ -17,35 +17,35 @@
 
 <div class="modal fade" id="dashboardEventModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="eventModalLabel">Add Global Schedule</h5>
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fs-4" id="eventModalLabel">Create Global Schedule</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body py-4">
                 <form id="eventForm">
-                    <div class="mb-3">
-                        <label for="eventTitle" class="form-label">Schedule name:</label>
-                        <input type="text" class="form-control" id="eventTitle" required>
+                    <div class="mb-4">
+                        <label for="eventTitle" class="form-label fw-bold">Schedule Name:</label>
+                        <input type="text" class="form-control form-control-lg shadow-sm rounded-3" id="eventTitle" required>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="eventStart" class="form-label">Start date:</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="eventStart" required>
-                                <button class="btn btn-outline-secondary" type="button" id="btn-start-calendar"
+                        <div class="col-md-6 mb-4">
+                            <label for="eventStart" class="form-label fw-bold">Start Date:</label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <input type="text" class="form-control rounded-start-3 border-end-0" id="eventStart" required>
+                                <button class="btn btn-outline-secondary rounded-end-3 border-start-0" type="button" id="btn-start-calendar"
                                     title="Open calendar">
                                     <i class="bi bi-calendar-date"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="eventEnd" class="form-label">End date:</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="eventEnd" required>
-                                <button class="btn btn-outline-secondary" type="button" id="btn-end-calendar"
+                        <div class="col-md-6 mb-4">
+                            <label for="eventEnd" class="form-label fw-bold">End Date:</label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <input type="text" class="form-control rounded-start-3 border-end-0" id="eventEnd" required>
+                                <button class="btn btn-outline-secondary rounded-end-3 border-start-0" type="button" id="btn-end-calendar"
                                     title="Open calendar">
                                     <i class="bi bi-calendar-date"></i>
                                 </button>
@@ -53,54 +53,54 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="eventColor" class="form-label">Event color in calendar:</label>
+                    <div class="mb-4">
+                        <label for="eventColor" class="form-label fw-bold">Event Color in Calendar:</label>
                         <div class="d-flex gap-2 align-items-center">
-                            <input type="color" class="form-control form-control-color" id="eventColor"
+                            <input type="color" class="form-control form-control-color shadow-sm rounded-3" id="eventColor"
                                 title="Choose color">
-                            <div class="color-presets d-flex gap-1 flex-wrap">
+                            <div class="color-presets d-flex gap-2 flex-wrap">
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#dc3545"
-                                    style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #dc3545; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#fd7e14"
-                                    style="background-color: #fd7e14; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #fd7e14; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#ffc107"
-                                    style="background-color: #ffc107; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #ffc107; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#198754"
-                                    style="background-color: #198754; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #198754; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#20c997"
-                                    style="background-color: #20c997; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #20c997; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#0dcaf0"
-                                    style="background-color: #0dcaf0; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #0dcaf0; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#0d6efd"
-                                    style="background-color: #0d6efd; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #0d6efd; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#6610f2"
-                                    style="background-color: #6610f2; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #6610f2; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#6f42c1"
-                                    style="background-color: #6f42c1; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #6f42c1; width: 32px; height: 32px; border-radius: 50%;"></button>
                                 <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#d63384"
-                                    style="background-color: #d63384; width: 30px; height: 30px; border-radius: 4px;"></button>
+                                    style="background-color: #d63384; width: 32px; height: 32px; border-radius: 50%;"></button>
                             </div>
                         </div>
                     </div>
 
-                    <hr>
+                    <hr class="my-4 border-secondary opacity-25">
 
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label fw-bold">Select Devices:</label>
-                        <div class="alert alert-secondary py-2 small mb-2">
+                        <div class="alert alert-secondary py-2 small mb-3 border-secondary-subtle shadow-sm rounded-3">
                             Select the devices where this schedule should be displayed. Unavailable devices based on the
                             selected dates will be disabled.
                         </div>
                         <div class="row g-2" id="deviceSelectionGrid">
                             {% for device in devices %}
                             <div class="col-md-6">
-                                <div class="form-check border rounded p-2 ps-5 device-checkbox-wrapper"
+                                <div class="form-check border rounded-3 p-3 ps-5 device-checkbox-wrapper shadow-sm bg-body"
                                     id="device-wrapper-{{ device.id }}">
-                                    <input class="form-check-input device-checkbox" type="checkbox"
+                                    <input class="form-check-input device-checkbox fs-5 mt-1" type="checkbox"
                                         value="{{ device.id }}" id="device-{{ device.id }}">
                                     <label class="form-check-label w-100" for="device-{{ device.id }}">
-                                        <strong>{{ device.name }}</strong>
-                                        <small class="d-block text-danger device-busy-text"
+                                        <strong class="fs-6">{{ device.name }}</strong>
+                                        <small class="d-block text-danger device-busy-text mt-1"
                                             id="busy-text-{{ device.id }}" style="display: none !important;"></small>
                                     </label>
                                 </div>
@@ -109,28 +109,30 @@
                         </div>
                     </div>
 
-                    <hr>
+                    <hr class="my-4 border-secondary opacity-25">
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Media playlist:</label>
-                        <br>
-                        <button type="button" class="btn btn-success btn-sm mb-2" id="addMediaToPlaylist">
-                            <i class="bi bi-plus-circle"></i> Add media
-                        </button>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-label fw-bold mb-0">Media Playlist:</label>
+                            <button type="button" class="btn btn-success btn-sm px-4 shadow-sm rounded-pill" id="addMediaToPlaylist">
+                                <i class="bi bi-plus-circle me-1"></i> Add Media
+                            </button>
+                        </div>
 
-                        <div id="playlistContainer" class="border rounded p-2" style="min-height: 100px;">
-                            <p class="text-muted text-center" id="emptyPlaylistMsg">
-                                <i class="bi bi-info-circle"></i> Click "Add media" to create a playlist
+                        <div id="playlistContainer" class="border rounded-3 p-3 bg-body-tertiary shadow-sm" style="min-height: 120px;">
+                            <p class="text-muted text-center my-4" id="emptyPlaylistMsg">
+                                <i class="bi bi-info-circle d-block fs-3 mb-2"></i> Click "Add Media" to create a playlist
                             </p>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="deleteEventBtn" style="display:none;">Delete
-                    Group</button>
-                <button type="button" class="btn btn-primary" id="saveEventBtn">Save Group Schedule</button>
+            <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-between pt-3 pb-3">
+                <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-danger btn-lg px-5 shadow-sm rounded-pill" id="deleteEventBtn" style="display:none;">Delete</button>
+                    <button type="button" class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" id="saveEventBtn">Save</button>
+                </div>
             </div>
         </div>
     </div>
@@ -138,45 +140,48 @@
 
 <div class="modal fade" id="playlistMediaPickerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Select media for playlist</h5>
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fs-4">Select Media for Playlist</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-body py-4" style="max-height: 70vh; overflow-y: auto;">
                 <div class="mb-4 d-flex flex-wrap gap-2" id="mediaTagFilters">
                     <input type="checkbox" class="btn-check tag-filter-checkbox" id="tag-all" data-filter="all"
                         autocomplete="off" checked>
-                    <label class="btn btn-outline-primary btn-sm rounded-pill" for="tag-all">All</label>
+                    <label class="btn btn-outline-primary btn-sm rounded-pill shadow-sm" for="tag-all">All</label>
                     {% for tag in tags %}
                     <input type="checkbox" class="btn-check tag-filter-checkbox" id="tag-{{ tag.id }}"
                         data-filter="{{ tag.id }}" autocomplete="off">
-                    <label class="btn btn-outline-primary btn-sm rounded-pill" for="tag-{{ tag.id }}">{{ tag.name
+                    <label class="btn btn-outline-primary btn-sm rounded-pill shadow-sm" for="tag-{{ tag.id }}">{{ tag.name
                         }}</label>
                     {% endfor %}
                 </div>
                 <div class="row g-3">
                     {% for media in media_list %}
                     <div class="col-6 col-md-4 col-lg-3 media-filter-item" data-tag-id="{{ media.tag_id }}">
-                        <div class="card playlist-media-item h-100" data-media-id="{{ media.id }}"
+                        <div class="card playlist-media-item h-100 shadow-sm border-secondary-subtle" data-media-id="{{ media.id }}"
                             data-media-filename="{{ media.filename }}" data-media-type="{{ media.media_type }}"
                             style="cursor: pointer;">
                             {% if media.media_type == 'image' %}
                             <img src="{{ url_for('static', filename='uploads/' + media.filename) }}"
-                                class="card-img-top" loading="lazy">
+                                class="card-img-top object-fit-cover" style="height: 150px;" loading="lazy">
                             {% elif media.media_type == 'video' %}
-                            <video class="card-img-top" preload="metadata">
+                            <video class="card-img-top object-fit-cover" style="height: 150px;" preload="metadata">
                                 <source src="{{ url_for('static', filename='uploads/' + media.filename) }}"
                                     type="video/mp4">
                             </video>
                             {% endif %}
                             <div class="card-body p-2">
-                                <small class="d-block text-truncate">{{ media.filename }}</small>
+                                <small class="d-block text-truncate fw-medium">{{ media.filename }}</small>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
+            </div>
+            <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-end pt-3 pb-3">
+                <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

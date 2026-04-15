@@ -3,132 +3,163 @@
 {% block title %}System Settings{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-5">
     <div class="d-flex align-items-center mb-5">
-        <p class="text-muted mb-0">Manage core application defaults, system tags, and perform maintenance.</p>
+        <div>
+            <h2 class="fw-bold mb-1">System Settings</h2>
+            <p class="text-muted mb-0">Manage core application defaults, system tags, and perform maintenance.</p>
+        </div>
     </div>
 
-    <div class="mb-5 pb-4">
-        <div class="d-flex align-items-center mb-4">
-            <h4 class="mb-0"><i class="bi bi-image text-primary me-2"></i>Default Media Image</h4>
-        </div>
-        <div class="row align-items-center">
-            <div class="col-md-5 mb-4 mb-md-0 text-center">
-                <p class="text-muted small fw-bold text-uppercase mb-2">Current Default Image</p>
-                <div class="border rounded bg-dark d-flex align-items-center justify-content-center mx-auto shadow-sm" style="height: 200px; width: 100%; max-width: 300px; overflow: hidden;">
-                    <img src="{{ url_for('static', filename='uploads/default.png') }}?v={{ default_timestamp }}" alt="Default" class="w-100 h-100 object-fit-contain">
+    <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary mb-5">
+        <div class="card-body p-4 p-md-5">
+
+            <div class="d-flex align-items-center mb-5">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                    <i class="bi bi-image fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fs-3 fw-bold mb-0">Default Media Image</h3>
+                    <p class="text-muted small mb-0">Displayed on unassigned devices.</p>
                 </div>
             </div>
-            <div class="col-md-7">
-                <form action="{{ url_for('settings.update_default_image') }}" method="POST" enctype="multipart/form-data">
-                    {{ default_image_form.hidden_tag() }}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Upload replacement image</label>
-                        {{ default_image_form.file(class="form-control form-control-lg", accept=".jpg,.jpeg,.png,.gif") }}
-                        <div class="form-text">
-                            This will permanently overwrite the current default image displayed on unassigned devices.
-                        </div>
-                        {% for error in default_image_form.file.errors %}
-                            <div class="text-danger mt-1 small fw-bold">{{ error }}</div>
-                        {% endfor %}
+
+            <div class="row align-items-center">
+                <div class="col-md-5 mb-4 mb-md-0 text-center">
+                    <p class="text-muted small fw-bold text-uppercase mb-2">Current Default Image</p>
+                    <div class="border border-secondary-subtle rounded-4 bg-dark d-flex align-items-center justify-content-center mx-auto shadow-sm" style="height: 200px; width: 100%; max-width: 300px; overflow: hidden;">
+                        <img src="{{ url_for('static', filename='uploads/default.png') }}?v={{ default_timestamp }}" alt="Default" class="w-100 h-100 object-fit-contain">
                     </div>
-                    {{ default_image_form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
-                </form>
+                </div>
+                <div class="col-md-7">
+                    <form action="{{ url_for('settings.update_default_image') }}" method="POST" enctype="multipart/form-data">
+                        {{ default_image_form.hidden_tag() }}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Upload replacement image</label>
+                            {{ default_image_form.file(class="form-control form-control-lg shadow-sm rounded-3", accept=".jpg,.jpeg,.png,.gif") }}
+                            <div class="form-text mt-2 text-muted">
+                                <i class="bi bi-info-circle me-1"></i>This will permanently overwrite the current default image displayed on unassigned devices.
+                            </div>
+                            {% for error in default_image_form.file.errors %}
+                                <div class="text-danger small mt-2 fw-medium">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            {{ default_image_form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="mt-5 pt-5 border-top border-secondary-subtle">
-        <div class="d-flex align-items-center mb-4">
-            <h4 class="mb-0"><i class="bi bi-calendar2-x-fill text-danger me-2"></i>Cleanup Old Events</h4>
-        </div>
+    <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
+        <div class="card-body p-4 p-md-5">
 
-        <div class="alert alert-warning shadow-sm mb-4 border-start border-warning">
-            <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Warning</h5>
-            <p class="mb-0">
-                This tool permanently deletes events from the database that ended earlier than the specified number of months ago.
-                <strong>This action cannot be undone.</strong> Associated media entries in the schedule will also be deleted.
-                Always run a <strong>Preview (Dry Run)</strong> first.
-            </p>
-        </div>
-
-        <div class="row">
-            <div class="col-12 col-md-8 col-lg-6">
-                <form action="{{ url_for('settings.cleanup_events_view') }}" method="POST">
-                    {{ cleanup_form.hidden_tag() }}
-
-                    <div class="mb-4">
-                        {{ cleanup_form.months.label(class="form-label fw-bold") }}
-                        {{ cleanup_form.months(class="form-control form-control-lg", min=1) }}
-                        <div class="form-text text-muted mt-2">
-                            Enter the minimum age of events in months (e.g., entering "6" deletes all events that ended more than 6 months ago).
-                        </div>
-                        {% for error in cleanup_form.months.errors %}
-                            <div class="text-danger mt-1 small fw-bold">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="form-check form-switch mb-4 fs-5">
-                        {{ cleanup_form.dry_run(class="form-check-input", id="dryRun") }}
-                        {{ cleanup_form.dry_run.label(class="form-check-label text-primary fw-bold", for="dryRun") }}
-                    </div>
-
-                    {{ cleanup_form.submit(class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill") }}
-                </form>
+            <div class="d-flex align-items-center mb-5">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                    <i class="bi bi-calendar2-x-fill fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fs-3 fw-bold mb-0">Cleanup Old Events</h3>
+                    <p class="text-muted small mb-0">Permanently remove past schedule data.</p>
+                </div>
             </div>
-        </div>
 
-        {% if cutoff_date %}
-            <div class="alert {{ 'alert-info' if dry_run_result else 'alert-success' }} mt-5 shadow-sm">
-                <h5 class="alert-heading mb-3">
-                    {% if dry_run_result %}
-                        <i class="bi bi-eye"></i> Preview result
-                    {% else %}
-                        <i class="bi bi-check-circle"></i> Cleanup completed
-                    {% endif %}
-                </h5>
-                <p class="mb-2">
-                    Events with <strong>end time earlier than {{ cutoff_date.strftime('%Y-%m-%d %H:%M') }}</strong>
-                    ({{ cleanup_form.months.data }} month{{ 's' if cleanup_form.months.data != 1 }} ago)
-                    {% if dry_run_result %}would be{% else %}were{% endif %} affected.
+            <div class="alert alert-warning shadow-sm mb-5 border-0 rounded-4">
+                <h5 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Warning</h5>
+                <p class="mb-0">
+                    This tool permanently deletes events from the database that ended earlier than the specified number of months ago.
+                    <strong>This action cannot be undone.</strong> Associated media entries in the schedule will also be deleted.
+                    Always run a <strong>Preview (Dry Run)</strong> first.
                 </p>
-                <p class="mb-0 fs-5">
-                    <strong>{{ affected_count }}</strong> events match this condition.
-                    {% if dry_run_result %}
-                        <span class="text-primary fw-bold">No events were deleted (preview mode).</span>
-                    {% else %}
-                        <span class="text-success fw-bold">All matching events have been permanently deleted.</span>
-                    {% endif %}
-                </p>
+            </div>
 
-                {% if dry_run_result and events_to_delete %}
-                    <hr class="my-4 border-info">
-                    <h6 class="mb-3">Events to be deleted:</h6>
-                    <div class="table-responsive border border-info rounded bg-body" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-sm table-hover mb-0">
-                            <thead class="table-light sticky-top">
-                                <tr>
-                                    <th class="ps-3 py-2">Title</th>
-                                    <th class="py-2">Start time</th>
-                                    <th class="py-2">End time</th>
-                                    <th class="py-2">Device ID</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {% for event in events_to_delete %}
-                                <tr>
-                                    <td class="ps-3">{{ event.title }}</td>
-                                    <td>{{ event.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td>{{ event.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td>{{ event.device_id }}</td>
-                                </tr>
+            <div class="row">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <form action="{{ url_for('settings.cleanup_events_view') }}" method="POST">
+                        {{ cleanup_form.hidden_tag() }}
+
+                        <div class="mb-4">
+                            {{ cleanup_form.months.label(class="form-label fw-bold") }}
+                            {{ cleanup_form.months(class="form-control form-control-lg shadow-sm rounded-3", min=1) }}
+                            <div class="form-text mt-2 text-muted">
+                                Enter the minimum age of events in months (e.g., entering "6" deletes all events that ended more than 6 months ago).
+                            </div>
+                            {% for error in cleanup_form.months.errors %}
+                                <div class="text-danger small mt-2 fw-medium">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                                </div>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
+                        </div>
+
+                        <div class="form-check form-switch mb-5 fs-5">
+                            {{ cleanup_form.dry_run(class="form-check-input shadow-sm", id="dryRun", style="cursor: pointer;") }}
+                            {{ cleanup_form.dry_run.label(class="form-check-label text-primary fw-bold", for="dryRun", style="cursor: pointer;") }}
+                        </div>
+
+                        <div class="d-flex justify-content-start">
+                            {{ cleanup_form.submit(class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill") }}
+                        </div>
+                    </form>
+                </div>
             </div>
-        {% endif %}
+
+            {% if cutoff_date %}
+                <div class="alert {{ 'alert-info' if dry_run_result else 'alert-success' }} mt-5 shadow-sm border-0 rounded-4">
+                    <h5 class="alert-heading fw-bold mb-3">
+                        {% if dry_run_result %}
+                            <i class="bi bi-eye-fill me-2"></i> Preview result
+                        {% else %}
+                            <i class="bi bi-check-circle-fill me-2"></i> Cleanup completed
+                        {% endif %}
+                    </h5>
+                    <p class="mb-2">
+                        Events with <strong>end time earlier than {{ cutoff_date.strftime('%Y-%m-%d %H:%M') }}</strong>
+                        ({{ cleanup_form.months.data }} month{{ 's' if cleanup_form.months.data != 1 }} ago)
+                        {% if dry_run_result %}would be{% else %}were{% endif %} affected.
+                    </p>
+                    <p class="mb-0 fs-5">
+                        <strong>{{ affected_count }}</strong> events match this condition.
+                        {% if dry_run_result %}
+                            <span class="text-primary fw-bold">No events were deleted (preview mode).</span>
+                        {% else %}
+                            <span class="text-success fw-bold">All matching events have been permanently deleted.</span>
+                        {% endif %}
+                    </p>
+
+                    {% if dry_run_result and events_to_delete %}
+                        <hr class="my-4 border-info opacity-25">
+                        <h6 class="mb-3 fw-bold">Events to be deleted:</h6>
+                        <div class="table-responsive border border-info border-opacity-25 shadow-sm rounded-4 bg-body" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th class="ps-4 py-3 text-uppercase small fw-bold text-body-secondary">Title</th>
+                                        <th class="py-3 text-uppercase small fw-bold text-body-secondary">Start time</th>
+                                        <th class="py-3 text-uppercase small fw-bold text-body-secondary">End time</th>
+                                        <th class="pe-4 py-3 text-uppercase small fw-bold text-body-secondary text-end">Device ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for event in events_to_delete %}
+                                    <tr>
+                                        <td class="ps-4 fw-medium">{{ event.title }}</td>
+                                        <td>{{ event.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>{{ event.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td class="pe-4 text-end">#{{ event.device_id }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+        </div>
     </div>
 </div>
 {% endblock %}

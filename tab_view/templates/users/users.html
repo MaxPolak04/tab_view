@@ -6,20 +6,20 @@
     {% for user in users %}
         <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow">
+                <div class="modal-content border-0 shadow-lg">
                     <div class="modal-header border-bottom-0 pb-0">
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-center py-4">
-                        <div class="display-1 text-danger mb-3"><i class="bi bi-exclamation-circle"></i></div>
-                        <h3 class="mb-3">Delete User?</h3>
-                        <p class="text-body-secondary">Are you sure you want to delete <strong class="text-body-emphasis">{{ user.username }}</strong>? This action cannot be undone.</p>
+                        <i class="bi bi-exclamation-triangle-fill text-danger mb-3 d-block" style="font-size: 3rem;"></i>
+                        <h4 class="mb-3">Delete User?</h4>
+                        <p class="text-muted mb-0">Are you sure you want to delete <strong class="text-body-emphasis">{{ user.username }}</strong>?<br>This action cannot be undone.</p>
                     </div>
-                    <div class="modal-footer border-top-0 justify-content-center pb-4">
+                    <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-between pt-3 pb-3">
                         <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                        <form action="{{ url_for('users.delete_user', user_id=user.id) }}" method="POST">
+                        <form action="{{ url_for('users.delete_user', user_id=user.id) }}" method="POST" class="m-0">
                             {{ form.hidden_tag() }}
-                            <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill">Confirm Delete</button>
+                            <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill">Delete</button>
                         </form>
                     </div>
                 </div>
@@ -37,8 +37,9 @@
             </a>
         </div>
 
-        <div class="card border-0 shadow-sm bg-body-tertiary">
-            <div class="table-responsive"> <table class="table table-mobile-cards table-hover align-middle mb-0">
+        <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-mobile-cards table-hover align-middle mb-0">
                     <thead class="border-bottom">
                         <tr>
                             <th class="ps-4 py-3 text-uppercase small fw-bold text-body-secondary">User info</th>

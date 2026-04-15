@@ -3,17 +3,15 @@
 {% block title %}Add New Media{% endblock %}
 
 {% block content %}
-    <p class="text-body-secondary">Add New Media</p>
-
     <div class="container">
-        <form id="uploadForm" action="{{ url_for('media.new_media') }}" class="form" style="max-width: 1000px;" method="POST" enctype="multipart/form-data">
+        <form id="uploadForm" action="{{ url_for('media.new_media') }}" method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
 
             <div id="js-error-container"></div>
 
             <div class="row g-4 g-lg-5">
                 <div class="col-md-6">
-                    <div class="card h-100 shadow-sm border-0 bg-body-tertiary">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-body-tertiary">
                         <div class="card-body p-4 p-lg-5 d-flex flex-column justify-content-center">
 
                             <div class="d-flex align-items-center mb-4">
@@ -25,7 +23,7 @@
 
                             <div class="mb-3">
                                 {{ form.file.label(class="form-label fw-bold text-uppercase small ls-1 text-muted") }}
-                                {{ form.file(class="form-control form-control-lg", accept=".jpg,.jpeg,.png,.gif,.mp4", id="fileInput", multiple="multiple") }}
+                                {{ form.file(class="form-control form-control-lg shadow-sm rounded-3", accept=".jpg,.jpeg,.png,.gif,.mp4", id="fileInput", multiple="multiple") }}
                                 {% for error in form.file.errors %}
                                     <div class="text-danger mt-2 fw-bold"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
                                 {% endfor %}
@@ -41,7 +39,7 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card h-100 shadow-sm border-0 bg-body-tertiary">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-body-tertiary">
                         <div class="card-body p-4 p-lg-5">
 
                             <div class="d-flex align-items-center mb-4">
@@ -54,7 +52,7 @@
 
                             <div class="mb-4">
                                 {{ form.tag_id.label(class="form-label fw-bold text-uppercase small ls-1 text-muted") }}
-                                {{ form.tag_id(class="form-select form-select-lg", id="tagSelect") }}
+                                {{ form.tag_id(class="form-select form-select-lg shadow-sm rounded-3", id="tagSelect") }}
                                 {% for error in form.tag_id.errors %}
                                     <div class="text-danger mt-2 fw-bold">{{ error }}</div>
                                 {% endfor %}
@@ -69,7 +67,7 @@
 
                             <div class="mb-2">
                                 {{ form.new_tag_name.label(class="form-label fw-bold text-uppercase small ls-1 text-muted") }}
-                                <div class="input-group input-group-lg">
+                                <div class="input-group input-group-lg shadow-sm rounded-3">
                                     <span class="input-group-text bg-body border-end-0 text-muted"><i class="bi bi-plus-lg"></i></span>
                                     {{ form.new_tag_name(class="form-control border-start-0 ps-0", placeholder="Type new tag name...", id="newTagInput") }}
                                 </div>
@@ -81,7 +79,7 @@
             </div>
 
             <div class="d-flex justify-content-end align-items-center mt-5 gap-3">
-                <a href="{{ url_for('media.get_all_media') }}" class="btn btn-lg btn-link text-decoration-none text-muted px-4">Cancel</a>
+                <a href="{{ url_for('media.get_all_media') }}" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill">Cancel</a>
                 {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill", id="submitBtn") }}
             </div>
         </form>

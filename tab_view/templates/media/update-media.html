@@ -3,56 +3,75 @@
 {% block title %}Update Media{% endblock %}
 
 {% block content %}
-    <div class="container py-4">
+<div class="container py-5">
+    <div class="row justify-content-center g-4">
 
-        <div class="row justify-content-center mb-4">
-            <div class="col-md-8 col-lg-6">
-                <div class="card border border-secondary-subtle shadow-sm overflow-hidden bg-dark">
-                    <div class="d-flex align-items-center justify-content-center" style="max-height: 400px; min-height: 200px;">
-                        {% if media.media_type == 'image' %}
-                            <img src="{{ url_for('static', filename='uploads/' ~ media.filename) }}"
-                                 alt="Preview"
-                                 class="img-fluid w-100 h-100 object-fit-contain">
-                        {% elif media.media_type == 'video' %}
-                            <video class="w-100 h-100 object-fit-contain"
-                                   controls
-                                   preload="metadata"
-                                   style="max-height: 400px;">
-                                <source src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        {% endif %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 bg-dark overflow-hidden h-100 d-flex align-items-center justify-content-center" style="min-height: 300px;">
+                {% if media.media_type == 'image' %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ media.filename) }}"
+                         alt="Preview"
+                         class="img-fluid w-100 h-100 object-fit-contain">
+                {% elif media.media_type == 'video' %}
+                    <video class="w-100 h-100 object-fit-contain"
+                           controls
+                           preload="metadata">
+                        <source src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary h-100">
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="d-flex align-items-center mb-5">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                            <i class="bi bi-pencil-square fs-3"></i>
+                        </div>
+                        <div>
+                            <h3 class="fs-3 fw-bold mb-0">Update Media</h3>
+                            <p class="text-muted small mb-0">Edit file details for <strong class="text-body-emphasis">{{ media.filename }}</strong></p>
+                        </div>
                     </div>
+
+                    <form action="{{ url_for('media.update_media', media_id=media.id) }}" method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Filename</label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                {{ form.filename(class="form-control border-end-0 rounded-start-3", value=file_no_ext, **{"aria-describedby": "basic-addon2"}) }}
+                                <span class="input-group-text bg-body-secondary border-start-0 rounded-end-3 text-muted" id="basic-addon2">{{ file_ext }}</span>
+                            </div>
+                            {% for error in form.filename.errors %}
+                                <div class="text-danger small mt-2 fw-medium">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.tag_id.label(class="form-label fw-bold") }}
+                            {{ form.tag_id(class="form-select form-select-lg shadow-sm rounded-3") }}
+                            {% for error in form.tag_id.errors %}
+                                <div class="text-danger small mt-2 fw-medium">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-end align-items-center mt-5 gap-3">
+                            <a href="{{ url_for('media.get_all_media') }}" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill">Cancel</a>
+                            {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <form action="{{ url_for('media.update_media', media_id=media.id) }}" class="form" method="POST" enctype="multipart/form-data">
-                    {{ form.hidden_tag() }}
-
-                    <p class="mb-3">Filename</p>
-                    <div class="input-group mb-3">
-                        {{ form.filename(class="form-control", value=file_no_ext, **{"aria-describedby": "basic-addon2"}) }}
-                        <span class="input-group-text" id="basic-addon2">{{ file_ext }}</span>
-                        {% for error in form.filename.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form.tag_id.label(class="form-label") }}
-                        {{ form.tag_id(class="form-select") }}
-                        {% for error in form.tag_id.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
-                </form>
-            </div>
-        </div>
-
     </div>
+</div>
 {% endblock %}
