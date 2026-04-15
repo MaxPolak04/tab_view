@@ -32,76 +32,10 @@
                             <div class="text-danger mt-1 small fw-bold">{{ error }}</div>
                         {% endfor %}
                     </div>
-                    {{ default_image_form.submit(class="btn btn-primary px-4 shadow-sm") }}
+                    {{ default_image_form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
                 </form>
             </div>
         </div>
-    </div>
-
-    <div class="mt-5 pt-5 border-top border-secondary-subtle mb-5 pb-4">
-        <div class="d-flex align-items-center mb-4">
-            <h4 class="mb-0"><i class="bi bi-tags-fill text-success me-2"></i>System Tags</h4>
-        </div>
-        <div class="table-responsive border rounded bg-body shadow-sm">
-            <table class="table align-middle table-hover mb-0">
-                <thead class="table-primary">
-                    <tr>
-                        <th class="ps-3 py-3">Tag Name</th>
-                        <th class="py-3">Status</th>
-                        <th class="py-3">Associated Files</th>
-                        <th class="text-end pe-3 py-3">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for data in system_tags %}
-                    <tr>
-                        <td class="ps-3 fw-bold">{{ data.tag.name }}</td>
-                        <td><span class="badge bg-secondary">System Root</span></td>
-                        <td><span class="badge bg-primary rounded-pill px-3">{{ data.media_count }}</span></td>
-                        <td class="text-end pe-3">
-                            <button type="button" class="btn btn-sm btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#deleteTagModal{{ data.tag.id }}">
-                                <i class="bi bi-trash-fill me-1"></i> Force Delete
-                            </button>
-                        </td>
-                    </tr>
-
-                    <div class="modal fade" id="deleteTagModal{{ data.tag.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content border-0 shadow-lg">
-                                <div class="modal-header bg-danger text-white border-bottom-0">
-                                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Critical Action</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                </div>
-                                <form action="{{ url_for('settings.delete_system_tag') }}" method="POST">
-                                    {{ delete_tag_form.hidden_tag() }}
-                                    <input type="hidden" name="tag_id" value="{{ data.tag.id }}">
-
-                                    <div class="modal-body py-4">
-                                        <p class="fs-5">You are about to delete the system tag <strong>{{ data.tag.name }}</strong>.</p>
-                                        <div class="alert alert-danger shadow-sm">
-                                            <i class="bi bi-fire me-2"></i> <strong>{{ data.media_count }} media files</strong> assigned to this tag will be permanently deleted from the server and removed from all schedules.
-                                        </div>
-                                        <hr class="my-4">
-                                        <div class="mb-2">
-                                            {{ delete_tag_form.password.label(class="form-label fw-bold") }}
-                                            {{ delete_tag_form.password(class="form-control form-control-lg", placeholder="Verify your identity") }}
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer bg-light border-top-0 d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                                        {{ delete_tag_form.submit(class="btn btn-danger px-4 shadow-sm") }}
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if not system_tags %}
-            <p class="text-muted mb-0 mt-3">No system tags found.</p>
-        {% endif %}
     </div>
 
     <div class="mt-5 pt-5 border-top border-secondary-subtle">
@@ -139,7 +73,7 @@
                         {{ cleanup_form.dry_run.label(class="form-check-label text-primary fw-bold", for="dryRun") }}
                     </div>
 
-                    {{ cleanup_form.submit(class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill fw-bold") }}
+                    {{ cleanup_form.submit(class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill") }}
                 </form>
             </div>
         </div>

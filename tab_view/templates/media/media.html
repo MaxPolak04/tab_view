@@ -12,10 +12,10 @@
                 <h3 class="mb-3">Remove File?</h3>
                 <p class="text-muted px-4">Are you sure you want to delete <strong class="text-body">{{ m.filename }}</strong>? This will remove the file permanently.</p>
                 <div class="d-flex justify-content-center gap-2 mt-4">
-                    <button type="button" class="btn btn-light btn-lg px-4" data-bs-dismiss="modal">Keep it</button>
+                    <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Keep it</button>
                     <form action="{{ url_for('media.delete_media', media_id=m.id) }}" method="POST">
                         {{ form.hidden_tag() }}
-                        <button type="submit" class="btn btn-danger btn-lg px-4 shadow-sm">Yes, Delete</button>
+                        <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill">Yes, Delete</button>
                     </form>
                 </div>
             </div>
@@ -29,7 +29,7 @@
         <div>
             <p class="text-body-secondary">Upload and manage your images and videos</p>
         </div>
-        <a class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill" href="{{ url_for('media.new_media') }}">
+        <a class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" href="{{ url_for('media.new_media') }}">
             <i class="bi bi-cloud-arrow-up-fill me-2"></i>Add New Media
         </a>
     </div>
@@ -40,7 +40,7 @@
                 <div class="col-md-8 d-flex gap-3">
 
                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary border dropdown-toggle shadow-sm bg-body text-body"
+                        <button class="btn btn-outline-secondary border dropdown-toggle shadow-sm rounded-pill bg-body text-body"
                             type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
                             <i class="bi bi-tags-fill me-2 text-primary"></i>
                             Tags: <strong>{{ active_tag_names }}</strong>
@@ -72,15 +72,15 @@
                                     {% endfor %}
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center pt-2">
-                                    <a href="{{ url_for('media.get_all_media', sort=current_sort) }}" class="btn btn-sm btn-light">Clear All</a>
-                                    <button type="submit" class="btn btn-sm btn-primary px-3 shadow-sm">Apply</button>
+                                    <a href="{{ url_for('media.get_all_media', sort=current_sort) }}" class="btn btn-sm btn-outline-secondary shadow-sm rounded-pill px-3">Clear All</a>
+                                    <button type="submit" class="btn btn-sm btn-primary px-4 shadow-sm rounded-pill">Apply</button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary border dropdown-toggle shadow-sm bg-body text-body"
+                        <button class="btn btn-outline-secondary border dropdown-toggle shadow-sm rounded-pill bg-body text-body"
                             type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-sort-alpha-down me-2 text-primary"></i>
                             Sort: <strong>{{ 'A-Z' if current_sort == 'name_asc' else 'Z-A' }}</strong>
@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="col-md-4 text-end">
-                    <a href="{{ url_for('media.manage_tags') }}" class="btn btn-outline-secondary shadow-sm bg-body text-body">
+                    <a href="{{ url_for('media.manage_tags') }}" class="btn btn-outline-secondary shadow-sm rounded-pill px-4 bg-body text-body">
                         <i class="bi bi-gear-fill me-1"></i> Manage Tags
                     </a>
                 </div>

@@ -16,10 +16,10 @@
                         <p class="mb-0">Are you sure you want to delete device <strong class="text-primary">{{ device.name }}</strong>?</p>
                     </div>
                     <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pt-0 pb-4">
-                        <button type="button" class="btn btn-light btn-lg px-4" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Close</button>
                         <form action="{{ url_for('devices.delete_device', device_id=device.id) }}" method="POST" class="m-0">
                             {{ form.hidden_tag() }}
-                            {{ form.submit(class="btn btn-danger btn-lg px-4 shadow-sm") }}
+                            {{ form.submit(class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill") }}
                         </form>
                     </div>
                 </div>
@@ -50,11 +50,11 @@
             </div>
             <div class="col-md-6 text-md-end">
                 {% if current_user.is_admin %}
-                    <a class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill" role="button" href="{{ url_for('devices.create_device') }}">
+                    <a class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" role="button" href="{{ url_for('devices.create_device') }}">
                         <i class="bi bi-plus-circle-fill me-2"></i>Create New Device
                     </a>
                 {% else %}
-                    <a class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill disabled" role="button">
+                    <a class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill disabled" role="button">
                         <i class="bi bi-plus-circle-fill me-2"></i>Create New Device
                     </a>
                 {% endif %}

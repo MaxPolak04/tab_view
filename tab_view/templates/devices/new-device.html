@@ -1,13 +1,8 @@
 {% extends 'layout/base.html' %}
 
-
-
 {% block title %}Add New Device{% endblock %}
 
-
-
 {% block content %}
-    <p class="text-body-secondary">Add New Device</p>
     <div class="container">
         <form action="{{ url_for('devices.create_device') }}" class="form" method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
@@ -21,7 +16,7 @@
             <div class="mb-3">
                 {{ form.device_url.label(class="form-label") }}
                 <div class="input-group">
-                    <span class="input-group-text" id="basic-addon3">http://example.com/devices/</span>
+                    <span class="input-group-text" id="basic-addon3">http://10.10.4.201/devices/</span>
                     {{ form.device_url(class="form-control", placeholder="Enter device URL", **{"aria-describedby": "basic-addon3 basic-addon4"}) }}
                 </div>
                 {% for error in form.device_url.errors %}
@@ -35,7 +30,7 @@
                     <div class="text-danger">{{ error }}</div>
                 {% endfor %}
             </div>
-            {{ form.submit(class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill") }}
+            {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
         </form>
     </div>
 {% endblock %}
