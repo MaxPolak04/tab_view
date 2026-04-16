@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileRequired
-from wtforms import BooleanField, FileField, IntegerField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms import BooleanField, FileField, IntegerField, SubmitField
+from wtforms.validators import NumberRange
 
 
 class CleanupEventsForm(FlaskForm):
@@ -23,8 +23,3 @@ class DefaultImageForm(FlaskForm):
         ],
     )
     submit = SubmitField("Upload and Replace")
-
-
-class DeleteSystemTagForm(FlaskForm):
-    password = PasswordField("Admin Password", validators=[DataRequired()])
-    submit = SubmitField("Confirm Deletion")

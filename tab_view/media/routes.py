@@ -97,8 +97,8 @@ def new_media():
                     db.session.commit()
                     final_tag_id = new_tag.id
                     logger.info(
-                        f"Created new tag '{clean_tag_name}' \
-                            (ID: {new_tag.id}) during upload by User {current_user.id}"
+                        f"Created new tag '{clean_tag_name}' "
+                        f"(ID: {new_tag.id}) during upload by User {current_user.id}"
                     )
                 except Exception as e:
                     db.session.rollback()
@@ -124,8 +124,8 @@ def new_media():
             if len(filename) > 255:
                 skipped_files.append(f"{filename} (name too long)")
                 logger.warning(
-                    f"Skipped file (name too long): {filename} \
-                        (User: {current_user.id})"
+                    f"Skipped file (name too long): {filename} "
+                    f"(User: {current_user.id})"
                 )
                 continue
 
@@ -133,8 +133,8 @@ def new_media():
             if existing_file:
                 skipped_files.append(f"{filename} (already exists)")
                 logger.warning(
-                    f"Upload skipped - duplicate filename: {filename} \
-                        (User: {current_user.id})"
+                    f"Upload skipped - duplicate filename: {filename} "
+                    f"(User: {current_user.id})"
                 )
                 continue
 
@@ -151,8 +151,8 @@ def new_media():
                 success_count += 1
 
                 logger.info(
-                    f"Media added successfully: {filename} with Tag ID {final_tag_id} \
-                        by User {current_user.id}"
+                    f"Media added successfully: {filename} with Tag ID {final_tag_id} "
+                    f"by User {current_user.id}"
                 )
 
             except Exception as e:
@@ -163,8 +163,6 @@ def new_media():
 
         if success_count > 0:
             db.session.commit()
-
-        if success_count > 0:
             flash(f"Successfully uploaded {success_count} file(s)!", "success")
 
         if skipped_files:
@@ -182,6 +180,19 @@ def new_media():
 @login_required
 def update_media(media_id):
     media = Media.query.get_or_404(media_id)
+
+    # SYSTEM PROTECTION BLOCK - Prevents access to the page entirely
+    if media.id == 1:
+        logger.warning(
+            f"User {current_user.id} attempted to access \
+                edit page for System Media (ID 1)"
+        )
+        flash(
+            "System security: You cannot edit the default system file.",
+            "danger",
+        )
+        return redirect(url_for("media.get_all_media"))
+
     form = MediaUpdateForm()
     form.tag_id.choices = [(t.id, t.name) for t in Tag.query.all()]
 
@@ -242,8 +253,8 @@ def delete_media(media_id):
 
     if media_id == 1:
         logger.warning(
-            f"User {current_user.id} attempted to delete DEFAULT media (ID 1) - \
-                Action blocked"
+            f"User {current_user.id} attempted to delete DEFAULT media (ID 1)\
+                  - Action blocked"
         )
         flash("Cannot delete the default image.", "danger")
         return redirect(url_for("media.get_all_media"))
@@ -256,8 +267,8 @@ def delete_media(media_id):
     if devices_using_media:
         count = len(devices_using_media)
         logger.info(
-            f"Resetting media to default for {count} devices \
-                linked to media ID {media_id}"
+            f"Resetting media to default for {count} \
+                devices linked to media ID {media_id}"
         )
         for device in devices_using_media:
             device.media_id = 1
@@ -272,23 +283,26 @@ def delete_media(media_id):
         else:
             logger.warning(f"Physical file not found: {filename}")
 
-        logger.info(f"Media deleted successfully: {filename} (ID: {media_id})")
+        logger.info(f"Media deleted successfully: {filename} \
+                    (ID: {media_id})")
         flash("File deleted successfully.", "success")
 
     except IntegrityError:
         db.session.rollback()
         logger.warning(
-            f"Delete failed: Media {media_id} is in use elsewhere (IntegrityError)."
+            f"Delete failed: Media {media_id} is in use elsewhere \
+                (IntegrityError)."
         )
         flash(
-            "Cannot delete this file because it is assigned to an Event. \
-                Please remove the association in the event first.",
+            "Cannot delete this file because it is assigned to an Event. "
+            "Please remove the association in the event first.",
             "danger",
         )
 
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Critical error during media deletion ID {media_id}: {str(e)}")
+        logger.error(f"Critical error during media deletion ID \
+                     {media_id}: {str(e)}")
         flash(f"An unexpected error occurred: {str(e)}", "danger")
 
     return redirect(url_for("media.get_all_media"))
@@ -314,24 +328,22 @@ def manage_tags():
 def delete_tag(tag_id):
     tag = Tag.query.get_or_404(tag_id)
 
-    # 1. Protection against removal of system tags
+    # PROTECTION AGAINST DELETION OF THE SYSTEM TAG
     if tag.is_system:
-        logger.warning(f"User {current_user.id} tried to delete system tag {tag.name}")
-        flash("Cannot delete system tags.", "danger")
+        logger.warning(f"User {current_user.id} tried \
+                       to delete system tag {tag.name}")
+        flash("Nie można usunąć systemowego tagu.", "danger")
         return redirect(url_for("media.manage_tags"))
 
-    # 2. Download all media related to this tag
     associated_media = Media.query.filter_by(tag_id=tag.id).all()
     media_count = len(associated_media)
 
     try:
         for media in associated_media:
-            # A. Reset devices that display removable media (set to default ID=1)
             devices_using_media = Device.query.filter_by(media_id=media.id).all()
             for device in devices_using_media:
                 device.media_id = 1
 
-            # B. Delete the physical file from the drive
             file_path = os.path.join(
                 current_app.static_folder, "uploads", media.filename
             )
@@ -342,16 +354,14 @@ def delete_tag(tag_id):
                     f"Physical file missing during tag cleanup: {media.filename}"
                 )
 
-            # C. Delete media entry from database
             db.session.delete(media)
 
-        # 3. Finally, delete the tag itself.
         db.session.delete(tag)
         db.session.commit()
 
         logger.info(
-            f"Tag '{tag.name}' deleted along with {media_count} files b\
-                y User {current_user.id}"
+            f"Tag '{tag.name}' deleted along with {media_count} files "
+            f"by User {current_user.id}"
         )
         flash(
             f'Tag "{tag.name}" and {media_count} associated file(s) \

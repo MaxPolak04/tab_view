@@ -4,6 +4,7 @@
 
 {% block content %}
     {% for m in media %}
+        {% if m.id != 1 %}
         <div class="modal fade" id="deleteMediaModal{{ m.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg">
@@ -25,6 +26,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     {% endfor %}
 
 <div class="container py-5">
@@ -141,9 +143,15 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
                                     <li><a class="dropdown-item py-2" href="{{ url_for('static', filename='uploads/' ~ m.filename) }}" download="{{ m.filename }}"><i class="bi bi-download me-2"></i>Download</a></li>
+
+                                    {% if m.id != 1 %}
                                     <li><a class="dropdown-item py-2" href="{{ url_for('media.update_media', media_id=m.id) }}"><i class="bi bi-pencil me-2"></i>Edit details</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><button type="button" class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteMediaModal{{ m.id }}"><i class="bi bi-trash me-2"></i>Delete</button></li>
+                                    {% else %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><span class="dropdown-item py-2 text-muted pe-none"><i class="bi bi-shield-lock me-2"></i>System Protected</span></li>
+                                    {% endif %}
                                 </ul>
                             </div>
                         </div>
@@ -152,7 +160,11 @@
 
                 <div class="card-body p-3">
                     <h6 class="card-title text-truncate mb-1 fw-bold" title="{{ m.filename }}">
-                        <a href="{{ url_for('media.update_media', media_id=m.id) }}" class="stretched-link text-decoration-none text-body">{{ m.filename }}</a>
+                        {% if m.id != 1 %}
+                            <a href="{{ url_for('media.update_media', media_id=m.id) }}" class="stretched-link text-decoration-none text-body">{{ m.filename }}</a>
+                        {% else %}
+                            <span class="text-body"><i class="bi bi-shield-lock text-primary me-1"></i>{{ m.filename }}</span>
+                        {% endif %}
                     </h6>
                     <p class="card-text small text-muted mb-0">
                         <i class="bi bi-calendar-event me-1"></i> Added: {{ m.uploaded_at.strftime('%d.%m.%Y') if m.uploaded_at else 'N/A' }}
