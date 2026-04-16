@@ -1,3 +1,53 @@
+/* montserrat-300 - latin_latin-ext */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 300;
+  src: url('../fonts/montserrat-v31-latin_latin-ext-300.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* montserrat-regular - latin_latin-ext */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/montserrat-v31-latin_latin-ext-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* montserrat-italic - latin_latin-ext */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: italic;
+  font-weight: 400;
+  src: url('../fonts/montserrat-v31-latin_latin-ext-italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* montserrat-500 - latin_latin-ext */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../fonts/montserrat-v31-latin_latin-ext-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* montserrat-600 - latin_latin-ext */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../fonts/montserrat-v31-latin_latin-ext-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* montserrat-700 - latin_latin-ext */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../fonts/montserrat-v31-latin_latin-ext-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+
 *,
 *::before,
 *::after {
@@ -20,7 +70,6 @@ body {
     position: relative;
     font-size: 1.6rem;
     font-family: "Montserrat", sans-serif;
-    /* Użycie zmiennych systemowych dla tła i tekstu */
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
 }
@@ -64,9 +113,7 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
 }
 
 .navbar {
-    /* Zmieniono sztywne #fff na zmienną tła */
     background-color: var(--bs-body-bg) !important;
-    /* Dodano ramkę, bo cień znika w dark mode */
     border-bottom: 1px solid var(--bs-border-color);
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1) !important;
 }
@@ -79,7 +126,6 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
 .navbar-toggler {
     padding: 1em;
     border: none;
-    /* Kolor ikony hamburgera dostosowany do trybu */
     filter: var(--bs-body-color-rgb);
 }
 
@@ -129,7 +175,6 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     font-size: 2rem !important;
 }
 
-/* Główne kontenery (Formularze, Kalendarz) */
 .form,
 .calendar-box {
     max-width: 600px;
@@ -154,7 +199,6 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     justify-items: center;
 }
 
-/* Karty urządzeń i mediów */
 .device-box,
 .media-box {
     position: relative;
@@ -163,7 +207,6 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     padding: 2em;
     border-radius: 8px;
 
-    /* Poprawki dla dark mode */
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
@@ -218,7 +261,6 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
 
 .device-link {
     text-decoration: none;
-    /* Używamy secondary-color zamiast #707070 */
     color: var(--bs-secondary-color);
     transition: color .3s;
 }
@@ -317,9 +359,7 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     transform: scale(0.98);
 }
 
-/* Playlist - Dostosowanie do Dark Mode */
 .playlist-item {
-    /* Używamy zmiennych zamiast #f8f9fa */
     background: var(--bs-tertiary-bg);
     border: 1px solid var(--bs-border-color);
     border-radius: 6px;
@@ -334,7 +374,6 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
 }
 
 .playlist-item:hover {
-    /* Hover też na zmiennej */
     background: var(--bs-secondary-bg);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -372,7 +411,6 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
 /* Preview of default media */
 #defaultMediaPreview {
     transition: all 0.2s;
-    /* Poprawka dla ramki w dark mode */
     border: 1px solid transparent;
 }
 
@@ -683,6 +721,10 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
 
 /* ====================================================*/
 /* Fullcalendar.io */
+.modern-calendar {
+    border-radius: 1rem !important;
+}
+
 .fc .fc-button {
     border-radius: 50rem !important;
     padding: 0.5rem 1.5rem !important;
@@ -726,18 +768,29 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     border-bottom-right-radius: 50rem !important;
 }
 
+
+/* Flatpickr */
+.flatpickr-calendar {
+    border-radius: 1rem !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    border: none !important;
+    padding: 4px;
+}
+
+.flatpickr-day.selected {
+    border-radius: 8px;
+}
+
 /* --- MOBILE TABLE CARD VIEW (< 768px) --- */
 @media (max-width: 576px) {
-    /* 1. Ukrywamy nagłówek tabeli */
     .table-mobile-cards thead {
         display: none;
     }
 
-    /* 2. Zamieniamy wiersze w karty */
     .table-mobile-cards tbody tr {
         display: flex;
         flex-direction: column;
-        background-color: var(--bs-body-bg); /* lub var(--bs-tertiary-bg) */
+        background-color: var(--bs-body-bg);
         border: 1px solid var(--bs-border-color);
         border-radius: 12px;
         margin-bottom: 1.5rem;
@@ -745,29 +798,25 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
         overflow: hidden;
     }
 
-    /* 3. Stylujemy komórki jako bloki */
     .table-mobile-cards td {
         display: block;
         width: 100%;
         padding: 1rem 1.5rem;
         border-bottom: 1px solid var(--bs-border-color);
-        text-align: center; /* Wyśrodkowanie treści na telefonie */
+        text-align: center;
     }
 
-    /* Usuwamy obramowanie z ostatniej komórki */
     .table-mobile-cards td:last-child {
         border-bottom: none;
-        background-color: var(--bs-tertiary-bg); /* Wyróżnienie sekcji przycisków */
+        background-color: var(--bs-tertiary-bg);
         padding: 1.2rem;
     }
 
-    /* Specyficzne ustawienia dla pierwszej komórki (Avatar + Nazwa) */
     .table-mobile-cards td:first-child {
         background-color: var(--bs-tertiary-bg);
         border-bottom: 1px solid var(--bs-border-color);
     }
 
-    /* Na mobile chcemy, aby flex wewnątrz TD (user info) był wyśrodkowany */
     .table-mobile-cards td:first-child .d-flex {
         flex-direction: column;
         align-items: center !important;
@@ -777,12 +826,11 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     .table-mobile-cards td:first-child .avatar-circle {
         margin-right: 0 !important;
         margin-bottom: 0.5rem;
-        width: 50px; /* Nieco większy avatar na mobile */
+        width: 50px;
         height: 50px;
         font-size: 1.5rem;
     }
 
-    /* Powiększenie przycisków na mobile */
     .table-mobile-cards .btn-group {
         width: 100%;
         display: flex;
@@ -790,9 +838,9 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     }
 
     .table-mobile-cards .btn-group .btn {
-        flex: 1; /* Przyciski zajmą całą szerokość */
+        flex: 1;
         padding: 12px;
-        border-radius: 8px !important; /* Reset zaokrągleń grupy */
+        border-radius: 8px !important;
     }
 }
 

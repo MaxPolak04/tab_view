@@ -24,26 +24,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Common Flatpickr configuration with an injected "OK" button
     const flatpickrConfig = {
         enableTime: true,
-        dateFormat: "Y-m-d\\TH:i", // Internal format matching backend
+        dateFormat: "Y-m-d\\TH:i",
         altInput: true,
-        altFormat: "Y-m-d H:i",    // Display format, easy to type
+        altFormat: "Y-m-d H:i",
         time_24hr: true,
         locale: "pl",
-        allowInput: true,          // Allow manual typing
-        clickOpens: false,         // Only open calendar when the button is clicked
+        allowInput: true,
+        clickOpens: false,
+
+        altInputClass: "form-control form-control-lg shadow-sm rounded-start-3",
 
         onReady: function(selectedDates, dateStr, instance) {
-            // Create container for the button
             const btnContainer = document.createElement("div");
             btnContainer.className = "d-grid px-2 pb-2 pt-1";
 
-            // Create the OK button
             const btn = document.createElement("button");
-            btn.className = "btn btn-primary btn-sm shadow-sm";
+            btn.className = "btn btn-primary btn-sm shadow-sm rounded-pill";
             btn.type = "button";
-            btn.innerText = "OK";
+            btn.innerText = "Apply";
 
-            // Close the picker on click
             btn.addEventListener("click", function() {
                 instance.close();
             });
@@ -52,27 +51,28 @@ document.addEventListener('DOMContentLoaded', function() {
             instance.calendarContainer.appendChild(btnContainer);
         },
 
-        onChange: function() {
-            // Trigger check automatically if the user types or selects from picker
+        onInput: function(selectedDates, dateStr, instance) {
             clearTimeout(fetchAvailabilityTimeout);
-            fetchAvailabilityTimeout = setTimeout(checkAvailability, 300);
+            fetchAvailabilityTimeout = setTimeout(() => {
+                checkAvailability();
+            }, 300);
+        },
+
+        onChange: function(selectedDates, dateStr, instance) {
+            clearTimeout(fetchAvailabilityTimeout);
+            fetchAvailabilityTimeout = setTimeout(() => {
+                checkAvailability();
+            }, 300);
         },
 
         onClose: function(selectedDates, dateStr, instance) {
-            const startInput = document.getElementById('eventStart').value;
-            const endInput = document.getElementById('eventEnd').value;
-
-            if (startInput && endInput && typeof checkAvailability === 'function') {
-                checkAvailability(startInput, endInput, currentGroupId);
-            }
+            checkAvailability();
         }
     };
 
-    // Initialize both inputs
     const startFp = flatpickr("#eventStart", flatpickrConfig);
     const endFp = flatpickr("#eventEnd", flatpickrConfig);
 
-    // Bind the calendar icons to open the Flatpickr modals
     document.getElementById('btn-start-calendar')?.addEventListener('click', () => { startFp.open(); });
     document.getElementById('btn-end-calendar')?.addEventListener('click', () => { endFp.open(); });
 
@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const endInput = document.getElementById('eventEnd');
 
     function checkAvailability() {
-        const start = startInput.value;
-        const end = endInput.value;
+        const start = document.getElementById('eventStart')._flatpickr.input.value;
+        const end = document.getElementById('eventEnd')._flatpickr.input.value;
 
         if (!start || !end) return;
 
@@ -372,8 +372,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedDevices.length === 0) return alert('Select at least one device!');
 
         const title = document.getElementById('eventTitle').value.trim();
-        const start = document.getElementById('eventStart').value;
-        const end = document.getElementById('eventEnd').value;
+        const start = document.getElementById('eventStart')._flatpickr.input.value;
+        const end = document.getElementById('eventEnd')._flatpickr.input.value;
 
         if (!title || !start || !end) return alert('Fill in all fields!');
         if (currentPlaylist.length === 0) return alert('Add media!');
