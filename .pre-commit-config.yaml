@@ -2,6 +2,9 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
+      # Prevents committing directly to the protected branch locally
+      - id: no-commit-to-branch
+        args: ['--branch', 'main']
       # Prevents unnecessary diffs caused by invisible characters
       - id: trailing-whitespace
       # Ensures POSIX standard compliance for file endings

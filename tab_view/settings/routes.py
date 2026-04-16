@@ -65,8 +65,6 @@ def update_default_image():
 
         try:
             file.save(file_path)
-
-            # Update timestamp in DB so cache buster works on frontend
             default_media = Media.query.get(1)
             if default_media:
                 default_media.uploaded_at = db.func.now()
@@ -74,11 +72,12 @@ def update_default_image():
 
             logger.info(f"Default image replaced by Admin {current_user.id}")
             flash("Default image has been successfully replaced.", "success")
+            return redirect(url_for("settings.settings_view"))
         except Exception as e:
             logger.error(f"Error updating default image: {str(e)}")
             flash(f"Failed to update default image: {str(e)}", "danger")
-
-    return redirect(url_for("settings.settings_view"))
+            return redirect(url_for("settings.settings_view"))
+    return _render_settings_view(default_image_form=form)
 
 
 @settings_bp.route("/cleanup-events", methods=["POST"])
