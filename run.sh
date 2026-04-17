@@ -6,7 +6,7 @@ echo "🛠️ Applying database migrations..."
 export FLASK_APP=tab_view
 uv run flask db upgrade
 
-echo "🌱 Seeding media..."
+echo "🌱 Seeding initial data (Admin, System Tag, Default Media)..."
 uv run python tab_view/seed.py
 
 echo "🚀 Starting application..."

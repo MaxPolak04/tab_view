@@ -5,13 +5,13 @@ from werkzeug.security import generate_password_hash
 from tab_view import db
 from tab_view.models import User
 
-from .seed import seed_data  # Importujemy naszą nową funkcję
+from .seed import seed_data
 
 
 @click.command("seed-db")
 @with_appcontext
 def seed_db_command():
-    """Populates the database with initial data (Tags, Default Media)."""
+    """Populates the database with initial data (Admin, Tags, Default Media)."""
     seed_data()
     click.echo(click.style("Database seeded successfully!", fg="green"))
 

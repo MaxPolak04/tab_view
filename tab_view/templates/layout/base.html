@@ -8,36 +8,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
 
-    <!-- Google Fonts - Montserrat -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
-        rel="stylesheet">
-
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
 
     <!-- Flatpickr -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/flatpickr/flatpickr.min.css') }}">
 
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-    <script>
-        (function() {
-            const storedTheme = localStorage.getItem('theme');
-            const getPreferredTheme = () => {
-                if (storedTheme) {
-                    return storedTheme;
-                }
-                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            };
-            document.documentElement.setAttribute('data-bs-theme', getPreferredTheme());
-        })();
-    </script>
+    <!-- JS Init -->
+    <script src="{{ url_for('static', filename='js/theme-init.js') }}"></script>
 </head>
 <body>
     <div class="flash-overlay">
@@ -61,15 +45,16 @@
     {% endblock %}
 
     <!-- Bootstrap JS -->
-    <script src="{{ url_for('static', filename='bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
 
     <!-- FullCalendar.io -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
-    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.19/locales/pl.global.min.js'></script>
+    <script src="{{ url_for('static', filename='vendor/fullcalendar/index.global.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/fullcalendar/bootstrap5.global.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/fullcalendar/locales/pl.global.min.js') }}"></script>
 
     <!-- Flatpickr -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/pl.js"></script>
+    <script src="{{ url_for('static', filename='vendor/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/flatpickr/l10n/pl.js') }}"></script>
 
     <!-- JS -->
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>

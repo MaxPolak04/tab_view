@@ -12,12 +12,14 @@ class Config:
     Common settings shared across all environments:
     - SECRET_KEY: Flask secret key for sessions and CSRF
     - SQLALCHEMY_DATABASE_URI: Database connection string
+    - MAX_CONTENT_LENGTH: Maximum upload size (500 MB) to prevent server overload
     """
 
     SECRET_KEY = os.getenv("SECRET_KEY")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024 * 1024
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY is not set")

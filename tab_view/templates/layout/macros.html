@@ -1,9 +1,22 @@
-<!-- show flash message -->
 {% macro show_flash_message(message, category='success') %}
-<div class="alert alert-{{ category }} alert-dismissible fade show my-5" role="alert">
-    <p>{{ message }}</p>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+    {% set icon = 'bi-check-circle-fill' %}
+    {% if category == 'danger' or category == 'error' %}
+        {% set icon = 'bi-exclamation-octagon-fill' %}
+    {% elif category == 'warning' %}
+        {% set icon = 'bi-exclamation-triangle-fill' %}
+    {% elif category == 'info' %}
+        {% set icon = 'bi-info-circle-fill' %}
+    {% endif %}
+
+    <div class="alert alert-{{ category }} alert-dismissible fade show my-4 shadow border-0 border-start border-4 border-{{ category }} rounded-4 py-3" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="{{ icon }} fs-4 me-3"></i>
+            <div class="fw-medium">
+                {{ message }}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 {% endmacro %}
 
 

@@ -80,7 +80,7 @@ def signin():
         )
 
         flash("Logged in successfully!", "success")
-        return redirect(url_for("devices.get_all_devices"))
+        return redirect(url_for("dashboard.index"))
 
     return render_template("sign-in.html", form=form)
 

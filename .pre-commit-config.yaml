@@ -1,20 +1,30 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
     hooks:
-    -   id: trailing-whitespace   # Removes spaces at the end of lines
-    -   id: end-of-file-fixer     # Adds an empty line at the end of the file
-    -   id: check-yaml            # Checks whether YAML files are valid
-    -   id: check-added-large-files # Blocks the uploading of large files (e.g., movies)
+      # Prevents committing directly to the protected branch locally
+      - id: no-commit-to-branch
+        args: ['--branch', 'main']
+      # Prevents unnecessary diffs caused by invisible characters
+      - id: trailing-whitespace
+      # Ensures POSIX standard compliance for file endings
+      - id: end-of-file-fixer
+      # Fails early locally before CI catches malformed configuration
+      - id: check-yaml
+      # Protects the Git tree from accidental binary blobs (Git handles large files poorly)
+      - id: check-added-large-files
 
--   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.11
     hooks:
-    -   id: ruff                  # Linter
-    -   id: ruff-format           # Formatter
+      # Replaces Flake8/Isort - provides ultra-fast static analysis
+      - id: ruff
+      # Replaces Black - enforces consistent style across the project
+      - id: ruff-format
 
--   repo: https://github.com/PyCQA/bandit
-    rev: 1.8.0
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.4
     hooks:
-    -   id: bandit
-        args: ["-s", "B101"] # -s B101 ignores assert_used error
+      # SAST tool to catch obvious security flaws (e.g., hardcoded secrets) before they hit remote
+      - id: bandit
+        args: ["-s", "B101"]

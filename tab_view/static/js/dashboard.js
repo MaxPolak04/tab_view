@@ -16,25 +16,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Common Flatpickr configuration with an injected "OK" button
+    // Function to generate a random HEX color
+    function getRandomHexColor() {
+        return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    }
+
+    // Common Flatpickr configuration with an injected "OK" button
     const flatpickrConfig = {
         enableTime: true,
         dateFormat: "Y-m-d\\TH:i",
         altInput: true,
-        altFormat: "d.m.Y H:i",
+        altFormat: "Y-m-d H:i",
         time_24hr: true,
         locale: "pl",
+        allowInput: true,
+        clickOpens: false,
+
+        altInputClass: "form-control form-control-lg shadow-sm rounded-start-3",
+
         onReady: function(selectedDates, dateStr, instance) {
-            // Create container for the button
             const btnContainer = document.createElement("div");
             btnContainer.className = "d-grid px-2 pb-2 pt-1";
 
-            // Create the OK button
             const btn = document.createElement("button");
-            btn.className = "btn btn-primary btn-sm shadow-sm";
+            btn.className = "btn btn-primary btn-sm shadow-sm rounded-pill";
             btn.type = "button";
-            btn.innerText = "OK";
+            btn.innerText = "Apply";
 
-            // Close the picker on click
             btn.addEventListener("click", function() {
                 instance.close();
             });
@@ -43,27 +51,38 @@ document.addEventListener('DOMContentLoaded', function() {
             instance.calendarContainer.appendChild(btnContainer);
         },
 
-        onClose: function(selectedDates, dateStr, instance) {
-            const startInput = document.getElementById('eventStart').value;
-            const endInput = document.getElementById('eventEnd').value;
+        onInput: function(selectedDates, dateStr, instance) {
+            clearTimeout(fetchAvailabilityTimeout);
+            fetchAvailabilityTimeout = setTimeout(() => {
+                checkAvailability();
+            }, 300);
+        },
 
-            if (startInput && endInput && typeof checkAvailability === 'function') {
-                checkAvailability(startInput, endInput, currentGroupId);
-            }
+        onChange: function(selectedDates, dateStr, instance) {
+            clearTimeout(fetchAvailabilityTimeout);
+            fetchAvailabilityTimeout = setTimeout(() => {
+                checkAvailability();
+            }, 300);
+        },
+
+        onClose: function(selectedDates, dateStr, instance) {
+            checkAvailability();
         }
     };
 
-    // Initialize both inputs
-    flatpickr("#eventStart", flatpickrConfig);
-    flatpickr("#eventEnd", flatpickrConfig);
+    const startFp = flatpickr("#eventStart", flatpickrConfig);
+    const endFp = flatpickr("#eventEnd", flatpickrConfig);
+
+    document.getElementById('btn-start-calendar')?.addEventListener('click', () => { startFp.open(); });
+    document.getElementById('btn-end-calendar')?.addEventListener('click', () => { endFp.open(); });
 
     // Check availability logic
     const startInput = document.getElementById('eventStart');
     const endInput = document.getElementById('eventEnd');
 
     function checkAvailability() {
-        const start = startInput.value;
-        const end = endInput.value;
+        const start = document.getElementById('eventStart')._flatpickr.input.value;
+        const end = document.getElementById('eventEnd')._flatpickr.input.value;
 
         if (!start || !end) return;
 
@@ -208,6 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventTitle').value = rawTitle;
             document.getElementById('eventStart')._flatpickr.setDate(event.start);
             document.getElementById('eventEnd')._flatpickr.setDate(event.end);
+
+            // In edit mode, keep the existing color
             document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
@@ -231,7 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const endFp = document.getElementById('eventEnd')._flatpickr;
             startStr ? startFp.setDate(startStr) : startFp.clear();
             endStr ? endFp.setDate(endStr) : endFp.clear();
-            document.getElementById('eventColor').value = '#3788d8';
+
+            // Apply a random color instead of the hardcoded default
+            document.getElementById('eventColor').value = getRandomHexColor();
 
             currentPlaylist = [];
             currentEventId = null;
@@ -349,8 +372,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedDevices.length === 0) return alert('Select at least one device!');
 
         const title = document.getElementById('eventTitle').value.trim();
-        const start = document.getElementById('eventStart').value;
-        const end = document.getElementById('eventEnd').value;
+        const start = document.getElementById('eventStart')._flatpickr.input.value;
+        const end = document.getElementById('eventEnd')._flatpickr.input.value;
 
         if (!title || !start || !end) return alert('Fill in all fields!');
         if (currentPlaylist.length === 0) return alert('Add media!');

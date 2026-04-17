@@ -6,20 +6,20 @@
     {% for user in users %}
         <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow">
+                <div class="modal-content border-0 shadow-lg">
                     <div class="modal-header border-bottom-0 pb-0">
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-center py-4">
-                        <div class="display-1 text-danger mb-3"><i class="bi bi-exclamation-circle"></i></div>
-                        <h3 class="mb-3">Delete User?</h3>
-                        <p class="text-body-secondary">Are you sure you want to delete <strong class="text-body-emphasis">{{ user.username }}</strong>? This action cannot be undone.</p>
+                        <i class="bi bi-exclamation-triangle-fill text-danger mb-3 d-block" style="font-size: 3rem;"></i>
+                        <h4 class="mb-3">Delete User?</h4>
+                        <p class="text-muted mb-0">Are you sure you want to delete <strong class="text-body-emphasis">{{ user.username }}</strong>?<br>This action cannot be undone.</p>
                     </div>
-                    <div class="modal-footer border-top-0 justify-content-center pb-4">
-                        <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-bs-dismiss="modal">Cancel</button>
-                        <form action="{{ url_for('users.delete_user', user_id=user.id) }}" method="POST">
+                    <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-between pt-3 pb-3">
+                        <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <form action="{{ url_for('users.delete_user', user_id=user.id) }}" method="POST" class="m-0">
                             {{ form.hidden_tag() }}
-                            <button type="submit" class="btn btn-danger btn-lg px-4 shadow-sm">Confirm Delete</button>
+                            <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill">Delete</button>
                         </form>
                     </div>
                 </div>
@@ -30,16 +30,16 @@
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
             <div>
-                <h1 class="main-heading text-start p-0 mb-1">Users</h1>
                 <p class="text-body-secondary">Manage system access and user roles</p>
             </div>
-            <a class="btn btn-primary btn-lg shadow-sm px-4 rounded-pill" href="{{ url_for('users.create_user') }}">
+            <a class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" href="{{ url_for('users.create_user') }}">
                 <i class="bi bi-person-plus-fill me-2"></i>Create New User
             </a>
         </div>
 
-        <div class="card border-0 shadow-sm bg-body-tertiary">
-            <div class="table-responsive"> <table class="table table-mobile-cards table-hover align-middle mb-0">
+        <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-mobile-cards table-hover align-middle mb-0">
                     <thead class="border-bottom">
                         <tr>
                             <th class="ps-4 py-3 text-uppercase small fw-bold text-body-secondary">User info</th>
@@ -62,7 +62,7 @@
                                     </div>
                                 </div>
                             </td>
-                            
+
                             <td class="py-3 text-center">
                                 {% if user.is_admin %}
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
@@ -74,7 +74,7 @@
                                     </span>
                                 {% endif %}
                             </td>
-                            
+
                             <td class="py-3 text-center text-body-secondary">
                                 {% if user.last_login_at %}
                                     <div class="d-flex flex-column align-items-center">
@@ -85,20 +85,20 @@
                                     <span class="text-muted fst-italic">Never logged in</span>
                                 {% endif %}
                             </td>
-                            
+
                             <td class="pe-4 py-3 text-end">
-                                <div class="btn-group shadow-sm rounded">
-                                    <a href="{{ url_for('users.update_user', user_id=user.id) }}" 
-                                       class="btn btn-outline-secondary bg-body border-secondary-subtle p-2 px-3" 
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('users.update_user', user_id=user.id) }}"
+                                       class="btn btn-sm btn-outline-primary px-4 shadow-sm rounded-pill"
                                        title="Edit">
-                                        <i class="bi bi-pencil-square text-primary fs-5"></i>
+                                        <i class="bi bi-pencil-square me-1"></i> Edit
                                     </a>
-                                    <button type="button" 
-                                            class="btn btn-outline-secondary bg-body border-secondary-subtle p-2 px-3" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteUserModal{{ user.id }}" 
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger px-4 shadow-sm rounded-pill"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteUserModal{{ user.id }}"
                                             title="Delete">
-                                        <i class="bi bi-trash3 text-danger fs-5"></i>
+                                        <i class="bi bi-trash3 me-1"></i> Delete
                                     </button>
                                 </div>
                             </td>

@@ -72,8 +72,8 @@ def create_app(config_class=ProductionConfig):
     from .devices import devices_bp
     from .errors import errors_bp
     from .events import events_bp
-    from .maintenance import maintenance_bp
     from .media import media_bp
+    from .settings import settings_bp
     from .users import users_bp
 
     app.register_blueprint(dashboard_bp)
@@ -82,7 +82,7 @@ def create_app(config_class=ProductionConfig):
     app.register_blueprint(media_bp, url_prefix="/media")
     app.register_blueprint(users_bp, url_prefix="/users")
     app.register_blueprint(events_bp, url_prefix="/api/v1/events")
-    app.register_blueprint(maintenance_bp, url_prefix="/maintenance")
+    app.register_blueprint(settings_bp, url_prefix="/settings")
     app.register_blueprint(errors_bp)
 
     csrf.exempt(events_bp)

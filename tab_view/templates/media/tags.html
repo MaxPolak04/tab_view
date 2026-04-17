@@ -6,32 +6,31 @@
 <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h1 class="main-heading display-6 mb-1">Manage Tags</h1>
-            <p class="text-muted mb-0">Create and remove tags for your media files.</p>
+            <p class="text-body-secondary">Create and remove tags for your media files.</p>
         </div>
-        <a class="btn btn-outline-secondary" href="{{ url_for('media.get_all_media') }}">
+        <a class="btn btn-outline-secondary btn-lg px-5 shadow-sm rounded-pill" href="{{ url_for('media.get_all_media') }}">
             <i class="bi bi-arrow-left me-2"></i>Back to Library
         </a>
     </div>
 
     <div class="row">
         <div class="col-md-4 mb-4">
-            <div class="card shadow-sm border-0 bg-body-tertiary">
-                <div class="card-header bg-primary text-white">
+            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
+                <div class="card-header bg-primary text-white rounded-top-4 border-bottom-0 py-3">
                     <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>New Tag</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('media.manage_tags') }}">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
-                            {{ form.name.label(class="form-label") }}
-                            {{ form.name(class="form-control", placeholder="e.g. Holidays, Events") }}
+                            {{ form.name.label(class="form-label fw-bold") }}
+                            {{ form.name(class="form-control form-control-lg shadow-sm rounded-3", placeholder="e.g. Holidays, Events") }}
                             {% for error in form.name.errors %}
-                                <div class="text-danger small">{{ error }}</div>
+                                <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="d-grid">
-                            {{ form.submit(class="btn btn-primary") }}
+                        <div class="d-grid mt-4">
+                            {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
                         </div>
                     </form>
                 </div>
@@ -39,26 +38,27 @@
         </div>
 
         <div class="col-md-8">
-            <div class="card shadow-sm border-0 bg-body-tertiary">
+            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary overflow-hidden">
                 <div class="card-body p-0">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="border-bottom">
                             <tr>
-                                <th class="ps-4">Tag Name</th>
-                                <th class="text-center">Associated Files</th> <th class="text-center">Status</th>
-                                <th class="text-end pe-4">Actions</th>
+                                <th class="ps-4 py-3">Tag Name</th>
+                                <th class="text-center py-3">Associated Files</th>
+                                <th class="text-center py-3">Status</th>
+                                <th class="text-end pe-4 py-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for tag in tags %}
                             {% set media_count = tag.media|length %}
-                            
+
                             <tr>
                                 <td class="ps-4 fw-bold">{{ tag.name }}</td>
-                                
+
                                 <td class="text-center">
                                     {% if media_count > 0 %}
-                                        <span class="badge bg-primary rounded-pill">{{ media_count }}</span>
+                                        <span class="badge bg-primary rounded-pill px-3">{{ media_count }}</span>
                                     {% else %}
                                         <span class="text-muted small">-</span>
                                     {% endif %}
@@ -66,57 +66,59 @@
 
                                 <td class="text-center">
                                     {% if tag.is_system %}
-                                        <span class="badge bg-secondary opacity-75">System</span>
+                                        <span class="badge bg-secondary bg-opacity-75 rounded-pill px-3">System</span>
                                     {% else %}
-                                        <span class="badge bg-success opacity-75">Custom</span>
+                                        <span class="badge bg-success bg-opacity-75 rounded-pill px-3">Custom</span>
                                     {% endif %}
                                 </td>
-                                
-                                <td class="text-end pe-4">
+
+                                <td class="text-end pe-4 py-3">
                                     {% if tag.is_system %}
-                                        <button class="btn btn-sm btn-outline-secondary opacity-50" disabled title="System tag">
-                                            <i class="bi bi-lock-fill"></i> Locked
+                                        <button class="btn btn-sm btn-outline-secondary px-4 shadow-sm rounded-pill opacity-50" disabled title="System tag">
+                                            <i class="bi bi-lock-fill me-1"></i> Locked
                                         </button>
 
                                     {% elif not current_user.is_admin %}
-                                        <button class="btn btn-sm btn-outline-secondary opacity-50" disabled title="Admin rights required">
-                                            <i class="bi bi-trash3"></i> Delete
+                                        <button class="btn btn-sm btn-outline-secondary px-4 shadow-sm rounded-pill opacity-50" disabled title="Admin rights required">
+                                            <i class="bi bi-trash3 me-1"></i> Delete
                                         </button>
 
                                     {% else %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                data-bs-toggle="modal" 
+                                        <button type="button" class="btn btn-sm btn-outline-danger px-4 shadow-sm rounded-pill"
+                                                data-bs-toggle="modal"
                                                 data-bs-target="#deleteTagModal{{ tag.id }}">
-                                            <i class="bi bi-trash3"></i> Delete
+                                            <i class="bi bi-trash3 me-1"></i> Delete
                                         </button>
 
-                                        <div class="modal fade text-start" id="deleteTagModal{{ tag.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal fade text-start" id="deleteTagModal{{ tag.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
                                             <div class="modal-dialog modal-dialog-centered">
                                                 <div class="modal-content border-0 shadow-lg">
-                                                    <div class="modal-body text-center py-5">
-                                                        <i class="bi bi-exclamation-triangle-fill text-danger mb-3" style="font-size: 3rem;"></i>
-                                                        
-                                                        <h3 class="mb-3">DANGER ZONE</h3>
-                                                        
-                                                        <div class="text-muted px-4 mb-4">
-                                                            <p>You are about to delete the tag <strong>"{{ tag.name }}"</strong>.</p>
-                                                            
-                                                            <div class="alert alert-danger d-inline-block mt-2">
-                                                                <i class="bi bi-file-earmark-image me-2"></i>
-                                                                <strong>{{ media_count }}</strong> media file(s) will be permanently deleted!
-                                                            </div>
+                                                    <div class="modal-header border-bottom-0 pb-0">
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body text-center py-4">
+                                                        <i class="bi bi-exclamation-triangle-fill text-danger mb-3 d-block" style="font-size: 3rem;"></i>
+                                                        <h4 class="mb-3">Delete Tag?</h4>
+
+                                                        <p class="text-muted mb-3">Are you sure you want to delete the tag <strong class="text-body-emphasis">"{{ tag.name }}"</strong>?<br>This action cannot be undone.</p>
+
+                                                        {% if media_count > 0 %}
+                                                        <div class="alert alert-danger d-inline-block mb-0 shadow-sm rounded-3">
+                                                            <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                                                            <strong>{{ media_count }}</strong> associated media file(s) will also be permanently deleted!
                                                         </div>
-                                                        
-                                                        <div class="d-flex justify-content-center gap-2 mt-4">
-                                                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                                                            
-                                                            <form action="{{ url_for('media.delete_tag', tag_id=tag.id) }}" method="POST">
-                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                                <button type="submit" class="btn btn-danger px-4">
-                                                                    Yes, Delete Everything
-                                                                </button>
-                                                            </form>
-                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-between pt-3 pb-3">
+                                                        <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Cancel</button>
+
+                                                        <form action="{{ url_for('media.delete_tag', tag_id=tag.id) }}" method="POST" class="m-0">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                            <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill">
+                                                                Delete
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </div>
                                             </div>
