@@ -1,13 +1,13 @@
-# Use the official lightweight Python 3.12 image
 FROM python:3.12-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Enforce consistent Python behavior and prepare paths
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    TZ=Europe/Warsaw \
+    PATH="/app/.venv/bin:$PATH"
 
-# 1. Install system dependencies
-# Curl is needed for HEALTHCHECK
-RUN apt-get update && apt-get install -y \
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gcc \
     default-libmysqlclient-dev \
@@ -16,52 +16,34 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Set default timezone
-ENV TZ=Europe/Warsaw
-
-# 2. Install 'uv'
+# Inject high-performance package manager
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 3. Set working directory
-WORKDIR /app
-
-# 4. Install dependencies (Root does this, but we fix permissions later)
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-install-project --no-dev
-
-# 5. Copy source code
-COPY . .
-
-# Ensure executable
-RUN chmod +x run.sh
-
-# --- SECURITY SECTION ---
-
-# 6. Create user WITH HOME DIRECTORY using low-level tools (Safe & Standard)
-# -r: system account
-# -g appgroup: primary group
-# -m: create home directory
-# -d /home/appuser: specific home path
+# Create a non-root system user for security isolation
 RUN groupadd -r appgroup && \
     useradd -r -g appgroup -m -d /home/appuser appuser
 
-# 7. Grant ownership to application files
-# This fixes the ownership of .venv created by root in step 4
-RUN chown -R appuser:appgroup /app
+WORKDIR /app
 
-# Healthcheck
+# Copy dependency definitions and assign ownership immediately
+# Prevents creating duplicate layers with chown later
+COPY --chown=appuser:appgroup pyproject.toml uv.lock ./
+
+# Drop root privileges early
+USER appuser
+
+# Install dependencies into /app/.venv
+RUN uv sync --frozen --no-install-project --no-dev
+
+# Copy application source code
+COPY --chown=appuser:appgroup . .
+
+# Ensure entrypoint is executable
+RUN chmod +x run.sh
+
+# Verify application availability
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/ || exit 1
 
-# 8. Switch user
-USER appuser
-
-# ----------------------
-
-# 9. Set HOME and PATH
-ENV HOME=/home/appuser
-ENV PATH="/app/.venv/bin:$PATH"
-
-# 10. Expose & Run
 EXPOSE 8000
 CMD ["./run.sh"]
