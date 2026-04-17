@@ -26,8 +26,10 @@ RUN groupadd -r appgroup && \
 
 WORKDIR /app
 
+# Give appuser ownership of the /app directory so uv can create .venv
+RUN chown appuser:appgroup /app
+
 # Copy dependency definitions and assign ownership immediately
-# Prevents creating duplicate layers with chown later
 COPY --chown=appuser:appgroup pyproject.toml uv.lock ./
 
 # Drop root privileges early
