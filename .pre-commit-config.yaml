@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       # Prevents committing directly to the protected branch locally
       - id: no-commit-to-branch
@@ -15,7 +15,7 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.0
+    rev: v0.15.11
     hooks:
       # Replaces Flake8/Isort - provides ultra-fast static analysis
       - id: ruff
@@ -23,7 +23,7 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.0
+    rev: 1.9.4
     hooks:
       # SAST tool to catch obvious security flaws (e.g., hardcoded secrets) before they hit remote
       - id: bandit
