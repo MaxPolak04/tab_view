@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix  # Import the ProxyFix middleware
 
 from tab_view.config import ProductionConfig
 from tab_view.utils import configure_logging, get_user_or_ip, wait_for_db
@@ -22,6 +23,8 @@ def create_app(config_class=ProductionConfig):
 
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     configure_logging(app)
     app.logger.info("Application starting up...")

@@ -1,24 +1,22 @@
-# --- GIT & IDE ---
-.git
+# Build context exclusions
+.git/
 .gitignore
 .vscode/
 .idea/
 
-# --- Python & Cache ---
+# Local Python environments & cache
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-# Exclude local virtual environments (Docker builds its own in /app/.venv)
+*.py[cod]
 .venv/
 env/
 venv/
-.flaskenv
+
+# Environment variables
 .env
 .env.local
+.flaskenv
 
-# --- Testing Tools & Code Quality ---
+# Testing & Linting
 tests/
 .coverage
 htmlcov/
@@ -26,37 +24,30 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 
-# --- Docker ---
+# Docker & Infrastructure
 Dockerfile
 docker-compose.yml
 docker-compose.override.yml
 .dockerignore
-
-# --- Configuration files for other services ---
 nginx.conf
 
-# --- Documentation ---
-LICENSE
-
-# --- APPLICATION DATA (Static/Media) ---
-# Ignore system logs
+# Application Data & Logs
 logs/
 *.log
-
-# Ignore uploaded test files (videos, large images from uploads folder)
 tab_view/static/uploads/*
 !tab_view/static/uploads/.gitkeep
 !tab_view/static/uploads/default.png
-
-# Ignore all images in img/ but keep essential UI assets
 tab_view/static/img/*
 !tab_view/static/img/.gitkeep
 !tab_view/static/img/logo_white.png
 !tab_view/static/img/logo_black.png
 !tab_view/static/img/default.png
 
-# Ignore branding dummy files
-branding/
-
-# --- Migrations ---
+# Migrations cache
 migrations/__pycache__/
+
+# --- Documentation & Repo Config ---
+README.md
+LICENSE
+.github/
+docs/

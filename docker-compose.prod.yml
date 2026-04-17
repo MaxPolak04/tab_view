@@ -1,0 +1,28 @@
+services:
+  web:
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "unixgram:///dev/log"
+        tag: "flask_app"
+
+  db:
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "unixgram:///dev/log"
+        tag: "mysql_db"
+
+  nginx:
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "unixgram:///dev/log"
+        tag: "nginx_proxy"
+
+  redis:
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "unixgram:///dev/log"
+        tag: "redis_cache"
