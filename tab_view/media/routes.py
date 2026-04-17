@@ -283,8 +283,10 @@ def delete_media(media_id):
         else:
             logger.warning(f"Physical file not found: {filename}")
 
-        logger.info(f"Media deleted successfully: {filename} \
-                    (ID: {media_id})")
+        logger.info(
+            f"Media deleted successfully: {filename} \
+                    (ID: {media_id})"
+        )
         flash("File deleted successfully.", "success")
 
     except IntegrityError:
@@ -301,8 +303,10 @@ def delete_media(media_id):
 
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Critical error during media deletion ID \
-                     {media_id}: {str(e)}")
+        logger.error(
+            f"Critical error during media deletion ID \
+                     {media_id}: {str(e)}"
+        )
         flash(f"An unexpected error occurred: {str(e)}", "danger")
 
     return redirect(url_for("media.get_all_media"))
@@ -330,8 +334,10 @@ def delete_tag(tag_id):
 
     # PROTECTION AGAINST DELETION OF THE SYSTEM TAG
     if tag.is_system:
-        logger.warning(f"User {current_user.id} tried \
-                       to delete system tag {tag.name}")
+        logger.warning(
+            f"User {current_user.id} tried \
+                       to delete system tag {tag.name}"
+        )
         flash("Nie można usunąć systemowego tagu.", "danger")
         return redirect(url_for("media.manage_tags"))
 
