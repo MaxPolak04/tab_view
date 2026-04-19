@@ -13,7 +13,7 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <form action="{{ url_for('devices.update_device', device_id=device.id) }}" class="form-custom" method="POST">
+                    <form action="{{ url_for('devices.update_device', device_id=device.id) }}" method="POST">
                         {{ form.hidden_tag() }}
                         <div class="mb-4">
                             {{ form.name.label(class="form-label fw-bold") }}
@@ -42,7 +42,7 @@
 
                             {{ form.media_id(class="d-none", id="defaultMediaSelect") }}
 
-                            <div id="defaultMediaPreview" class="media-preview-box border border-secondary-subtle rounded-4 d-flex flex-column align-items-center justify-content-center bg-body shadow-sm overflow-hidden" style="cursor: pointer; min-height: 150px;">
+                            <div id="defaultMediaPreview" class="border border-secondary-subtle rounded-4 d-flex flex-column align-items-center justify-content-center bg-body shadow-sm overflow-hidden" style="cursor: pointer; min-height: 150px;">
                                 {% if device.media %}
                                     {% if device.media.media_type == 'image' %}
                                         <img src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" alt="Selected Media" class="img-fluid object-fit-cover w-100 h-100" style="max-height: 200px;">

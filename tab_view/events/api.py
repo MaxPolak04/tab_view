@@ -21,6 +21,33 @@ class EventAvailabilityResource(Resource):
 
     @login_required
     def get(self):
+        """
+        Check device availability for a specific time range.
+        ---
+        tags:
+          - Availability
+        parameters:
+          - name: start
+            in: query
+            type: string
+            required: true
+            description: Start time in ISO 8601 format (e.g., 2024-05-20T10:00:00)
+          - name: end
+            in: query
+            type: string
+            required: true
+            description: End time in ISO 8601 format
+          - name: exclude_group_id
+            in: query
+            type: string
+            required: false
+            description: Optional event group ID to exclude from overlapping checks
+        responses:
+          200:
+            description: Dictionary of busy devices with their blocking event titles
+          400:
+            description: Missing or invalid date parameters
+        """
         start_param = request.args.get("start")
         end_param = request.args.get("end")
         exclude_group = request.args.get("exclude_group_id")
@@ -59,6 +86,44 @@ class EventResource(Resource):
     @login_required
     @limiter.limit("200 per hour")
     def get(self, event_id=None):
+        """
+        Retrieve events or a specific event by ID.
+        ---
+        tags:
+          - Events
+        parameters:
+          - name: event_id
+            in: path
+            type: integer
+            required: false
+            description: ID of a specific event to fetch
+          - name: device_id
+            in: query
+            type: integer
+            required: false
+            description: Filter events by a specific device
+          - name: start
+            in: query
+            type: string
+            required: false
+            description: Filter start time boundary (ISO 8601). \
+                Defaults to current month start.
+          - name: end
+            in: query
+            type: string
+            required: false
+            description: Filter end time boundary (ISO 8601). \
+                Defaults to current month end.
+        responses:
+          200:
+            description: A list of events or a single event object
+          400:
+            description: Invalid date format
+          404:
+            description: Event or Device not found
+          500:
+            description: Internal server error
+        """
         try:
             if event_id:
                 event = Event.query.get(event_id)
@@ -120,6 +185,61 @@ class EventResource(Resource):
     @login_required
     @limiter.limit("200 per hour")
     def post(self):
+        """
+        Create a new event or group of events across multiple devices.
+        ---
+        tags:
+          - Events
+        parameters:
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - title
+                - start_time
+                - end_time
+                - media_playlist
+              properties:
+                title:
+                  type: string
+                  example: "Summer Promo Campaign"
+                start_time:
+                  type: string
+                  example: "2024-06-01T08:00:00"
+                end_time:
+                  type: string
+                  example: "2024-06-01T18:00:00"
+                color:
+                  type: string
+                  example: "#FF5733"
+                device_ids:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2, 3]
+                media_playlist:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      media_id:
+                        type: integer
+                      duration:
+                        type: integer
+                      order:
+                        type: integer
+        responses:
+          201:
+            description: Events created successfully
+          400:
+            description: Validation errors (missing fields, invalid dates)
+          404:
+            description: Device not found
+          409:
+            description: Schedule overlap detected
+        """
         try:
             data = request.get_json()
             if not data:
@@ -226,6 +346,49 @@ class EventResource(Resource):
     @login_required
     @limiter.limit("200 per hour")
     def put(self, event_id):
+        """
+        Update an existing event or event group.
+        ---
+        tags:
+          - Events
+        parameters:
+          - name: event_id
+            in: path
+            type: integer
+            required: true
+            description: The ID of the specific event to update
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                start_time:
+                  type: string
+                end_time:
+                  type: string
+                color:
+                  type: string
+                device_ids:
+                  type: array
+                  items:
+                    type: integer
+                media_playlist:
+                  type: array
+                  items:
+                    type: object
+        responses:
+          200:
+            description: Group events updated successfully
+          400:
+            description: Validation errors
+          404:
+            description: Event not found
+          409:
+            description: Schedule overlap detected
+        """
         try:
             event = Event.query.get(event_id)
             if not event:
@@ -344,6 +507,25 @@ class EventResource(Resource):
     @login_required
     @limiter.limit("200 per hour")
     def delete(self, event_id):
+        """
+        Delete an event and its entire associated group.
+        ---
+        tags:
+          - Events
+        parameters:
+          - name: event_id
+            in: path
+            type: integer
+            required: true
+            description: The ID of the event to delete
+        responses:
+          200:
+            description: Event group deleted successfully
+          404:
+            description: Event not found
+          500:
+            description: Internal server error
+        """
         try:
             event = Event.query.get(event_id)
             if not event:
