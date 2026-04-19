@@ -1,6 +1,7 @@
 from flasgger import Swagger
 from flask import Flask, jsonify, redirect, request, url_for
 from flask_apscheduler import APScheduler
+from flask_compress import Compress
 from flask_limiter import Limiter
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -17,6 +18,7 @@ login_manager = LoginManager()
 csrf = CSRFProtect()
 scheduler = APScheduler()
 limiter = Limiter(key_func=get_user_or_ip, default_limits=["200 per hour"])
+compress = Compress()
 
 
 def create_app(config_class=ProductionConfig):
@@ -38,6 +40,7 @@ def create_app(config_class=ProductionConfig):
     csrf.init_app(app)
     scheduler.init_app(app)
     limiter.init_app(app)
+    compress.init_app(app)
 
     Swagger(
         app,
