@@ -1,6 +1,5 @@
 services:
   web:
-    build: .
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-maxpolak04}/tab_view:latest
     container_name: flask_app
     restart: always
