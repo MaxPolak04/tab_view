@@ -50,6 +50,7 @@ dependencies = [
     "wrapt>=2.0.1",
     "wtforms>=3.2.1",
     "redis>=7.1.1",
+    "flasgger>=0.9.7.1",
 ]
 
 [build-system]

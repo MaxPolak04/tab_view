@@ -1,3 +1,4 @@
+from flasgger import Swagger
 from flask import Flask, jsonify, redirect, request, url_for
 from flask_apscheduler import APScheduler
 from flask_limiter import Limiter
@@ -5,7 +6,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from werkzeug.middleware.proxy_fix import ProxyFix  # Import the ProxyFix middleware
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from tab_view.config import ProductionConfig
 from tab_view.utils import configure_logging, get_user_or_ip, wait_for_db
@@ -37,6 +38,19 @@ def create_app(config_class=ProductionConfig):
     csrf.init_app(app)
     scheduler.init_app(app)
     limiter.init_app(app)
+
+    Swagger(
+        app,
+        template={
+            "swagger": "2.0",
+            "info": {
+                "title": "TabView API",
+                "description": "API documentation for the \
+                    TabView Event Management System.",
+                "version": "1.0.0",
+            },
+        },
+    )
 
     login_manager.login_view = "auth.signin"
     login_manager.login_message = "Please log in to access this page."
