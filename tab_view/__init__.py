@@ -17,7 +17,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 scheduler = APScheduler()
-limiter = Limiter(key_func=get_user_or_ip, default_limits=["200 per hour"])
+limiter = Limiter(key_func=get_user_or_ip)
 compress = Compress()
 
 
