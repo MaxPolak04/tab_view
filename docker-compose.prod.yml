@@ -1,28 +1,30 @@
 services:
   web:
+    ports: !reset []
+    healthcheck:
+      interval: 30s
+      retries: 3
     logging:
-      driver: "syslog"
+      driver: "journald"
       options:
-        syslog-address: "unixgram:///dev/log"
         tag: "flask_app"
 
   db:
     logging:
-      driver: "syslog"
+      driver: "journald"
       options:
-        syslog-address: "unixgram:///dev/log"
         tag: "mysql_db"
 
   nginx:
+    ports: !reset
+      - "80:80"
     logging:
-      driver: "syslog"
+      driver: "journald"
       options:
-        syslog-address: "unixgram:///dev/log"
         tag: "nginx_proxy"
 
   redis:
     logging:
-      driver: "syslog"
+      driver: "journald"
       options:
-        syslog-address: "unixgram:///dev/log"
         tag: "redis_cache"

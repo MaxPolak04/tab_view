@@ -30,7 +30,7 @@ WORKDIR /app
 RUN chown appuser:appgroup /app
 
 # Copy dependency definitions and assign ownership immediately
-COPY --chown=appuser:appgroup pyproject.toml uv.lock ./
+COPY --chown=appuser:appgroup pyproject.toml uv.lock README.md ./
 
 # Drop root privileges early
 USER appuser

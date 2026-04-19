@@ -70,6 +70,11 @@ def create_app(config_class=ProductionConfig):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    @app.route("/health")
+    def health_check():
+        """A silent endpoint for Docker Healthcheck"""
+        return {"status": "healthy"}, 200
+
     from .auth import auth_bp
     from .dashboard import dashboard_bp
     from .devices import devices_bp

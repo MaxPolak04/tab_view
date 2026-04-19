@@ -11,6 +11,7 @@ repos:
       - id: end-of-file-fixer
       # Fails early locally before CI catches malformed configuration
       - id: check-yaml
+        exclude: ^docker-compose.*\.yml$
       # Protects the Git tree from accidental binary blobs (Git handles large files poorly)
       - id: check-added-large-files
 

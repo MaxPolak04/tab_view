@@ -11,6 +11,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     volumes:
       - uploads_data:/app/tab_view/static/uploads
       - ./branding/default.png:/app/tab_view/static/assets/default.png:ro
@@ -44,7 +50,7 @@ services:
     container_name: nginx_proxy
     restart: always
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

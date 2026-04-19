@@ -112,3 +112,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+// YEAR
+document.addEventListener('DOMContentLoaded', () => {
+    const handleCurrentYear = () => {
+        const footerYear = document.querySelector('.current_year');
+
+        if (footerYear) {
+            footerYear.innerText = new Date().getFullYear();
+        }
+    };
+
+    handleCurrentYear();
+});

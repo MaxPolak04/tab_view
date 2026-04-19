@@ -47,7 +47,7 @@ tab_view/static/img/*
 migrations/__pycache__/
 
 # --- Documentation & Repo Config ---
-README.md
+<!-- README.md -->
 LICENSE
 .github/
 docs/
