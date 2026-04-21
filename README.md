@@ -5,7 +5,6 @@
 ![Flask](https://img.shields.io/badge/Flask-3.0-000000)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
 [![License](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey)](LICENSE)
-[![CI/CD Pipeline](https://github.com/MaxPolak04/tab_view/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/MaxPolak04/tab_view/actions)
 [![Security: Trivy](https://img.shields.io/badge/security-trivy-green.svg)](https://aquasecurity.github.io/trivy/)
 
 ## 📌 About the Project
@@ -16,7 +15,7 @@ The project was delivered in an end-to-end model: from client problem analysis, 
 
 <br>
 <div align="center">
-  <img src="docs/assets/tab_view_light.png" alt="TabView Dashboard" width="800">
+  <img src="docs/assets/TabView-dark-index.png" alt="TabView Dashboard" width="800">
 </div>
 <br>
 
@@ -29,9 +28,26 @@ The project was delivered in an end-to-end model: from client problem analysis, 
 
 ---
 
+## 📸 Gallery
+
+<p align="center">
+  <img src="docs/assets/TabView-dark-devices.png" width="48%" alt="Devices Dark Mode">
+  <img src="docs/assets/TabView-light-devices.png" width="48%" alt="Devices Light Mode">
+</p>
+<p align="center">
+  <img src="docs/assets/TabView-dark-media.png" width="48%" alt="Media Management">
+  <img src="docs/assets/TabView-dark-settings.png" width="48%" alt="System Settings">
+</p>
+
+---
+
 ## 🏗 Architecture & Tech Stack
 
-> 📖 **Architecture Decision Records (ADR):** Detailed technical decisions, trade-offs, and architectural context are documented in the [`docs/adr/`](docs/adr/) directory.
+> 📖 **Architecture Decision Records (ADR):** Detailed technical decisions, trade-offs, and architectural context are documented in the following files:
+> * [ADR 0001: Shift-Left Security & CI/CD](docs/adr/0001-shift-left-security-and-ci-cd.md)
+> * [ADR 0002: Adoption of `uv` package manager](docs/adr/0002-adoption-of-uv-package-manager.md)
+> * [ADR 0003: Implement pre-commit hooks](docs/adr/0003-implement-pre-commit.md)
+> * [ADR 0004: Security architecture and libraries](docs/adr/0004-security-architecture-and-libraries.md)
 
 The project relies on a modern Python stack with a focus on performance and stability.
 
@@ -88,42 +104,57 @@ A set of tools triggered automatically in GitHub Actions and as `pre-commit hook
 
 ## ⚙️ Installation & Setup
 
-Requirements: Docker and Docker Compose.
+### 💻 Local Development (Any OS)
+For local testing and development. This method builds the image locally from the source code.
 
 1.  **Clone the repository:**
 ```bash
 git clone https://github.com/MaxPolak04/tab_view.git
 cd tab_view
 ```
-
-2.  **Configure environment variables:**
-    Create a `.env` file based on `.env.example`:
-```ini
-FLASK_APP=tab_view
-SECRET_KEY=your-very-secret-key
-DATABASE_URL=mysql+pymysql://user:pass@db/dbname
-MYSQL_ROOT_PASSWORD=secure-root-pass
-MYSQL_PASSWORD=secure-db-pass
-```
-
-3.  **Start the environment (Development):**
+2.  **Configure environment:**
+    Copy `.env.example` to `.env` and fill in the values.
+3.  **Start the environment:**
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
+The application will be available at `http://localhost:8080`.
 
-4. **Start the environment (Production with Syslog):**
+### 🌍 Production Deployment (Linux Only)
+**Requirements:** Linux server with standard Docker Engine installed. The system-wide Docker daemon (not a rootless setup like Podman) is required to automatically bind privileged port 80 and access system `journald` logs. You do *not* need to execute commands from the `root` user account (it is safer to use a standard user in the `docker` group).
+
+Do **not** clone the entire repository on the production server. You only need the deployment files.
+
+1.  **Download configuration files:**
+```bash
+mkdir tab_view && cd tab_view
+wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/docker-compose.yml
+wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/docker-compose.prod.yml
+wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/nginx.conf
+wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/.env.example -O .env
+```
+2.  **Setup Branding Directory:**
+    Create a `branding` directory and place your company's assets inside:
+```bash
+mkdir branding
+# Place these exact files inside the branding folder:
+# 1. default.png
+# 2. logo_black.png
+# 3. logo_white.png
+```
+3.  **Configure Environment:**
+    Edit the `.env` file with highly secure passwords.
+4.  **Launch the system:**
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
-
-5. **The application will be available at: http://localhost:80**
+*Note: The production override uses `journald` for logging and exposes Nginx directly on port `80`. The standard Docker daemon manages the privileged port binding securely.*
 
 ### CLI - User Management
-To create a user inside a running container:
-
+To create an admin user inside a running container:
 ```bash
 # Syntax: flask create-user [user] [pass] --admin (optional)
-docker compose exec web flask create-user john P@ssw0rd123 --admin
+docker compose exec web flask create-user admin P@ssw0rd123 --admin
 ```
 
 ---
