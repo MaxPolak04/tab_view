@@ -1,6 +1,6 @@
 # ADR 0002: Migration from pip to uv for Package and Environment Management
 
-**Date:** [INSERT_DATE]
+**Date:** 17.04.2026
 **Status:** Accepted
 
 ## Context
