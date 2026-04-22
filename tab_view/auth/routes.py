@@ -16,6 +16,7 @@ from werkzeug.security import check_password_hash
 from tab_view import limiter
 from tab_view.auth.forms import SignInForm
 from tab_view.models import User, db
+from tab_view.utils import log_audit_action
 
 from . import auth_bp
 
@@ -33,25 +34,21 @@ def signin():
         remember_me = form.remember_me.data
         client_ip = request.remote_addr
 
-        logger.info(
-            f"Login attempt for user '{username}' \
-                    from IP: {client_ip}"
-        )
+        logger.info(f"Login attempt for user '{username}' from IP: {client_ip}")
 
         user = User.query.filter_by(username=username).first()
 
         if not user:
             logger.warning(
-                f"Login failed - user not found: '{username}' \
-                    (IP: {client_ip})"
+                f"Login failed - user not found: '{username}' (IP: {client_ip})"
             )
             flash("User not found!", "danger")
             return redirect(url_for("auth.signin"))
 
         if not check_password_hash(user.password, password):
             logger.warning(
-                f"Login failed - invalid password for user '{username}' \
-                    (ID: {user.id}) from IP: {client_ip}"
+                f"Login failed - invalid password for user '{username}' "
+                f"(ID: {user.id}) from IP: {client_ip}"
             )
             flash("Incorrect password!", "danger")
             return redirect(url_for("auth.signin"))
@@ -69,15 +66,15 @@ def signin():
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            logger.error(
-                f"Error updating last_login_at \
-                         for user {user.id}: {str(e)}"
-            )
+            logger.error(f"Error updating last_login_at for user {user.id}: {str(e)}")
 
         logger.info(
-            f"User logged in successfully: {user.username} \
-                (ID: {user.id}) from IP: {client_ip}"
+            f"User logged in successfully: {user.username} "
+            f"(ID: {user.id}) from IP: {client_ip}"
         )
+
+        # --- AUDIT LOG ---
+        log_audit_action("LOGIN", "System", "User logged in successfully.")
 
         flash("Logged in successfully!", "success")
         return redirect(url_for("dashboard.index"))
@@ -91,12 +88,12 @@ def signout():
     user_id = current_user.id
     username = current_user.username
 
+    # --- AUDIT LOG ---
+    log_audit_action("LOGOUT", "System", "User logged out.")
+
     logout_user()
 
-    logger.info(
-        f"User logged out: {username} \
-                (ID: {user_id})"
-    )
+    logger.info(f"User logged out: {username} (ID: {user_id})")
 
     flash("Logged out successfully!", "success")
     return redirect(url_for("dashboard.index"))
