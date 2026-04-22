@@ -9,7 +9,7 @@ from sqlalchemy import and_
 
 from tab_view import limiter
 from tab_view.models import Device, Event, EventMedia, db
-from tab_view.utils import error_response
+from tab_view.utils import error_response, log_audit_action
 
 logger = logging.getLogger(__name__)
 
@@ -333,6 +333,15 @@ class EventResource(Resource):
                 created_events.append(new_event)
 
             db.session.commit()
+
+            # --- AUDIT LOG ---
+            log_audit_action(
+                "CREATE",
+                "Event",
+                f"Created event '{data['title'].strip()}' \
+                    on {len(device_ids)} device(s).",
+            )
+
             return {
                 "message": "Events created successfully",
                 "events": [e.to_dict() for e in created_events],
@@ -494,6 +503,13 @@ class EventResource(Resource):
                 f"by User {current_user.id}"
             )
 
+            # --- AUDIT LOG ---
+            log_audit_action(
+                "UPDATE",
+                "Event",
+                f"Updated event '{title}' on {len(device_ids)} device(s).",
+            )
+
             return {
                 "message": "Group events updated successfully",
                 "events": [e.to_dict() for e in updated_events],
@@ -548,6 +564,9 @@ class EventResource(Resource):
                     (Group ID: {group_id or 'None'})"
                 f"by User {current_user.id}"
             )
+
+            # --- AUDIT LOG ---
+            log_audit_action("DELETE", "Event", f"Deleted event '{event_title}'.")
 
             return {"message": "Event group deleted successfully"}, 200
 
