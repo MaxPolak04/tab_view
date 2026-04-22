@@ -128,22 +128,36 @@
 
     {% if pagination.pages > 1 %}
     <nav class="mt-5 d-flex justify-content-center" aria-label="Page navigation">
-        <ul class="pagination pagination-custom shadow-sm">
-            <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
-                <a class="page-link" href="{{ url_for('logs.view_logs', page=1, q=search_query, action=current_action, entity=current_entity, user=current_user_filter) }}"><i class="bi bi-chevron-double-left"></i></a>
-            </li>
-            {% if pagination.has_prev %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('logs.view_logs', page=pagination.prev_num, q=search_query, action=current_action, entity=current_entity, user=current_user_filter) }}">{{ pagination.prev_num }}</a></li>
+    <ul class="pagination pagination-custom shadow-sm">
+
+        <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
+            <a class="page-link" href="{{ url_for('logs.view_logs', page=1, q=search_query, action=current_action, entity=current_entity, user=current_user_filter) }}">
+                <i class="bi bi-chevron-double-left"></i>
+            </a>
+        </li>
+
+        {% for p in pagination.iter_pages(left_edge=1, left_current=3, right_current=3, right_edge=1) %}
+            {% if p %}
+                {% if p == pagination.page %}
+                    <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('logs.view_logs', page=p, q=search_query, action=current_action, entity=current_entity, user=current_user_filter) }}">{{ p }}</a>
+                    </li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
             {% endif %}
-            <li class="page-item active"><span class="page-link">{{ pagination.page }}</span></li>
-            {% if pagination.has_next %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('logs.view_logs', page=pagination.next_num, q=search_query, action=current_action, entity=current_entity, user=current_user_filter) }}">{{ pagination.next_num }}</a></li>
-            {% endif %}
-            <li class="page-item {{ 'disabled' if not pagination.page < pagination.pages }}">
-                <a class="page-link" href="{{ url_for('logs.view_logs', page=pagination.pages, q=search_query, action=current_action, entity=current_entity, user=current_user_filter) }}"><i class="bi bi-chevron-double-right"></i></a>
-            </li>
-        </ul>
-    </nav>
+        {% endfor %}
+
+        <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
+            <a class="page-link" href="{{ url_for('logs.view_logs', page=pagination.pages, q=search_query, action=current_action, entity=current_entity, user=current_user_filter) }}">
+                <i class="bi bi-chevron-double-right"></i>
+            </a>
+        </li>
+
+    </ul>
+</nav>
     {% endif %}
 </div>
 {% endblock %}

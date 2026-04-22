@@ -3,144 +3,162 @@
 {% block title %}Users Management{% endblock %}
 
 {% block content %}
-    {% for user in users %}
-        {% if user.id != current_user.id and user.username != 'admin' %}
-        <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header border-bottom-0 pb-0">
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-center py-4">
-                        <i class="bi bi-exclamation-triangle-fill text-danger mb-3 d-block" style="font-size: 3rem;"></i>
-                        <h4 class="mb-3">Delete User?</h4>
-                        <p class="text-muted mb-0">Are you sure you want to delete <strong class="text-body-emphasis">{{ user.username }}</strong>?<br>This action cannot be undone.</p>
-                    </div>
-                    <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-between pt-3 pb-3">
-                        <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                        <form action="{{ url_for('users.delete_user', user_id=user.id) }}" method="POST" class="m-0">
-                            {{ form.hidden_tag() }}
-                            <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill">Delete</button>
-                        </form>
-                    </div>
-                </div>
+{% for user in users %}
+{% if user.id != current_user.id and user.username != 'admin' %}
+<div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-exclamation-triangle-fill text-danger mb-3 d-block" style="font-size: 3rem;"></i>
+                <h4 class="mb-3">Delete User?</h4>
+                <p class="text-muted mb-0">Are you sure you want to delete <strong class="text-body-emphasis">{{
+                        user.username }}</strong>?<br>This action cannot be undone.</p>
+            </div>
+            <div
+                class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-between pt-3 pb-3">
+                <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill"
+                    data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('users.delete_user', user_id=user.id) }}" method="POST" class="m-0">
+                    {{ form.hidden_tag() }}
+                    <button type="submit" class="btn btn-danger btn-lg px-5 shadow-sm rounded-pill">Delete</button>
+                </form>
             </div>
         </div>
-        {% endif %}
-    {% endfor %}
-
-    <div class="container py-5">
-        <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-            <div>
-                <p class="text-body-secondary">Manage system access and user roles</p>
-            </div>
-            <a class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" href="{{ url_for('users.create_user') }}">
-                <i class="bi bi-person-plus-fill me-2"></i>Create New User
-            </a>
-        </div>
-
-        <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-mobile-cards table-hover align-middle mb-0">
-                    <thead class="border-bottom">
-                        <tr>
-                            <th class="ps-4 py-3 text-uppercase small fw-bold text-body-secondary">User info</th>
-                            <th class="py-3 text-uppercase small fw-bold text-body-secondary text-center">Role</th>
-                            <th class="py-3 text-uppercase small fw-bold text-body-secondary text-center">Last Login</th>
-                            <th class="pe-4 py-3 text-uppercase small fw-bold text-body-secondary text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td class="ps-4 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-circle me-3 flex-shrink-0">
-                                        {{ user.username[0] | upper }}
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-body-emphasis fs-5">
-                                            {{ user.username }}
-                                            {% if user.id == current_user.id %}
-                                                <span class="badge bg-info-subtle text-info border border-info-subtle ms-2 rounded-pill" style="font-size: 0.65em;">You</span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="small text-body-secondary">ID: #{{ user.id }}</div>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td class="py-3 text-center">
-                                {% if user.is_admin %}
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-                                        <i class="bi bi-shield-check me-1"></i> Admin
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2">
-                                        <i class="bi bi-person me-1"></i> User
-                                    </span>
-                                {% endif %}
-                            </td>
-
-                            <td class="py-3 text-center text-body-secondary">
-                                {% if user.last_login_at %}
-                                    <div class="d-flex flex-column align-items-center">
-                                        <span class="fw-medium">{{ user.last_login_at.strftime('%Y-%m-%d') }}</span>
-                                        <span class="small opacity-75">{{ user.last_login_at.strftime('%H:%M') }}</span>
-                                    </div>
-                                {% else %}
-                                    <span class="text-muted fst-italic">Never logged in</span>
-                                {% endif %}
-                            </td>
-
-                            <td class="pe-4 py-3 text-end">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="{{ url_for('users.update_user', user_id=user.id) }}"
-                                       class="btn btn-sm btn-outline-primary px-4 shadow-sm rounded-pill"
-                                       title="Edit">
-                                        <i class="bi bi-pencil-square me-1"></i> Edit
-                                    </a>
-
-                                    {% if user.id == current_user.id or user.username == 'admin' %}
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-secondary px-4 shadow-sm rounded-pill disabled"
-                                                title="System Protected" disabled>
-                                            <i class="bi bi-shield-lock me-1"></i> Protected
-                                        </button>
-                                    {% else %}
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-danger px-4 shadow-sm rounded-pill"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#deleteUserModal{{ user.id }}"
-                                                title="Delete">
-                                            <i class="bi bi-trash3 me-1"></i> Delete
-                                        </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <nav class="mt-5 d-flex justify-content-center" aria-label="Page navigation">
-            <ul class="pagination pagination-custom shadow-sm">
-                <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
-                    <a class="page-link" href="{{ url_for('users.get_all_users', page=1) }}"><i class="bi bi-chevron-double-left"></i></a>
-                </li>
-                {% if pagination.has_prev %}
-                    <li class="page-item"><a class="page-link" href="{{ url_for('users.get_all_users', page=pagination.prev_num) }}">{{ pagination.prev_num }}</a></li>
-                {% endif %}
-                <li class="page-item active"><span class="page-link">{{ pagination.page }}</span></li>
-                {% if pagination.has_next %}
-                    <li class="page-item"><a class="page-link" href="{{ url_for('users.get_all_users', page=pagination.next_num) }}">{{ pagination.next_num }}</a></li>
-                {% endif %}
-                <li class="page-item {{ 'disabled' if not pagination.page < pagination.pages }}">
-                    <a class="page-link" href="{{ url_for('users.get_all_users', page=pagination.pages) }}"><i class="bi bi-chevron-double-right"></i></a>
-                </li>
-            </ul>
-        </nav>
     </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+        <div>
+            <p class="text-body-secondary">Manage system access and user roles</p>
+        </div>
+        <a class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" href="{{ url_for('users.create_user') }}">
+            <i class="bi bi-person-plus-fill me-2"></i>Create New User
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-mobile-cards table-hover align-middle mb-0">
+                <thead class="border-bottom">
+                    <tr>
+                        <th class="ps-4 py-3 text-uppercase small fw-bold text-body-secondary">User info</th>
+                        <th class="py-3 text-uppercase small fw-bold text-body-secondary text-center">Role</th>
+                        <th class="py-3 text-uppercase small fw-bold text-body-secondary text-center">Last Login</th>
+                        <th class="pe-4 py-3 text-uppercase small fw-bold text-body-secondary text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-3 flex-shrink-0">
+                                    {{ user.username[0] | upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-body-emphasis fs-5">
+                                        {{ user.username }}
+                                        {% if user.id == current_user.id %}
+                                        <span
+                                            class="badge bg-info-subtle text-info border border-info-subtle ms-2 rounded-pill"
+                                            style="font-size: 0.65em;">You</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="small text-body-secondary">ID: #{{ user.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="py-3 text-center">
+                            {% if user.is_admin %}
+                            <span
+                                class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                                <i class="bi bi-shield-check me-1"></i> Admin
+                            </span>
+                            {% else %}
+                            <span
+                                class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2">
+                                <i class="bi bi-person me-1"></i> User
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-3 text-center text-body-secondary">
+                            {% if user.last_login_at %}
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="fw-medium">{{ user.last_login_at.strftime('%Y-%m-%d') }}</span>
+                                <span class="small opacity-75">{{ user.last_login_at.strftime('%H:%M') }}</span>
+                            </div>
+                            {% else %}
+                            <span class="text-muted fst-italic">Never logged in</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="pe-4 py-3 text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('users.update_user', user_id=user.id) }}"
+                                    class="btn btn-sm btn-outline-primary px-4 shadow-sm rounded-pill" title="Edit">
+                                    <i class="bi bi-pencil-square me-1"></i> Edit
+                                </a>
+
+                                {% if user.id == current_user.id or user.username == 'admin' %}
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-secondary px-4 shadow-sm rounded-pill disabled"
+                                    title="System Protected" disabled>
+                                    <i class="bi bi-shield-lock me-1"></i> Protected
+                                </button>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-danger px-4 shadow-sm rounded-pill"
+                                    data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}"
+                                    title="Delete">
+                                    <i class="bi bi-trash3 me-1"></i> Delete
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <nav class="mt-5 d-flex justify-content-center" aria-label="Page navigation">
+        <ul class="pagination pagination-custom shadow-sm">
+
+            <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
+                <a class="page-link" href="{{ url_for('users.get_all_users', page=1) }}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+
+            {% for p in pagination.iter_pages(left_edge=1, left_current=3, right_current=3, right_edge=1) %}
+            {% if p %}
+            {% if p == pagination.page %}
+            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('users.get_all_users', page=p) }}">{{ p }}</a>
+            </li>
+            {% endif %}
+            {% else %}
+            <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
+            {% endif %}
+            {% endfor %}
+
+            <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
+                <a class="page-link" href="{{ url_for('users.get_all_users', page=pagination.pages) }}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+</div>
 {% endblock %}
