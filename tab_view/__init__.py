@@ -55,6 +55,11 @@ def create_app(config_class=ProductionConfig):
         },
     )
 
+    # --- SETUP SCHEDULED TASKS ---
+    from tab_view.tasks import setup_scheduled_tasks
+
+    setup_scheduled_tasks(scheduler)
+
     login_manager.login_view = "auth.signin"
     login_manager.login_message = "Please log in to access this page."
     login_manager.login_message_category = "warning"
@@ -92,6 +97,7 @@ def create_app(config_class=ProductionConfig):
         """A silent endpoint for Docker Healthcheck"""
         return {"status": "healthy"}, 200
 
+    from .audit_logs import logs_bp
     from .auth import auth_bp
     from .dashboard import dashboard_bp
     from .devices import devices_bp
@@ -101,6 +107,7 @@ def create_app(config_class=ProductionConfig):
     from .settings import settings_bp
     from .users import users_bp
 
+    app.register_blueprint(logs_bp, url_prefix="/logs")
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(devices_bp, url_prefix="/devices")

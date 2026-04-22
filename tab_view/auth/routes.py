@@ -62,7 +62,7 @@ def signin():
         login_user(user, remember=remember_me, fresh=True)
 
         try:
-            user.last_login_at = datetime.utcnow()
+            user.last_login_at = datetime.now()
             db.session.commit()
         except Exception as e:
             db.session.rollback()

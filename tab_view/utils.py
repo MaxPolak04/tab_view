@@ -88,10 +88,11 @@ def configure_logging(app):
 
 def log_audit_action(action, entity_type, details):
     """
-    Records the event in the audit log (AuditLog).
-    Example usage: log_audit_action("UPDATE", "Media",
-    "The tag for the video.mp4 file was changed")
+    Saves an event in the audit log.
+    Usage e.g.: log_audit_action("UPDATE", "Media", "Changed tag for video.mp4")
     """
+    from datetime import datetime
+
     from tab_view import db
     from tab_view.models import AuditLog
 
@@ -105,6 +106,7 @@ def log_audit_action(action, entity_type, details):
 
     try:
         log_entry = AuditLog(
+            timestamp=datetime.now(),
             user_id=user_id,
             action=action,
             entity_type=entity_type,
@@ -115,6 +117,4 @@ def log_audit_action(action, entity_type, details):
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        import logging
-
         logging.getLogger(__name__).error(f"Failed to save audit log: {e}")
