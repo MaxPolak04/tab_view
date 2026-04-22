@@ -3,8 +3,6 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-maxpolak04}/tab_view:latest
     container_name: flask_app
     restart: always
-    ports:
-      - "8000:8000"
     env_file: .env
     depends_on:
       db:
