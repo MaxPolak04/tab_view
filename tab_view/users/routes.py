@@ -41,8 +41,8 @@ def create_user():
 
         if User.query.filter_by(username=username).first():
             logger.warning(
-                f"Create user failed - username '{username}' exists \
-                    (Admin: {current_user.id})"
+                f"Create user failed - username '{username}' exists "
+                f"(Admin: {current_user.id})"
             )
             flash("Username already exists.", "danger")
             return render_template("users/new-user.html", form=form)
@@ -53,8 +53,8 @@ def create_user():
             db.session.commit()
 
             logger.info(
-                f"User created: {username} (ID: {new_user.id}, Admin: \
-                    {is_admin}) by Admin {current_user.id}"
+                f"User created: {username} (ID: {new_user.id}, Admin: "
+                f"{is_admin}) by Admin {current_user.id}"
             )
             flash("User created successfully!", "success")
             return redirect(url_for("users.get_all_users"))
@@ -62,8 +62,7 @@ def create_user():
         except Exception as e:
             db.session.rollback()
             logger.error(
-                f"Error creating user '{username}': {str(e)} \
-                    (Admin: {current_user.id})"
+                f"Error creating user '{username}': {str(e)} (Admin: {current_user.id})"
             )
             flash(f"Error creating user: {str(e)}", "danger")
 
@@ -77,14 +76,42 @@ def update_user(user_id):
     form = UpdateUserForm(obj=user)
 
     if form.validate_on_submit():
+        # --- SECURITY CHECK 1: Prevent admin from revoking their own privileges ---
+        if user.id == current_user.id and not form.is_admin.data:
+            logger.warning(
+                f"Admin {current_user.id} attempted to revoke their own admin rights."
+            )
+            flash("You cannot revoke your own administrator privileges.", "danger")
+            return redirect(url_for("users.update_user", user_id=user.id))
+
+        # --- SECURITY CHECK 2: Protect the built-in 'admin' account ---
+        if user.username == "admin":
+            if not form.is_admin.data:
+                logger.warning(
+                    f"Admin {current_user.id} attempted to revoke built-in \
+                        'admin' privileges."
+                )
+                flash(
+                    "You cannot revoke privileges from the built-in 'admin' account.",
+                    "danger",
+                )
+                return redirect(url_for("users.update_user", user_id=user.id))
+
+            if form.username.data != "admin":
+                logger.warning(
+                    f"Admin {current_user.id} attempted to \
+                        rename the built-in 'admin' account."
+                )
+                flash("You cannot rename the built-in 'admin' account.", "danger")
+                return redirect(url_for("users.update_user", user_id=user.id))
+
         old_username = user.username
         user.username = form.username.data
 
         if form.password.data:
             user.password = generate_password_hash(form.password.data)
             logger.info(
-                f"Password changed for user ID {user.id} \
-                    by Admin {current_user.id}"
+                f"Password changed for user ID {user.id} by Admin {current_user.id}"
             )
 
         user.is_admin = form.is_admin.data
@@ -93,8 +120,8 @@ def update_user(user_id):
             db.session.commit()
 
             logger.info(
-                f"User updated: {old_username} -> {user.username} \
-                    (ID: {user.id}) by Admin {current_user.id}"
+                f"User updated: {old_username} -> {user.username} "
+                f"(ID: {user.id}) by Admin {current_user.id}"
             )
             flash("User updated successfully!", "success")
             return redirect(url_for("users.get_all_users"))
@@ -102,10 +129,13 @@ def update_user(user_id):
         except Exception as e:
             db.session.rollback()
             logger.error(
-                f"Error updating user ID {user_id}: {str(e)} \
-                    (Admin: {current_user.id})"
+                f"Error updating user ID {user_id}: {str(e)} (Admin: {current_user.id})"
             )
             flash(f"Error updating user: {str(e)}", "danger")
+
+    elif request.method == "GET":
+        form.username.data = user.username
+        form.is_admin.data = user.is_admin
 
     return render_template("users/update-user.html", form=form, user=user)
 
@@ -115,13 +145,23 @@ def update_user(user_id):
 def delete_user(user_id):
     if user_id == current_user.id:
         logger.warning(
-            f"Admin {current_user.id} attempted to delete their own account \
-              - Action blocked"
+            f"Admin {current_user.id} attempted to delete their own account "
+            "- Action blocked"
         )
         flash("You cannot delete your own account.", "danger")
         return redirect(url_for("users.get_all_users"))
 
     user = User.query.get_or_404(user_id)
+
+    # --- SECURITY CHECK: Prevent deleting the built-in 'admin' account ---
+    if user.username == "admin":
+        logger.warning(
+            f"Admin {current_user.id} attempted to delete the built-in 'admin' account "
+            "- Action blocked"
+        )
+        flash("You cannot delete the built-in 'admin' account.", "danger")
+        return redirect(url_for("users.get_all_users"))
+
     username = user.username
 
     try:
