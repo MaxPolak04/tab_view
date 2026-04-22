@@ -15,7 +15,7 @@ from flask_login import current_user, login_required
 
 from tab_view import db
 from tab_view.models import Device, Event, Media, Tag
-from tab_view.utils import admin_required
+from tab_view.utils import admin_required, log_audit_action
 
 from . import devices_bp
 from .forms import DeleteDevice, NewDevice, UpdateDevice
@@ -50,7 +50,7 @@ def get_all_devices():
         devices=devices,
         pagination=pagination,
         form=form,
-        current_sort=sort_order,  # Pass current sort state to the template
+        current_sort=sort_order,
     )
 
 
@@ -162,13 +162,20 @@ def create_device():
                 f"URL: {new_device.device_url} by User {current_user.id}"
             )
 
+            # --- AUDIT LOG ---
+            log_audit_action(
+                "CREATE",
+                "Device",
+                f"Created new device '{new_device.name}' \
+                    (URL: {new_device.device_url}).",
+            )
+
             flash("Device added successfully!", "success")
             return redirect(url_for("devices.get_all_devices"))
         except Exception as e:
             db.session.rollback()
             logger.error(
-                f"Error creating device '{name}': {str(e)} \
-                    (User: {current_user.id})"
+                f"Error creating device '{name}': {str(e)} (User: {current_user.id})"
             )
             flash(f"Error creating device: {str(e)}", "danger")
 
@@ -231,6 +238,14 @@ def update_device(device_id):
                 f"by User {current_user.id}"
             )
 
+            # --- AUDIT LOG ---
+            log_audit_action(
+                "UPDATE",
+                "Device",
+                f"Updated device '{old_name}'. New name: '{device.name}', \
+                    URL: '{device.device_url}'.",
+            )
+
             flash("Device updated successfully!", "success")
             return redirect(url_for("devices.get_all_devices"))
 
@@ -285,10 +300,7 @@ def device_schedule(device_id):
 @devices_bp.route("/delete/<int:device_id>", methods=["POST"])
 @admin_required
 def delete_device(device_id):
-    logger.info(
-        f"User {current_user.id} requesting \
-                deletion of device ID {device_id}"
-    )
+    logger.info(f"User {current_user.id} requesting deletion of device ID {device_id}")
 
     device = Device.query.get_or_404(device_id)
     device_name = device.name
@@ -302,13 +314,18 @@ def delete_device(device_id):
             f"by User {current_user.id}"
         )
 
+        # --- AUDIT LOG ---
+        log_audit_action(
+            "DELETE", "Device", f"Permanently deleted device '{device_name}'."
+        )
+
         flash("Device deleted successfully!", "success")
 
     except Exception as e:
         db.session.rollback()
         logger.error(
-            f"Critical error deleting device ID {device_id}: \
-                {str(e)} (User: {current_user.id})"
+            f"Critical error deleting device ID {device_id}: "
+            f"{str(e)} (User: {current_user.id})"
         )
         flash(f"Error deleting device: {str(e)}", "danger")
 
