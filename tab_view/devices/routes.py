@@ -31,7 +31,7 @@ def get_all_devices():
     page = request.args.get("page", 1, type=int)
     # Get sort order from URL query parameters, default to ascending ('asc')
     sort_order = request.args.get("sort", "asc")
-    per_page = 9
+    per_page = 12
 
     # Determine the sorting column and direction
     if sort_order == "desc":
