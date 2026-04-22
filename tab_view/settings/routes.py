@@ -7,7 +7,7 @@ from flask import current_app, flash, redirect, render_template, url_for
 from flask_login import current_user
 
 from tab_view.models import Event, Media, db
-from tab_view.utils import admin_required
+from tab_view.utils import admin_required, log_audit_action
 
 from . import settings_bp
 from .forms import CleanupEventsForm, DefaultImageForm
@@ -71,6 +71,10 @@ def update_default_image():
                 db.session.commit()
 
             logger.info(f"Default image replaced by Admin {current_user.id}")
+
+            # --- AUDIT LOG ---
+            log_audit_action("UPDATE", "Settings", "Replaced the default system image.")
+
             flash("Default image has been successfully replaced.", "success")
             return redirect(url_for("settings.settings_view"))
         except Exception as e:
@@ -119,6 +123,15 @@ def cleanup_events_view():
                     f"Maintenance Cleanup COMPLETED by Admin {current_user.id}. "
                     f"Deleted {len(deleted_events)}."
                 )
+
+                # --- AUDIT LOG ---
+                log_audit_action(
+                    "DELETE",
+                    "System",
+                    f"Performed automated maintenance cleanup. \
+                        Permanently deleted {len(deleted_events)} old events.",
+                )
+
                 flash(f"{len(deleted_events)} events deleted successfully.", "success")
             except Exception as e:
                 db.session.rollback()
