@@ -15,6 +15,7 @@
     const clockOverlay = document.getElementById('system-clock-overlay');
 
     let currentEventId = null;
+    let currentEventTitle = null;
     let currentPlaylist = [];
     let currentPlaylistIndex = 0;
 
@@ -50,15 +51,18 @@
             if (currentEventId !== data.event_id) {
                 console.log('New event detected in background:', data.event_id);
                 currentEventId = data.event_id;
+                currentEventTitle = data.event_title;
                 currentPlaylist = data.playlist;
                 currentPlaylistIndex = 0;
             } else {
                 currentPlaylist = data.playlist;
+                currentEventTitle = data.event_title;
             }
         } else if (data.status === 'default') {
             if (currentEventId !== null) {
                 console.log('Event ended, scheduled fallback to default media.');
                 currentEventId = null;
+                currentEventTitle = null;
                 currentPlaylist = [];
                 currentPlaylistIndex = 0;
             }
@@ -76,13 +80,21 @@
         isPlaying = true;
         let itemToPlay = null;
 
-        if (currentPlaylist && currentPlaylist.length > 0) {
+        if (currentEventId !== null && (!currentPlaylist || currentPlaylist.length === 0)) {
+            itemToPlay = {
+                media_type: 'text_only',
+                title: currentEventTitle || "No Title",
+                duration: 60
+            };
+        }
+        else if (currentPlaylist && currentPlaylist.length > 0) {
             if (currentPlaylistIndex >= currentPlaylist.length) {
                 currentPlaylistIndex = 0;
             }
             itemToPlay = currentPlaylist[currentPlaylistIndex];
             currentPlaylistIndex++;
-        } else {
+        }
+        else {
             itemToPlay = {
                 filename: fallbackMedia.filename,
                 media_type: fallbackMedia.media_type,
@@ -91,27 +103,34 @@
             };
         }
 
-        renderMedia(itemToPlay.filename, itemToPlay.media_type, itemToPlay.cache_buster, itemToPlay.duration || 10);
+        renderMedia(itemToPlay);
     }
 
-    function renderMedia(filename, mediaType, cacheBuster, duration) {
+    function renderMedia(item) {
         isTransitioning = true;
 
-        const cacheBusterParam = cacheBuster ? `?v=${cacheBuster}` : '';
-        const mediaUrl = `/static/uploads/${filename}${cacheBusterParam}`;
+        let mediaUrl = null;
+        let isTextOnly = item.media_type === 'text_only';
+
+        if (isTextOnly) {
+            mediaUrl = `text_only_${item.title}`;
+        } else {
+            const cacheBusterParam = item.cache_buster ? `?v=${item.cache_buster}` : '';
+            mediaUrl = `/static/uploads/${item.filename}${cacheBusterParam}`;
+        }
 
         if (currentPlayingUrl === mediaUrl) {
             isTransitioning = false;
 
-            if (mediaType === 'image') {
-                setTimeout(playNextMedia, duration * 1000);
-            } else if (mediaType === 'video') {
+            if (isTextOnly || item.media_type === 'image') {
+                setTimeout(playNextMedia, item.duration * 1000);
+            } else if (item.media_type === 'video') {
                 const video = main.querySelector('video');
                 if (video) {
                     video.currentTime = 0;
                     video.play().catch(e => console.error("Video replay error:", e));
                 } else {
-                    injectNewMedia(mediaUrl, mediaType, duration);
+                    injectNewMedia(item, mediaUrl);
                 }
             }
             return;
@@ -123,15 +142,45 @@
             main.firstChild.style.animation = 'fadeOut 0.3s ease-out';
             setTimeout(() => {
                 main.innerHTML = '';
-                injectNewMedia(mediaUrl, mediaType, duration);
+                injectNewMedia(item, mediaUrl);
             }, 300);
         } else {
-            injectNewMedia(mediaUrl, mediaType, duration);
+            injectNewMedia(item, mediaUrl);
         }
     }
 
-    function injectNewMedia(mediaUrl, mediaType, duration) {
-        if (mediaType === 'image') {
+    function injectNewMedia(item, mediaUrl) {
+        if (item.media_type === 'text_only') {
+            const textContainer = document.createElement('div');
+
+            textContainer.style.width = '100vw';
+            textContainer.style.height = '100vh';
+            textContainer.style.display = 'flex';
+            textContainer.style.alignItems = 'center';
+            textContainer.style.justifyContent = 'center';
+            textContainer.style.backgroundColor = '#212121';
+            textContainer.style.animation = 'fadeIn 0.5s ease-in';
+            textContainer.style.padding = '5vw';
+            textContainer.style.boxSizing = 'border-box';
+            textContainer.style.overflow = 'hidden';
+
+            const textElement = document.createElement('h1');
+            textElement.textContent = item.title;
+            textElement.style.fontSize = '8vw';
+            textElement.style.color = '#ffffff';
+            textElement.style.textAlign = 'center';
+            textElement.style.fontFamily = '"Montserrat", sans-serif';
+            textElement.style.fontWeight = 'bold';
+            textElement.style.wordBreak = 'break-word';
+            textElement.style.margin = '0';
+
+            textContainer.appendChild(textElement);
+            main.appendChild(textContainer);
+
+            isTransitioning = false;
+            setTimeout(playNextMedia, item.duration * 1000);
+
+        } else if (item.media_type === 'image') {
             const img = document.createElement('img');
             img.src = mediaUrl;
             img.classList.add('display-img');
@@ -139,7 +188,7 @@
 
             img.onload = () => {
                 isTransitioning = false;
-                setTimeout(playNextMedia, duration * 1000);
+                setTimeout(playNextMedia, item.duration * 1000);
             };
 
             img.onerror = () => {
@@ -150,7 +199,7 @@
 
             main.appendChild(img);
 
-        } else if (mediaType === 'video') {
+        } else if (item.media_type === 'video') {
             const video = document.createElement('video');
             video.src = mediaUrl;
             video.autoplay = true;

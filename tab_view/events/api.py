@@ -152,6 +152,7 @@ class EventResource(Resource):
     def post(self):
         """
         Create a new event or group of events across multiple devices.
+        Allows empty media_playlist for 'text_only' events.
         """
         try:
             data = request.get_json()
@@ -165,7 +166,7 @@ class EventResource(Resource):
             if not device_ids:
                 return error_response("Missing required field: device_ids", 400)
 
-            required_fields = ["title", "start_time", "end_time", "media_playlist"]
+            required_fields = ["title", "start_time", "end_time"]
             missing_fields = [field for field in required_fields if not data.get(field)]
 
             if missing_fields:
@@ -179,11 +180,8 @@ class EventResource(Resource):
             if len(data["title"]) > 50:
                 return error_response("Title is too long (max 50 characters)", 400)
 
-            if (
-                not isinstance(data["media_playlist"], list)
-                or len(data["media_playlist"]) == 0
-            ):
-                return error_response("Playlist must be a non-empty array", 400)
+            if not isinstance(data.get("media_playlist", []), list):
+                return error_response("Playlist must be an array", 400)
 
             try:
                 start_time = datetime.fromisoformat(data["start_time"].replace("Z", ""))
@@ -230,7 +228,8 @@ class EventResource(Resource):
                 db.session.add(new_event)
                 db.session.flush()
 
-                for idx, item in enumerate(data["media_playlist"]):
+                # Iterate securely, skips naturally if empty (text_only mode)
+                for idx, item in enumerate(data.get("media_playlist", [])):
                     duration = item.get("duration", 10)
                     if not isinstance(duration, int) or duration < 1 or duration > 300:
                         duration = 10
@@ -269,6 +268,7 @@ class EventResource(Resource):
     def put(self, event_id):
         """
         Update an existing event or event group.
+        Allows empty media_playlist for 'text_only' events.
         """
         try:
             event = Event.query.get(event_id)
@@ -324,6 +324,8 @@ class EventResource(Resource):
                         409,
                     )
 
+            # Accept explicit empty list `[]` as intended clear,
+            # fallback to old only if `None`
             playlist_data = data.get("media_playlist")
             if playlist_data is None:
                 playlist_data = [

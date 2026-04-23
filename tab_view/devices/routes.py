@@ -124,6 +124,7 @@ def api_device_state(device_url):
             {
                 "status": "event",
                 "event_id": active_event.id,
+                "event_title": active_event.title,  # <-- Added title for text-only mode
                 "playlist": playlist,
                 "show_clock": active_event.show_clock,
             }
@@ -206,8 +207,10 @@ def update_device(device_id):
         return redirect(url_for("devices.get_all_devices"))
 
     device = Device.query.get_or_404(device_id)
-    media_list = Media.query.all()
-    tags = Tag.query.all()
+
+    # Filter out System tags and media
+    tags = Tag.query.filter_by(is_system=False).all()
+    media_list = Media.query.join(Tag).filter(not Tag.is_system).all()
 
     if not media_list:
         flash("No media available. Add a file before updating the device.", "warning")
@@ -295,8 +298,10 @@ def update_device(device_id):
 @login_required
 def device_schedule(device_id):
     device = Device.query.get_or_404(device_id)
-    media_list = Media.query.all()
-    tags = Tag.query.all()
+
+    # Filter out System tags and media
+    tags = Tag.query.filter_by(is_system=False).all()
+    media_list = Media.query.join(Tag).filter(not Tag.is_system).all()
 
     return render_template(
         "devices/device-schedule.html",
