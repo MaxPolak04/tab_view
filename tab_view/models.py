@@ -29,6 +29,7 @@ class Device(db.Model):
     device_url = db.Column(db.String(200), unique=True, nullable=False)
     uploaded_at = db.Column(db.DateTime, server_default=db.func.now())
     media_id = db.Column(db.Integer, db.ForeignKey("media.id"))
+    show_clock = db.Column(db.Boolean, default=False)
     media = db.relationship("Media")
 
     def __repr__(self):
@@ -92,6 +93,7 @@ class Event(db.Model):
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now()
     )
     device_id = db.Column(db.Integer, db.ForeignKey("devices.id"), nullable=False)
+    show_clock = db.Column(db.Boolean, default=False)
     device = db.relationship("Device")
     event_media = db.relationship(
         "EventMedia", back_populates="event", cascade="all, delete-orphan"

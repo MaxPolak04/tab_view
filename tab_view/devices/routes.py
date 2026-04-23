@@ -29,17 +29,14 @@ def get_all_devices():
     form = DeleteDevice()
 
     page = request.args.get("page", 1, type=int)
-    # Get sort order from URL query parameters, default to ascending ('asc')
     sort_order = request.args.get("sort", "asc")
     per_page = 12
 
-    # Determine the sorting column and direction
     if sort_order == "desc":
         order_clause = Device.name.desc()
     else:
         order_clause = Device.name.asc()
 
-    # Apply the sorting clause to the query
     pagination = Device.query.order_by(order_clause).paginate(
         page=page, per_page=per_page
     )
@@ -85,7 +82,11 @@ def show_device(device_url):
         )
 
     return render_template(
-        "devices/display.html", device=device, media=media, schedule=schedule
+        "devices/display.html",
+        device=device,
+        media=media,
+        schedule=schedule,
+        show_clock=device.show_clock,
     )
 
 
@@ -120,7 +121,12 @@ def api_device_state(device_url):
             for em in sorted(active_event.event_media, key=lambda x: x.order)
         ]
         return jsonify(
-            {"status": "event", "event_id": active_event.id, "playlist": playlist}
+            {
+                "status": "event",
+                "event_id": active_event.id,
+                "playlist": playlist,
+                "show_clock": active_event.show_clock,
+            }
         )
 
     default_media_data = None
@@ -132,7 +138,12 @@ def api_device_state(device_url):
         }
 
     return jsonify(
-        {"status": "default", "event_id": None, "default_media": default_media_data}
+        {
+            "status": "default",
+            "event_id": None,
+            "default_media": default_media_data,
+            "show_clock": device.show_clock,  # Fallback to device config
+        }
     )
 
 
@@ -151,9 +162,15 @@ def create_device():
         name = form.name.data
         device_url = form.device_url.data
         media_id = form.media_id.data
+        show_clock = form.show_clock.data
 
         try:
-            new_device = Device(name=name, device_url=device_url, media_id=media_id)
+            new_device = Device(
+                name=name,
+                device_url=device_url,
+                media_id=media_id,
+                show_clock=show_clock,
+            )
             db.session.add(new_device)
             db.session.commit()
 
@@ -162,7 +179,6 @@ def create_device():
                 f"URL: {new_device.device_url} by User {current_user.id}"
             )
 
-            # --- AUDIT LOG ---
             log_audit_action(
                 "CREATE",
                 "Device",
@@ -205,6 +221,7 @@ def update_device(device_id):
         form.name.data = device.name
         form.device_url.data = device.device_url
         form.media_id.data = device.media_id
+        form.show_clock.data = device.show_clock
 
     if form.validate_on_submit():
         existing_name = Device.query.filter_by(name=form.name.data).first()
@@ -230,6 +247,7 @@ def update_device(device_id):
             device.name = form.name.data
             device.device_url = form.device_url.data
             device.media_id = form.media_id.data
+            device.show_clock = form.show_clock.data
 
             db.session.commit()
 
@@ -238,12 +256,11 @@ def update_device(device_id):
                 f"by User {current_user.id}"
             )
 
-            # --- AUDIT LOG ---
             log_audit_action(
                 "UPDATE",
                 "Device",
-                f"Updated device '{old_name}'. New name: '{device.name}', \
-                    URL: '{device.device_url}'.",
+                f"Updated device '{old_name}'. New name: \
+                    '{device.name}', URL: '{device.device_url}'.",
             )
 
             flash("Device updated successfully!", "success")
@@ -314,7 +331,6 @@ def delete_device(device_id):
             f"by User {current_user.id}"
         )
 
-        # --- AUDIT LOG ---
         log_audit_action(
             "DELETE", "Device", f"Permanently deleted device '{device_name}'."
         )

@@ -124,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         borderColor: event.color || '#3788d8',
                         extendedProps: {
                             device_id: event.extendedProps.device_id,
+                            show_clock: event.extendedProps.show_clock,
                             media_playlist: event.extendedProps.media_playlist
                         }
                     }));
@@ -166,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const modalTitle = document.getElementById('eventModalLabel');
         const deleteBtn = document.getElementById('deleteEventBtn');
+        const showClockCheckbox = document.getElementById('eventShowClock');
 
         if (event) {
             modalTitle.textContent = 'Edit schedule';
@@ -173,6 +175,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventStart')._flatpickr.setDate(event.start);
             document.getElementById('eventEnd')._flatpickr.setDate(event.end);
             document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
+
+            if (showClockCheckbox) {
+                showClockCheckbox.checked = event.extendedProps.show_clock || false;
+            }
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
 
@@ -186,6 +192,10 @@ document.addEventListener('DOMContentLoaded', function() {
             startStr ? startFp.setDate(startStr) : startFp.clear();
             endStr ? endFp.setDate(endStr) : endFp.clear();
             document.getElementById('eventColor').value = '#3788d8';
+
+            if (showClockCheckbox) {
+                showClockCheckbox.checked = false;
+            }
 
             currentPlaylist = [];
 
@@ -367,6 +377,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const end = document.getElementById('eventEnd').value;
             const color = document.getElementById('eventColor').value;
 
+            const showClockCheckbox = document.getElementById('eventShowClock');
+            const showClock = showClockCheckbox ? showClockCheckbox.checked : false;
+
             if (!title || !start || !end) {
                 alert('Fill in all fields!');
                 return;
@@ -388,6 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 end_time: convertToLocalISO(end),
                 device_id: currentDeviceId,
                 color: color,
+                show_clock: showClock,
                 media_playlist: currentPlaylist
             };
 
@@ -501,6 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 end_time: event.end.toISOString(),
                 device_id: currentDeviceId,
                 color: event.backgroundColor || '#3788d8',
+                show_clock: event.extendedProps.show_clock,
                 media_playlist: event.extendedProps.media_playlist
             })
         })

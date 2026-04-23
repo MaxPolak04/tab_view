@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, SubmitField
+from wtforms import BooleanField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Regexp, ValidationError
 
 from tab_view.models import Device
@@ -21,6 +21,7 @@ class NewDevice(FlaskForm):
     media_id = SelectField(
         "Select media for this device:", coerce=int, validators=[DataRequired()]
     )
+    show_clock = BooleanField("Show Clock on Screen", default=False)
     submit = SubmitField("Add")
 
     def validate_device_url(self, field):
@@ -45,6 +46,7 @@ class UpdateDevice(FlaskForm):
     media_id = SelectField(
         "Select media for this device:", coerce=int, validators=[DataRequired()]
     )
+    show_clock = BooleanField("Show Clock on Screen", default=False)
     submit = SubmitField("Update")
 
 

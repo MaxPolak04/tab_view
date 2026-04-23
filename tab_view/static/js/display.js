@@ -12,21 +12,18 @@
         return;
     }
 
-    // Zmienne stanu aplikacji
+    const clockOverlay = document.getElementById('system-clock-overlay');
+
     let currentEventId = null;
     let currentPlaylist = [];
     let currentPlaylistIndex = 0;
 
     let isTransitioning = false;
-    let isPlaying = false; // Zapobiega wielokrotnemu uruchomieniu pętli mediów
+    let isPlaying = false;
     let fallbackMedia = { filename: 'default.jpg', media_type: 'image', cache_buster: Date.now() };
 
-    // Zmienna zapobiegająca mruganiu tego samego pliku
     let currentPlayingUrl = null;
 
-    // ==========================================
-    // 1. PĘTLA POBIERANIA DANYCH (CO 60 SEKUND)
-    // ==========================================
     async function fetchState() {
         try {
             const response = await fetch(window.DEVICE_API_URL);
@@ -37,21 +34,25 @@
 
         } catch (error) {
             console.error('Error fetching device state:', error);
-            // W przypadku błędu (np. brak WiFi) nie przerywamy odtwarzania
         }
     }
 
     function handleStateUpdate(data) {
+        if (clockOverlay) {
+            if (data.show_clock === true) {
+                clockOverlay.classList.remove('d-none');
+            } else {
+                clockOverlay.classList.add('d-none');
+            }
+        }
+
         if (data.status === 'event') {
             if (currentEventId !== data.event_id) {
                 console.log('New event detected in background:', data.event_id);
-                // Mamy całkowicie nowe wydarzenie
                 currentEventId = data.event_id;
                 currentPlaylist = data.playlist;
                 currentPlaylistIndex = 0;
             } else {
-                // To samo wydarzenie - aktualizujemy playlistę "w locie"
-                // (jeśli np. w panelu admina dorzuciłeś jakiś obrazek)
                 currentPlaylist = data.playlist;
             }
         } else if (data.status === 'default') {
@@ -66,33 +67,27 @@
             }
         }
 
-        // Jeśli to zupełnie pierwsze uruchomienie tabletu - startujemy odtwarzanie
         if (!isPlaying) {
             playNextMedia();
         }
     }
 
-    // ==========================================
-    // 2. PĘTLA ODTWARZANIA NA EKRANIE
-    // ==========================================
     function playNextMedia() {
         isPlaying = true;
         let itemToPlay = null;
 
         if (currentPlaylist && currentPlaylist.length > 0) {
-            // Zabezpieczenie indeksu (np. gdy playlista została skrócona w panelu)
             if (currentPlaylistIndex >= currentPlaylist.length) {
                 currentPlaylistIndex = 0;
             }
             itemToPlay = currentPlaylist[currentPlaylistIndex];
             currentPlaylistIndex++;
         } else {
-            // Brak wydarzenia = odtwarzamy media domyślne
             itemToPlay = {
                 filename: fallbackMedia.filename,
                 media_type: fallbackMedia.media_type,
                 cache_buster: fallbackMedia.cache_buster,
-                duration: 10 // Czas wyświetlania domyślnego zdjęcia
+                duration: 10
             };
         }
 
@@ -105,15 +100,12 @@
         const cacheBusterParam = cacheBuster ? `?v=${cacheBuster}` : '';
         const mediaUrl = `/static/uploads/${filename}${cacheBusterParam}`;
 
-        // ZAPOBIEGANIE MRUGANIU (Jeśli mamy zagrać dokładnie ten sam plik)
         if (currentPlayingUrl === mediaUrl) {
             isTransitioning = false;
 
             if (mediaType === 'image') {
-                // Czekamy ustalony czas i przechodzimy do następnego slajdu
                 setTimeout(playNextMedia, duration * 1000);
             } else if (mediaType === 'video') {
-                // Cofamy wideo do zera i puszczamy od nowa (płynny loop)
                 const video = main.querySelector('video');
                 if (video) {
                     video.currentTime = 0;
@@ -127,7 +119,6 @@
 
         currentPlayingUrl = mediaUrl;
 
-        // Fizyczna zmiana pliku z animacją
         if (main.firstChild) {
             main.firstChild.style.animation = 'fadeOut 0.3s ease-out';
             setTimeout(() => {
@@ -148,14 +139,13 @@
 
             img.onload = () => {
                 isTransitioning = false;
-                // Kiedy czas obrazka mija -> graj następny (będzie czerpał z nowej pamięci)
                 setTimeout(playNextMedia, duration * 1000);
             };
 
             img.onerror = () => {
                 console.error('Failed to load image:', mediaUrl);
                 isTransitioning = false;
-                setTimeout(playNextMedia, 5000); // W razie błędu czekamy 5s i omijamy
+                setTimeout(playNextMedia, 5000);
             };
 
             main.appendChild(img);
@@ -173,14 +163,13 @@
             };
 
             video.onended = () => {
-                // Kiedy wideo dojdzie do końca -> graj następne (będzie czerpał z nowej pamięci)
                 playNextMedia();
             };
 
             video.onerror = () => {
                 console.error('Failed to load video:', mediaUrl);
                 isTransitioning = false;
-                setTimeout(playNextMedia, 5000); // W razie błędu czekamy 5s i omijamy
+                setTimeout(playNextMedia, 5000);
             };
 
             main.appendChild(video);
@@ -196,13 +185,9 @@
         }
     }
 
-    // === INITIALIZATION ===
     console.log('=== DISPLAY ENGINE STARTED (1-MINUTE POLLING) ===');
 
-    // Pierwsze ręczne pobranie danych na start
     fetchState();
-
-    // Ustawienie zegara: twardo pytaj API co równe 60 sekund w tle
     setInterval(fetchState, 60 * 1000);
 
 })();

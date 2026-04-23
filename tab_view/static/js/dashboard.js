@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
         playlistMediaPickerModalEl.addEventListener('hidden.bs.modal', function() { renderPlaylist(); });
     }
 
-    // Common Flatpickr configuration with an injected "OK" button
     // Function to generate a random HEX color
     function getRandomHexColor() {
         return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
@@ -192,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 group_id: event.group_id,
                                 device_id: event.extendedProps.device_id,
                                 device_name: event.extendedProps.device_name,
+                                show_clock: event.extendedProps.show_clock,
                                 media_playlist: event.extendedProps.media_playlist
                             }
                         })));
@@ -216,6 +216,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!eventModal) return;
 
         const deleteBtn = document.getElementById('deleteEventBtn');
+        const showClockCheckbox = document.getElementById('eventShowClock');
+
         document.querySelectorAll('.device-checkbox').forEach(cb => { cb.checked = false; cb.disabled = false; });
         document.querySelectorAll('.device-busy-text').forEach(t => t.style.setProperty('display', 'none', 'important'));
         document.querySelectorAll('.device-checkbox-wrapper').forEach(w => w.classList.remove('bg-light', 'opacity-50'));
@@ -230,6 +232,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // In edit mode, keep the existing color
             document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
+
+            if (showClockCheckbox) {
+                showClockCheckbox.checked = event.extendedProps.show_clock || false;
+            }
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
             currentEventId = event.id;
@@ -255,6 +261,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Apply a random color instead of the hardcoded default
             document.getElementById('eventColor').value = getRandomHexColor();
+
+            if (showClockCheckbox) {
+                showClockCheckbox.checked = false;
+            }
 
             currentPlaylist = [];
             currentEventId = null;
@@ -375,6 +385,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const start = document.getElementById('eventStart')._flatpickr.input.value;
         const end = document.getElementById('eventEnd')._flatpickr.input.value;
 
+        const showClockCheckbox = document.getElementById('eventShowClock');
+        const showClock = showClockCheckbox ? showClockCheckbox.checked : false;
+
         if (!title || !start || !end) return alert('Fill in all fields!');
         if (currentPlaylist.length === 0) return alert('Add media!');
         if (new Date(start) >= new Date(end)) return alert('End date must be later!');
@@ -384,6 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
             start_time: convertToLocalISO(start),
             end_time: convertToLocalISO(end),
             color: document.getElementById('eventColor').value,
+            show_clock: showClock,
             device_ids: selectedDevices,
             media_playlist: currentPlaylist
         };
@@ -434,6 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 end_time: event.end.toISOString(),
                 device_ids: groupDeviceIds,
                 color: event.backgroundColor || '#3788d8',
+                show_clock: event.extendedProps.show_clock,
                 media_playlist: event.extendedProps.media_playlist
             }),
             credentials: 'same-origin'

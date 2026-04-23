@@ -23,3 +23,20 @@ class DefaultImageForm(FlaskForm):
         ],
     )
     submit = SubmitField("Upload and Replace")
+
+
+class ExportDataForm(FlaskForm):
+    export_db = BooleanField("Export Database (JSON)", default=True)
+    export_media = BooleanField("Export Media Files (Uploads)", default=True)
+    submit = SubmitField("Export Data")
+
+
+class ImportDataForm(FlaskForm):
+    file = FileField(
+        "Upload ZIP Archive",
+        validators=[
+            FileRequired(message="Please select a ZIP file."),
+            FileAllowed(["zip"], "ZIP Archives only!"),
+        ],
+    )
+    submit = SubmitField("Import and Restore")

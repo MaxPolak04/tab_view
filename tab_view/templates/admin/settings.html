@@ -4,10 +4,29 @@
 
 {% block content %}
 <div class="container py-5">
-    <div class="d-flex align-items-center mb-5">
-        <div>
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-5">
+        <div class="mb-3 mb-md-0">
             <h2 class="fw-bold mb-1">System Settings</h2>
-            <p class="text-muted mb-0">Manage core application defaults, system tags, and perform maintenance.</p>
+            <p class="text-muted mb-0">Manage core application defaults, system data, and perform maintenance.</p>
+        </div>
+
+        <div class="d-flex align-items-center bg-body border border-secondary-subtle rounded-pill px-4 py-3 shadow-sm">
+            <div class="text-primary me-3">
+                <i class="bi bi-clock-history fs-2"></i>
+            </div>
+            <div class="d-flex flex-column">
+                <div class="d-flex align-items-center mb-1">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill me-2" style="font-size: 0.75rem;">
+                        <i class="bi bi-hdd-network me-1"></i>NTP Server Time
+                    </span>
+                </div>
+                <div id="live-server-clock"
+                     class="fw-bold fs-3 text-body"
+                     style="font-variant-numeric: tabular-nums;"
+                     data-server-time="{{ server_time.isoformat() }}">
+                    --:--:--
+                </div>
+            </div>
         </div>
     </div>
 
@@ -27,7 +46,7 @@
             <div class="row align-items-center">
                 <div class="col-md-5 mb-4 mb-md-0 text-center">
                     <p class="text-muted small fw-bold text-uppercase mb-2">Current Default Image</p>
-                    <div class="border border-secondary-subtle rounded-4 bg-dark d-flex align-items-center justify-content-center mx-auto shadow-sm" style="height: 200px; width: 100%; max-width: 300px; overflow: hidden;">
+                    <div class="border border-secondary-subtle rounded-4 bg-body-secondary d-flex align-items-center justify-content-center mx-auto shadow-sm" style="height: 200px; width: 100%; max-width: 300px; overflow: hidden;">
                         <img src="{{ url_for('static', filename='uploads/default.png') }}?v={{ default_timestamp }}" alt="Default" class="w-100 h-100 object-fit-contain">
                     </div>
                 </div>
@@ -55,6 +74,77 @@
         </div>
     </div>
 
+    <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary mb-5">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-5">
+                <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                    <i class="bi bi-database-fill-gear fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fs-3 fw-bold mb-0">System Backup & Restore</h3>
+                    <p class="text-muted small mb-0">Export data to a safe ZIP file or restore from a previous backup.</p>
+                </div>
+            </div>
+
+            <div class="row g-5">
+                <div class="col-12 col-lg-6 border-end-lg border-secondary-subtle">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-cloud-download me-2"></i>Export Data</h5>
+                    <form action="{{ url_for('settings.export_data') }}" method="POST">
+                        {{ export_form.hidden_tag() }}
+
+                        <div class="mb-4 px-3 py-3 border border-secondary-subtle rounded-3 bg-body shadow-sm">
+                            <div class="form-check form-switch fs-5 mb-3">
+                                {{ export_form.export_db(class="form-check-input shadow-sm", id="exportDb", style="cursor: pointer;") }}
+                                {{ export_form.export_db.label(class="form-check-label text-body fw-bold", for="exportDb", style="cursor: pointer;") }}
+                                <div class="form-text small text-muted mt-1 fs-6">Creates a full JSON dump of models (Events, Devices, Users, etc.).</div>
+                            </div>
+                            <hr class="border-secondary-subtle">
+                            <div class="form-check form-switch fs-5">
+                                {{ export_form.export_media(class="form-check-input shadow-sm", id="exportMedia", style="cursor: pointer;") }}
+                                {{ export_form.export_media.label(class="form-check-label text-body fw-bold", for="exportMedia", style="cursor: pointer;") }}
+                                <div class="form-text small text-muted mt-1 fs-6">Packages all uploaded physical files from the media directory.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-start">
+                            {{ export_form.submit(class="btn btn-outline-success btn-lg px-4 shadow-sm rounded-pill fw-bold") }}
+                        </div>
+                    </form>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-cloud-upload me-2"></i>Import & Restore</h5>
+
+                    <div class="alert alert-warning shadow-sm mb-4 border border-warning rounded-4 p-3">
+                        <div class="d-flex">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3"></i>
+                            <div class="small text-body">
+                                <strong>DANGER:</strong> Restoring from a backup will wipe and overwrite the entire current database structure. All unsaved changes since the backup was made will be lost forever.
+                            </div>
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('settings.import_data') }}" method="POST" enctype="multipart/form-data">
+                        {{ import_form.hidden_tag() }}
+
+                        <div class="mb-4">
+                            {{ import_form.file(class="form-control form-control-lg shadow-sm rounded-3", accept=".zip") }}
+                            {% for error in import_form.file.errors %}
+                                <div class="text-danger small mt-2 fw-medium">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            {{ import_form.submit(class="btn btn-danger btn-lg px-4 shadow-sm rounded-pill fw-bold") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
         <div class="card-body p-4 p-md-5">
 
@@ -69,8 +159,8 @@
             </div>
 
             <div class="alert alert-warning shadow-sm mb-5 border rounded-4">
-                <h5 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Warning</h5>
-                <p class="mb-0">
+                <h5 class="alert-heading fw-bold text-body"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Warning</h5>
+                <p class="mb-0 text-body">
                     This tool permanently deletes events from the database that ended earlier than the specified number of months ago.
                     <strong>This action cannot be undone.</strong> Associated media entries in the schedule will also be deleted.
                     Always run a <strong>Preview (Dry Run)</strong> first.
@@ -109,19 +199,19 @@
 
             {% if cutoff_date %}
                 <div class="alert {{ 'alert-info' if dry_run_result else 'alert-success' }} mt-5 shadow-sm border-0 rounded-4">
-                    <h5 class="alert-heading fw-bold mb-3">
+                    <h5 class="alert-heading fw-bold mb-3 text-body">
                         {% if dry_run_result %}
-                            <i class="bi bi-eye-fill me-2"></i> Preview result
+                            <i class="bi bi-eye-fill me-2 text-info"></i> Preview result
                         {% else %}
-                            <i class="bi bi-check-circle-fill me-2"></i> Cleanup completed
+                            <i class="bi bi-check-circle-fill me-2 text-success"></i> Cleanup completed
                         {% endif %}
                     </h5>
-                    <p class="mb-2">
+                    <p class="mb-2 text-body">
                         Events with <strong>end time earlier than {{ cutoff_date.strftime('%Y-%m-%d %H:%M') }}</strong>
                         ({{ cleanup_form.months.data }} month{{ 's' if cleanup_form.months.data != 1 }} ago)
                         {% if dry_run_result %}would be{% else %}were{% endif %} affected.
                     </p>
-                    <p class="mb-0 fs-5">
+                    <p class="mb-0 fs-5 text-body">
                         <strong>{{ affected_count }}</strong> events match this condition.
                         {% if dry_run_result %}
                             <span class="text-primary fw-bold">No events were deleted (preview mode).</span>
@@ -132,7 +222,7 @@
 
                     {% if dry_run_result and events_to_delete %}
                         <hr class="my-4 border-info opacity-25">
-                        <h6 class="mb-3 fw-bold">Events to be deleted:</h6>
+                        <h6 class="mb-3 fw-bold text-body">Events to be deleted:</h6>
                         <div class="table-responsive border border-info border-opacity-25 shadow-sm rounded-4 bg-body" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light sticky-top">
@@ -162,4 +252,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 {% endblock %}
