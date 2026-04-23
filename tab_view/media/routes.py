@@ -41,8 +41,16 @@ def get_all_media():
     tags = Tag.query.all()
 
     active_tags = [t for t in tags if t.id in tag_filters]
+    custom_tags = [t for t in tags if not t.is_system]
+
     if not active_tags:
         active_tag_names = "All"
+    elif (
+        custom_tags
+        and len(active_tags) == len(custom_tags)
+        and all(not t.is_system for t in active_tags)
+    ):
+        active_tag_names = "All Custom Tags"
     elif len(active_tags) <= 2:
         active_tag_names = ", ".join([t.name for t in active_tags])
     else:

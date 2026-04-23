@@ -13,11 +13,11 @@ class CreateUserForm(FlaskForm):
             DataRequired(),
             Length(min=6, max=20),
             Regexp(
-                r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])[\w!@#$%^&*()\-_=+{}\[\]:;,.?]{6,20}$",
-                message="Password must be 6–20 characters long, contain \
-                    at least one lowercase letter, one uppercase letter, \
-                        and one special character. \
-                        Spaces and disallowed characters are not allowed.",
+                r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]+$",
+                message="Password must be 6-20 characters long, contain at least one \
+                    lowercase letter, one uppercase letter, one digit, and one special \
+                    character. Allowed special characters are strictly: \
+                        ! @ # $ % ^ & *",
             ),
         ],
     )
@@ -28,6 +28,7 @@ class CreateUserForm(FlaskForm):
             EqualTo("password", message="Passwords must match"),
         ],
     )
+    show_password = BooleanField("Show Password")
     is_admin = BooleanField("Is Admin", default=False, validators=[Optional()])
     submit = SubmitField("Add")
 
@@ -42,11 +43,11 @@ class UpdateUserForm(FlaskForm):
             Optional(),
             Length(min=6, max=20),
             Regexp(
-                r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])[\w!@#$%^&*()\-_=+{}\[\]:;,.?]{6,20}$",
-                message="Password must be 6–20 characters long, contain \
-                    at least one lowercase letter, \
-                    one uppercase letter, and one special character. \
-                        Spaces and disallowed characters are not allowed.",
+                r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]+$",
+                message="Password must be 6-20 characters long, contain at least one \
+                    lowercase letter, one uppercase letter, one digit, and one special \
+                    character. Allowed special characters are strictly: \
+                        ! @ # $ % ^ & *",
             ),
         ],
     )
@@ -54,6 +55,7 @@ class UpdateUserForm(FlaskForm):
         "Confirm Password",
         validators=[Optional(), EqualTo("password", message="Passwords must match")],
     )
+    show_password = BooleanField("Show Password")
     is_admin = BooleanField("Is Admin", default=False, validators=[Optional()])
     submit = SubmitField("Update")
 

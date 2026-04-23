@@ -59,6 +59,11 @@
                     {% endfor %}
                 </div>
 
+                <div class="form-check mb-4">
+                    {{ form.show_password(class="form-check-input shadow-sm", style="cursor: pointer;", id="show_password") }}
+                    {{ form.show_password.label(class="form-check-label text-muted", style="cursor: pointer;", for="show_password") }}
+                </div>
+
                 <div class="form-check mb-4 mt-3">
                     {% if user.username == 'admin' or user.id == current_user.id %}
                         {{ form.is_admin(class="form-check-input shadow-sm opacity-50", style="cursor: not-allowed;", onclick="return false;", tabindex="-1") }}

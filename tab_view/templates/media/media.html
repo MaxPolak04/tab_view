@@ -56,22 +56,58 @@
 
                                 <div class="mb-3 overflow-auto" style="max-height: 250px;">
 
+                                    {% set ns = namespace(custom_selected=0, system_selected=0, total_custom=0) %}
+                                    {% for t in tags %}
+                                        {% if not t.is_system %}
+                                            {% set ns.total_custom = ns.total_custom + 1 %}
+                                        {% endif %}
+                                        {% if t.id in current_tags %}
+                                            {% if t.is_system %}
+                                                {% set ns.system_selected = ns.system_selected + 1 %}
+                                            {% else %}
+                                                {% set ns.custom_selected = ns.custom_selected + 1 %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+
                                     <div class="form-check mb-2 border-bottom pb-2">
                                         <input class="form-check-input" type="checkbox" id="tagCheckAll"
                                             {% if not current_tags %}checked{% endif %}
-                                            onclick="document.querySelectorAll('input[name=tag]').forEach(el => el.checked = false); this.checked = true;">
+                                            onclick="document.querySelectorAll('input[name=tag]').forEach(el => el.checked = false); document.getElementById('tagCheckCustom').checked = false; this.checked = true;">
                                         <label class="form-check-label fw-bold" for="tagCheckAll">
                                             All Tags
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-2 border-bottom pb-2">
+                                        <input class="form-check-input" type="checkbox" id="tagCheckCustom"
+                                            {% if current_tags and ns.custom_selected == ns.total_custom and ns.system_selected == 0 %}checked{% endif %}
+                                            onclick="
+                                                const isChecked = this.checked;
+                                                document.querySelectorAll('input[name=tag]').forEach(el => {
+                                                    el.checked = isChecked ? (el.dataset.system !== 'True') : false;
+                                                });
+                                                document.getElementById('tagCheckAll').checked = !isChecked && Array.from(document.querySelectorAll('input[name=tag]')).every(el => !el.checked);
+                                            ">
+                                        <label class="form-check-label fw-bold" for="tagCheckCustom">
+                                            All Custom Tags (No System)
                                         </label>
                                     </div>
 
                                     {% for t in tags %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="tag" value="{{ t.id }}" id="tagCheck{{ t.id }}"
+                                            data-system="{{ t.is_system }}"
                                             {% if t.id in current_tags %}checked{% endif %}
-                                            onclick="document.getElementById('tagCheckAll').checked = false;">
+                                            onclick="
+                                                document.getElementById('tagCheckAll').checked = false;
+                                                document.getElementById('tagCheckCustom').checked = false;
+                                            ">
                                         <label class="form-check-label" for="tagCheck{{ t.id }}">
                                             {{ t.name }}
+                                            {% if t.is_system %}
+                                            <span class="badge bg-secondary-subtle text-secondary ms-1" style="font-size: 0.65em;">System</span>
+                                            {% endif %}
                                         </label>
                                     </div>
                                     {% endfor %}
@@ -176,36 +212,36 @@
     </div>
 
     <nav class="mt-5 d-flex justify-content-center" aria-label="Page navigation">
-    <ul class="pagination pagination-custom shadow-sm">
+        <ul class="pagination pagination-custom shadow-sm">
 
-        <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
-            <a class="page-link" href="{{ url_for('media.get_all_media', page=1, tag=current_tags, sort=current_sort) }}">
-                <i class="bi bi-chevron-double-left"></i>
-            </a>
-        </li>
+            <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
+                <a class="page-link" href="{{ url_for('media.get_all_media', page=1, tag=current_tags, sort=current_sort) }}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
 
-        {% for p in pagination.iter_pages(left_edge=1, left_current=3, right_current=3, right_edge=1) %}
-            {% if p %}
-                {% if p == pagination.page %}
-                    <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% for p in pagination.iter_pages(left_edge=1, left_current=3, right_current=3, right_edge=1) %}
+                {% if p %}
+                    {% if p == pagination.page %}
+                        <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('media.get_all_media', page=p, tag=current_tags, sort=current_sort) }}">{{ p }}</a>
+                        </li>
+                    {% endif %}
                 {% else %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('media.get_all_media', page=p, tag=current_tags, sort=current_sort) }}">{{ p }}</a>
-                    </li>
+                    <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
                 {% endif %}
-            {% else %}
-                <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
-            {% endif %}
-        {% endfor %}
+            {% endfor %}
 
-        <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
-            <a class="page-link" href="{{ url_for('media.get_all_media', page=pagination.pages, tag=current_tags, sort=current_sort) }}">
-                <i class="bi bi-chevron-double-right"></i>
-            </a>
-        </li>
+            <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
+                <a class="page-link" href="{{ url_for('media.get_all_media', page=pagination.pages, tag=current_tags, sort=current_sort) }}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
 
-    </ul>
-</nav>
+        </ul>
+    </nav>
 </div>
 {% endblock %}
 
