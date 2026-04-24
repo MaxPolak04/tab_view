@@ -176,6 +176,7 @@ def export_data():
     form = ExportDataForm()
     if form.validate_on_submit():
         memory_file = io.BytesIO()
+        export_details = []
 
         # Create ZIP archive in memory
         with zipfile.ZipFile(memory_file, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -273,20 +274,30 @@ def export_data():
                     ],
                 }
                 zf.writestr("db_dump.json", json.dumps(db_data))
+                export_details.append("Database (JSON)")
 
             # Export Media Files
             if form.export_media.data:
                 uploads_dir = os.path.join(current_app.static_folder, "uploads")
+                file_count = 0
                 for root, _, files in os.walk(uploads_dir):
                     for file in files:
                         file_path = os.path.join(root, file)
                         # We store them in the zip under "uploads/" directory
                         zf.write(file_path, arcname=os.path.join("uploads", file))
+                        file_count += 1
+                export_details.append(f"Media Files ({file_count} files)")
 
         memory_file.seek(0)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        log_audit_action("EXPORT", "System", "Performed system data export.")
+        # Compile dynamic log message
+        details_str = " and ".join(export_details) if export_details else "Nothing"
+        log_msg = f"Performed system data export containing: {details_str}."
+
+        logger.info(f"Admin {current_user.id} exported data: {details_str}")
+        log_audit_action("EXPORT", "System", log_msg)
+
         return send_file(
             memory_file,
             download_name=f"tabview_export_{timestamp_str}.zip",
@@ -307,6 +318,8 @@ def import_data():
 
         try:
             with zipfile.ZipFile(file, "r") as zf:
+                import_details = []
+
                 # 1. Restore DB if json exists in the archive
                 if "db_dump.json" in zf.namelist():
                     with zf.open("db_dump.json") as f:
@@ -364,10 +377,18 @@ def import_data():
                         db.session.add(AuditLog(**item))
                     db.session.commit()
 
+                    import_details.append("Database structure")
+
                 # 2. Extract media files if they exist
                 uploads_dir = os.path.join(current_app.static_folder, "uploads")
-                for member in zf.namelist():
-                    if member.startswith("uploads/") and member != "uploads/":
+                media_files = [
+                    m
+                    for m in zf.namelist()
+                    if m.startswith("uploads/") and m != "uploads/"
+                ]
+
+                if media_files:
+                    for member in media_files:
                         filename = os.path.basename(member)
                         target_path = os.path.join(uploads_dir, filename)
                         with (
@@ -375,8 +396,18 @@ def import_data():
                             open(target_path, "wb") as target,
                         ):
                             shutil.copyfileobj(source, target)
+                    import_details.append(f"{len(media_files)} Media Files")
 
-            log_audit_action("IMPORT", "System", "Restored system data from archive.")
+            # Compile dynamic log message
+            details_str = (
+                " and ".join(import_details)
+                if import_details
+                else "No recognizable data"
+            )
+            log_msg = f"Restored system data from archive containing: {details_str}."
+
+            logger.info(f"Admin {current_user.id} imported data: {details_str}")
+            log_audit_action("IMPORT", "System", log_msg)
             flash("System data has been successfully imported and restored.", "success")
 
         except Exception as e:
