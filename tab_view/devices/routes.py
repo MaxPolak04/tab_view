@@ -210,7 +210,7 @@ def update_device(device_id):
 
     # Filter out System tags and media
     tags = Tag.query.filter_by(is_system=False).all()
-    media_list = Media.query.join(Tag).filter(not Tag.is_system).all()
+    media_list = Media.query.join(Tag).filter(~Tag.is_system).all()
 
     if not media_list:
         flash("No media available. Add a file before updating the device.", "warning")
@@ -301,7 +301,7 @@ def device_schedule(device_id):
 
     # Filter out System tags and media
     tags = Tag.query.filter_by(is_system=False).all()
-    media_list = Media.query.join(Tag).filter(not Tag.is_system).all()
+    media_list = Media.query.join(Tag).filter(~Tag.is_system).all()
 
     return render_template(
         "devices/device-schedule.html",
