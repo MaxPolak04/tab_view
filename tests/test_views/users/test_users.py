@@ -34,8 +34,8 @@ def test_create_user_success(admin_client):
         url_for("users.create_user"),
         data={
             "username": "new_emp",
-            "password": "SecretPassword123!",
-            "confirm_password": "SecretPassword123!",
+            "password": "SecretPassword123!",  # nosec
+            "confirm_password": "SecretPassword123!",  # nosec
         },
         follow_redirects=True,
     )
@@ -48,7 +48,7 @@ def test_create_user_success(admin_client):
     new_user = User.query.filter_by(username="new_emp").first()
     assert new_user is not None
     assert check_password_hash(new_user.password, "SecretPassword123!")
-    assert new_user.is_admin is False  # Teraz to przejdzie
+    assert new_user.is_admin is False
 
 
 def test_create_duplicate_user_fails(admin_client, init_database):
@@ -65,8 +65,8 @@ def test_create_duplicate_user_fails(admin_client, init_database):
         url_for("users.create_user"),
         data={
             "username": "existing_user",
-            "password": "SecretPassword123!",
-            "confirm_password": "SecretPassword123!",
+            "password": "SecretPassword123!",  # nosec
+            "confirm_password": "SecretPassword123!",  # nosec
         },
         follow_redirects=True,
     )
@@ -94,8 +94,8 @@ def test_update_user_change_password(admin_client, init_database):
         url_for("users.update_user", user_id=user.id),
         data={
             "username": "staff",
-            "password": "NewPassword123!",
-            "confirm_password": "NewPassword123!",
+            "password": "NewPassword123!",  # nosec
+            "confirm_password": "NewPassword123!",  # nosec
         },
         follow_redirects=True,
     )

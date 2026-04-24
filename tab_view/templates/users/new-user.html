@@ -50,6 +50,11 @@
                     {% endfor %}
                 </div>
 
+                <div class="form-check mb-4">
+                    {{ form.show_password(class="form-check-input shadow-sm", style="cursor: pointer;", id="show_password") }}
+                    {{ form.show_password.label(class="form-check-label text-muted", style="cursor: pointer;", for="show_password") }}
+                </div>
+
                 <div class="form-check mb-4 mt-3">
                     {{ form.is_admin(class="form-check-input shadow-sm", style="cursor: pointer;") }}
                     {{ form.is_admin.label(class="form-check-label fw-bold", style="cursor: pointer;") }}

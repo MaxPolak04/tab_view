@@ -9,7 +9,7 @@ from sqlalchemy import and_
 
 from tab_view import limiter
 from tab_view.models import Device, Event, EventMedia, db
-from tab_view.utils import error_response
+from tab_view.utils import error_response, log_audit_action
 
 logger = logging.getLogger(__name__)
 
@@ -88,41 +88,6 @@ class EventResource(Resource):
     def get(self, event_id=None):
         """
         Retrieve events or a specific event by ID.
-        ---
-        tags:
-          - Events
-        parameters:
-          - name: event_id
-            in: path
-            type: integer
-            required: false
-            description: ID of a specific event to fetch
-          - name: device_id
-            in: query
-            type: integer
-            required: false
-            description: Filter events by a specific device
-          - name: start
-            in: query
-            type: string
-            required: false
-            description: Filter start time boundary (ISO 8601). \
-                Defaults to current month start.
-          - name: end
-            in: query
-            type: string
-            required: false
-            description: Filter end time boundary (ISO 8601). \
-                Defaults to current month end.
-        responses:
-          200:
-            description: A list of events or a single event object
-          400:
-            description: Invalid date format
-          404:
-            description: Event or Device not found
-          500:
-            description: Internal server error
         """
         try:
             if event_id:
@@ -187,58 +152,7 @@ class EventResource(Resource):
     def post(self):
         """
         Create a new event or group of events across multiple devices.
-        ---
-        tags:
-          - Events
-        parameters:
-          - in: body
-            name: body
-            required: true
-            schema:
-              type: object
-              required:
-                - title
-                - start_time
-                - end_time
-                - media_playlist
-              properties:
-                title:
-                  type: string
-                  example: "Summer Promo Campaign"
-                start_time:
-                  type: string
-                  example: "2024-06-01T08:00:00"
-                end_time:
-                  type: string
-                  example: "2024-06-01T18:00:00"
-                color:
-                  type: string
-                  example: "#FF5733"
-                device_ids:
-                  type: array
-                  items:
-                    type: integer
-                  example: [1, 2, 3]
-                media_playlist:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      media_id:
-                        type: integer
-                      duration:
-                        type: integer
-                      order:
-                        type: integer
-        responses:
-          201:
-            description: Events created successfully
-          400:
-            description: Validation errors (missing fields, invalid dates)
-          404:
-            description: Device not found
-          409:
-            description: Schedule overlap detected
+        Allows empty media_playlist for 'text_only' events.
         """
         try:
             data = request.get_json()
@@ -246,14 +160,13 @@ class EventResource(Resource):
                 return error_response("Request body must be JSON", 400)
 
             device_ids = data.get("device_ids", [])
-            # Support fallback for legacy single-device calendar
             if "device_id" in data and not device_ids:
                 device_ids = [data["device_id"]]
 
             if not device_ids:
                 return error_response("Missing required field: device_ids", 400)
 
-            required_fields = ["title", "start_time", "end_time", "media_playlist"]
+            required_fields = ["title", "start_time", "end_time"]
             missing_fields = [field for field in required_fields if not data.get(field)]
 
             if missing_fields:
@@ -267,11 +180,8 @@ class EventResource(Resource):
             if len(data["title"]) > 50:
                 return error_response("Title is too long (max 50 characters)", 400)
 
-            if (
-                not isinstance(data["media_playlist"], list)
-                or len(data["media_playlist"]) == 0
-            ):
-                return error_response("Playlist must be a non-empty array", 400)
+            if not isinstance(data.get("media_playlist", []), list):
+                return error_response("Playlist must be an array", 400)
 
             try:
                 start_time = datetime.fromisoformat(data["start_time"].replace("Z", ""))
@@ -282,10 +192,11 @@ class EventResource(Resource):
             if start_time >= end_time:
                 return error_response("End time must be after start time", 400)
 
+            show_clock = data.get("show_clock", False)
+
             group_id = str(uuid.uuid4())
             created_events = []
 
-            # Check overlap for all requested devices first
             for dev_id in device_ids:
                 device = Device.query.get(dev_id)
                 if not device:
@@ -304,7 +215,6 @@ class EventResource(Resource):
                         409,
                     )
 
-            # Create events for all selected devices
             for dev_id in device_ids:
                 new_event = Event(
                     group_id=group_id,
@@ -313,11 +223,13 @@ class EventResource(Resource):
                     end_time=end_time,
                     device_id=dev_id,
                     color=data.get("color", "#3788d8"),
+                    show_clock=show_clock,
                 )
                 db.session.add(new_event)
                 db.session.flush()
 
-                for idx, item in enumerate(data["media_playlist"]):
+                # Iterate securely, skips naturally if empty (text_only mode)
+                for idx, item in enumerate(data.get("media_playlist", [])):
                     duration = item.get("duration", 10)
                     if not isinstance(duration, int) or duration < 1 or duration > 300:
                         duration = 10
@@ -333,6 +245,14 @@ class EventResource(Resource):
                 created_events.append(new_event)
 
             db.session.commit()
+
+            log_audit_action(
+                "CREATE",
+                "Event",
+                f"Created event '{data['title'].strip()}' \
+                    on {len(device_ids)} device(s).",
+            )
+
             return {
                 "message": "Events created successfully",
                 "events": [e.to_dict() for e in created_events],
@@ -348,46 +268,7 @@ class EventResource(Resource):
     def put(self, event_id):
         """
         Update an existing event or event group.
-        ---
-        tags:
-          - Events
-        parameters:
-          - name: event_id
-            in: path
-            type: integer
-            required: true
-            description: The ID of the specific event to update
-          - in: body
-            name: body
-            required: true
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                start_time:
-                  type: string
-                end_time:
-                  type: string
-                color:
-                  type: string
-                device_ids:
-                  type: array
-                  items:
-                    type: integer
-                media_playlist:
-                  type: array
-                  items:
-                    type: object
-        responses:
-          200:
-            description: Group events updated successfully
-          400:
-            description: Validation errors
-          404:
-            description: Event not found
-          409:
-            description: Schedule overlap detected
+        Allows empty media_playlist for 'text_only' events.
         """
         try:
             event = Event.query.get(event_id)
@@ -405,6 +286,7 @@ class EventResource(Resource):
             device_ids = data.get("device_ids", [event.device_id])
             title = data.get("title", event.title).strip()
             color = data.get("color", event.color)
+            show_clock = data.get("show_clock", event.show_clock)
 
             try:
                 start_time = datetime.fromisoformat(
@@ -442,6 +324,8 @@ class EventResource(Resource):
                         409,
                     )
 
+            # Accept explicit empty list `[]` as intended clear,
+            # fallback to old only if `None`
             playlist_data = data.get("media_playlist")
             if playlist_data is None:
                 playlist_data = [
@@ -471,6 +355,7 @@ class EventResource(Resource):
                     end_time=end_time,
                     device_id=dev_id,
                     color=color,
+                    show_clock=show_clock,
                 )
                 db.session.add(new_event)
                 db.session.flush()
@@ -494,6 +379,12 @@ class EventResource(Resource):
                 f"by User {current_user.id}"
             )
 
+            log_audit_action(
+                "UPDATE",
+                "Event",
+                f"Updated event '{title}' on {len(device_ids)} device(s).",
+            )
+
             return {
                 "message": "Group events updated successfully",
                 "events": [e.to_dict() for e in updated_events],
@@ -509,22 +400,6 @@ class EventResource(Resource):
     def delete(self, event_id):
         """
         Delete an event and its entire associated group.
-        ---
-        tags:
-          - Events
-        parameters:
-          - name: event_id
-            in: path
-            type: integer
-            required: true
-            description: The ID of the event to delete
-        responses:
-          200:
-            description: Event group deleted successfully
-          404:
-            description: Event not found
-          500:
-            description: Internal server error
         """
         try:
             event = Event.query.get(event_id)
@@ -548,6 +423,8 @@ class EventResource(Resource):
                     (Group ID: {group_id or 'None'})"
                 f"by User {current_user.id}"
             )
+
+            log_audit_action("DELETE", "Event", f"Deleted event '{event_title}'.")
 
             return {"message": "Event group deleted successfully"}, 200
 

@@ -407,6 +407,7 @@ def test_delete_system_tag_blocked(admin_client, init_database):
     """
     Verifies that system-level tags are protected from deletion.
     """
+
     tag = Tag(name="System UI", is_system=True)
     init_database.session.add(tag)
     init_database.session.commit()
@@ -416,7 +417,5 @@ def test_delete_system_tag_blocked(admin_client, init_database):
         follow_redirects=True,
     )
 
-    # Note: We encode the string to bytes safely to match
-    # the flash message containing Polish characters.
-    assert "Nie można usunąć systemowego tagu.".encode("utf-8") in response.data
+    assert b"You cannot delete a system tag." in response.data
     assert Tag.query.get(tag.id) is not None

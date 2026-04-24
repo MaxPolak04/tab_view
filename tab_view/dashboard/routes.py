@@ -8,9 +8,12 @@ from tab_view.models import Device, Media, Tag
 @dashboard_bp.route("/")
 @login_required
 def index():
-    devices = Device.query.all()
-    media_list = Media.query.all()
-    tags = Tag.query.all()
+    # Sort devices A-Z by default at DB level
+    devices = Device.query.order_by(Device.name.asc()).all()
+
+    # Filter out System tags and their corresponding media
+    tags = Tag.query.filter_by(is_system=False).all()
+    media_list = Media.query.join(Tag).filter(not Tag.is_system).all()
 
     return render_template(
         "dashboard/index.html",

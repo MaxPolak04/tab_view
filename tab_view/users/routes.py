@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 
 from tab_view import db
 from tab_view.models import User
-from tab_view.utils import admin_required
+from tab_view.utils import admin_required, log_audit_action
 
 from . import users_bp
 from .forms import CreateUserForm, DeleteUserForm, UpdateUserForm
@@ -56,6 +56,14 @@ def create_user():
                 f"User created: {username} (ID: {new_user.id}, Admin: "
                 f"{is_admin}) by Admin {current_user.id}"
             )
+
+            # --- AUDIT LOG ---
+            log_audit_action(
+                "CREATE",
+                "User",
+                f"Created account for '{username}' (Admin privileges: {is_admin}).",
+            )
+
             flash("User created successfully!", "success")
             return redirect(url_for("users.get_all_users"))
 
@@ -88,8 +96,8 @@ def update_user(user_id):
         if user.username == "admin":
             if not form.is_admin.data:
                 logger.warning(
-                    f"Admin {current_user.id} attempted to revoke built-in \
-                        'admin' privileges."
+                    f"Admin {current_user.id} attempted to revoke built-in "
+                    "'admin' privileges."
                 )
                 flash(
                     "You cannot revoke privileges from the built-in 'admin' account.",
@@ -99,17 +107,19 @@ def update_user(user_id):
 
             if form.username.data != "admin":
                 logger.warning(
-                    f"Admin {current_user.id} attempted to \
-                        rename the built-in 'admin' account."
+                    f"Admin {current_user.id} attempted to "
+                    "rename the built-in 'admin' account."
                 )
                 flash("You cannot rename the built-in 'admin' account.", "danger")
                 return redirect(url_for("users.update_user", user_id=user.id))
 
         old_username = user.username
         user.username = form.username.data
+        password_changed = False
 
         if form.password.data:
             user.password = generate_password_hash(form.password.data)
+            password_changed = True
             logger.info(
                 f"Password changed for user ID {user.id} by Admin {current_user.id}"
             )
@@ -123,6 +133,17 @@ def update_user(user_id):
                 f"User updated: {old_username} -> {user.username} "
                 f"(ID: {user.id}) by Admin {current_user.id}"
             )
+
+            # --- AUDIT LOG ---
+            audit_details = f"Updated user '{old_username}'."
+            if old_username != user.username:
+                audit_details += f" Renamed to '{user.username}'."
+            if password_changed:
+                audit_details += " Password was reset."
+            audit_details += f" Admin privileges: {user.is_admin}."
+
+            log_audit_action("UPDATE", "User", audit_details.strip())
+
             flash("User updated successfully!", "success")
             return redirect(url_for("users.get_all_users"))
 
@@ -171,6 +192,10 @@ def delete_user(user_id):
         logger.info(
             f"User deleted: {username} (ID: {user_id}) by Admin {current_user.id}"
         )
+
+        # --- AUDIT LOG ---
+        log_audit_action("DELETE", "User", f"Permanently deleted account '{username}'.")
+
         flash("User deleted successfully!", "success")
 
     except Exception as e:

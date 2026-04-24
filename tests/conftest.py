@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from werkzeug.security import generate_password_hash
 
@@ -6,17 +8,38 @@ from tab_view.config import TestingConfig
 from tab_view.models import User
 
 
-@pytest.fixture(scope="module")
-def app(tmp_path_factory):
+@pytest.fixture(scope="session", autouse=True)
+def prevent_scheduler_crash():
     """
-    Creates an application instance using a temporary directory for static files.
+    Global patch for APScheduler to prevent threading crashes during the test session.
+
+    APScheduler operates as a background singleton. Calling `create_app` multiple
+    times across a test suite attempts to spawn duplicate background threads,
+    resulting in a fatal `SchedulerAlreadyRunningError`. This mock ensures
+    `init_app` and `start` are silently bypassed.
     """
-    temp_static_dir = tmp_path_factory.mktemp("static")
-    temp_uploads_dir = temp_static_dir / "uploads"
+    with (
+        patch("flask_apscheduler.APScheduler.init_app"),
+        patch("flask_apscheduler.APScheduler.start"),
+    ):
+        yield
+
+
+@pytest.fixture(scope="function")
+def app(tmp_path):
+    """
+    Yields a fresh, isolated Flask application context for each test.
+
+    Overrides `app.static_folder` using Pytest's `tmp_path` to guarantee a sterile
+    `/uploads` directory per test. This strictly prevents file state leakage
+    (Test Pollution) where artifacts from Test A affect Test B.
+    """
+    temp_uploads_dir = tmp_path / "uploads"
     temp_uploads_dir.mkdir()
 
     app = create_app(TestingConfig)
-    app.static_folder = str(temp_static_dir)
+    app.static_folder = str(tmp_path)
+
     with app.app_context():
         yield app
 
@@ -24,16 +47,16 @@ def app(tmp_path_factory):
 @pytest.fixture(scope="function")
 def client(app):
     """
-    A client for testing HTTP endpoints.
+    Provides a Flask test client for HTTP endpoint simulation.
     """
     with app.test_client() as client:
         yield client
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def runner(app):
     """
-    Runner for testing CLI commands
+    Provides a Flask CLI test runner for custom commands.
     """
     return app.test_cli_runner()
 
@@ -41,13 +64,21 @@ def runner(app):
 @pytest.fixture(scope="function")
 def init_database(app):
     """
-    Initializes the database
+    Initializes a sterile database schema before each test
+    and safely destroys it afterward.
+
+    CRITICAL: `db.session.rollback()` must execute before
+    `db.drop_all()`. If a test fails mid-execution, an open,
+    uncommitted transaction will lock
+    the SQLite database, causing cascade `IntegrityError`
+    failures in all subsequent tests.
     """
     with app.app_context():
         db.create_all()
 
         yield db
 
+        db.session.rollback()
         db.session.remove()
         db.drop_all()
 
@@ -55,13 +86,15 @@ def init_database(app):
 @pytest.fixture(scope="function")
 def new_user(init_database):
     """
-    Creates a sample user with a known password.
-    Returns the user object.
+    Seeds the database with a standard non-admin user.
+
+    Dynamically attaches `raw_password` to the model instance to allow test
+    functions to authenticate easily without hardcoding credentials.
     """
     password = "test_password"  # nosec
     hashed = generate_password_hash(password)
 
-    user = User(username="testuser", password=hashed, is_admin=False)  # nosec
+    user = User(username="testuser", password=hashed, is_admin=False)
 
     init_database.session.add(user)
     init_database.session.commit()
@@ -74,8 +107,7 @@ def new_user(init_database):
 @pytest.fixture(scope="function")
 def auth_client(client, new_user):
     """
-    Returns a test client logged in as 'new_user'.
-    Notice how we request 'new_user' as an argument!
+    Returns an HTTP test client pre-authenticated as a standard user.
     """
     client.post(
         "/auth/signin",
@@ -89,12 +121,12 @@ def auth_client(client, new_user):
 @pytest.fixture(scope="function")
 def admin_client(client, init_database):
     """
-    Returns a test client logged in as an Administrator.
+    Returns an HTTP test client pre-authenticated as a System Administrator.
     """
     password = "admin_password"  # nosec
     hashed = generate_password_hash(password)
 
-    admin = User(username="admin", password=hashed, is_admin=True)  # nosec
+    admin = User(username="admin", password=hashed, is_admin=True)
 
     init_database.session.add(admin)
     init_database.session.commit()

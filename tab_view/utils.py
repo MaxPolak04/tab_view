@@ -3,7 +3,7 @@ import sys
 import time
 from functools import wraps
 
-from flask import abort, jsonify
+from flask import abort, jsonify, request
 from flask_limiter.util import get_remote_address
 from flask_login import current_user, login_required
 from sqlalchemy import literal, select
@@ -84,3 +84,37 @@ def configure_logging(app):
     app.logger.handlers.clear()
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
+
+
+def log_audit_action(action, entity_type, details):
+    """
+    Saves an event in the audit log.
+    Usage e.g.: log_audit_action("UPDATE", "Media", "Changed tag for video.mp4")
+    """
+    from datetime import datetime
+
+    from tab_view import db
+    from tab_view.models import AuditLog
+
+    ip_address = None
+    if request:
+        ip_address = request.remote_addr
+
+    user_id = (
+        current_user.id if current_user and current_user.is_authenticated else None
+    )
+
+    try:
+        log_entry = AuditLog(
+            timestamp=datetime.now(),
+            user_id=user_id,
+            action=action,
+            entity_type=entity_type,
+            details=details,
+            ip_address=ip_address,
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logging.getLogger(__name__).error(f"Failed to save audit log: {e}")

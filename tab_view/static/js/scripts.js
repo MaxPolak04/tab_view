@@ -126,3 +126,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     handleCurrentYear();
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    const showPasswordCheckbox = document.getElementById("show_password");
+    const passwordFields = document.querySelectorAll("input[type='password'], input[data-toggle-password]");
+
+    if (showPasswordCheckbox) {
+        showPasswordCheckbox.addEventListener("change", function() {
+            const type = this.checked ? "text" : "password";
+            passwordFields.forEach(field => {
+                field.type = type;
+                // Add a custom attribute so we don't lose track of which inputs are password inputs
+                field.setAttribute("data-toggle-password", "true");
+            });
+        });
+    }
+});

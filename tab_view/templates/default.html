@@ -16,10 +16,13 @@
         <img src="{{ url_for('static', filename='uploads/default.jpg') }}" alt="default img" class="default-img">
     </main>
 
+    {% include 'layout/clock.html' %}
+
     <!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
 
     <!-- JS -->
+     <script src="{{ url_for('static', filename='js/clock.js') }}"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>

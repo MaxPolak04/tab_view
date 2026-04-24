@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 
 from tab_view import db
 from tab_view.models import Device, Media, Tag
-from tab_view.utils import admin_required, detect_type
+from tab_view.utils import admin_required, detect_type, log_audit_action
 
 from . import media_bp
 from .forms import MediaDeleteForm, MediaUpdateForm, MediaUploadForm, TagForm
@@ -41,8 +41,16 @@ def get_all_media():
     tags = Tag.query.all()
 
     active_tags = [t for t in tags if t.id in tag_filters]
+    custom_tags = [t for t in tags if not t.is_system]
+
     if not active_tags:
         active_tag_names = "All"
+    elif (
+        custom_tags
+        and len(active_tags) == len(custom_tags)
+        and all(not t.is_system for t in active_tags)
+    ):
+        active_tag_names = "All Custom Tags"
     elif len(active_tags) <= 2:
         active_tag_names = ", ".join([t.name for t in active_tags])
     else:
@@ -100,6 +108,14 @@ def new_media():
                         f"Created new tag '{clean_tag_name}' "
                         f"(ID: {new_tag.id}) during upload by User {current_user.id}"
                     )
+
+                    # --- AUDIT LOG ---
+                    log_audit_action(
+                        "CREATE",
+                        "Tag",
+                        f"Created new tag '{clean_tag_name}' during media upload.",
+                    )
+
                 except Exception as e:
                     db.session.rollback()
                     logger.error(f"Error creating tag '{clean_tag_name}': {e}")
@@ -163,6 +179,14 @@ def new_media():
 
         if success_count > 0:
             db.session.commit()
+
+            # --- AUDIT LOG ---
+            log_audit_action(
+                "CREATE",
+                "Media",
+                f"Successfully uploaded {success_count} new media file(s).",
+            )
+
             flash(f"Successfully uploaded {success_count} file(s)!", "success")
 
         if skipped_files:
@@ -184,8 +208,8 @@ def update_media(media_id):
     # SYSTEM PROTECTION BLOCK - Prevents access to the page entirely
     if media.id == 1:
         logger.warning(
-            f"User {current_user.id} attempted to access \
-                edit page for System Media (ID 1)"
+            f"User {current_user.id} attempted to access "
+            f"edit page for System Media (ID 1)"
         )
         flash(
             "System security: You cannot edit the default system file.",
@@ -230,6 +254,12 @@ def update_media(media_id):
                 return redirect(url_for("media.update_media", media_id=media.id))
 
         db.session.commit()
+
+        # --- AUDIT LOG ---
+        log_audit_action(
+            "UPDATE", "Media", f"Updated media details for file '{full_filename}'."
+        )
+
         flash("Media updated successfully!", "success")
         return redirect(url_for("media.get_all_media"))
 
@@ -253,8 +283,8 @@ def delete_media(media_id):
 
     if media_id == 1:
         logger.warning(
-            f"User {current_user.id} attempted to delete DEFAULT media (ID 1)\
-                  - Action blocked"
+            f"User {current_user.id} attempted to delete DEFAULT media (ID 1) "
+            "- Action blocked"
         )
         flash("Cannot delete the default image.", "danger")
         return redirect(url_for("media.get_all_media"))
@@ -267,8 +297,8 @@ def delete_media(media_id):
     if devices_using_media:
         count = len(devices_using_media)
         logger.info(
-            f"Resetting media to default for {count} \
-                devices linked to media ID {media_id}"
+            f"Resetting media to default for {count} "
+            f"devices linked to media ID {media_id}"
         )
         for device in devices_using_media:
             device.media_id = 1
@@ -283,17 +313,19 @@ def delete_media(media_id):
         else:
             logger.warning(f"Physical file not found: {filename}")
 
-        logger.info(
-            f"Media deleted successfully: {filename} \
-                    (ID: {media_id})"
+        logger.info(f"Media deleted successfully: {filename} (ID: {media_id})")
+
+        # --- AUDIT LOG ---
+        log_audit_action(
+            "DELETE", "Media", f"Permanently deleted media file '{filename}'."
         )
+
         flash("File deleted successfully.", "success")
 
     except IntegrityError:
         db.session.rollback()
         logger.warning(
-            f"Delete failed: Media {media_id} is in use elsewhere \
-                (IntegrityError)."
+            f"Delete failed: Media {media_id} is in use elsewhere (IntegrityError)."
         )
         flash(
             "Cannot delete this file because it is assigned to an Event. "
@@ -303,10 +335,7 @@ def delete_media(media_id):
 
     except Exception as e:
         db.session.rollback()
-        logger.error(
-            f"Critical error during media deletion ID \
-                     {media_id}: {str(e)}"
-        )
+        logger.error(f"Critical error during media deletion ID {media_id}: {str(e)}")
         flash(f"An unexpected error occurred: {str(e)}", "danger")
 
     return redirect(url_for("media.get_all_media"))
@@ -320,6 +349,10 @@ def manage_tags():
         new_tag = Tag(name=form.name.data)
         db.session.add(new_tag)
         db.session.commit()
+
+        # --- AUDIT LOG ---
+        log_audit_action("CREATE", "Tag", f"Created new tag '{new_tag.name}'.")
+
         flash("Tag added!", "success")
         return redirect(url_for("media.manage_tags"))
 
@@ -334,11 +367,8 @@ def delete_tag(tag_id):
 
     # PROTECTION AGAINST DELETION OF THE SYSTEM TAG
     if tag.is_system:
-        logger.warning(
-            f"User {current_user.id} tried \
-                       to delete system tag {tag.name}"
-        )
-        flash("Nie można usunąć systemowego tagu.", "danger")
+        logger.warning(f"User {current_user.id} tried to delete system tag {tag.name}")
+        flash("You cannot delete a system tag.", "danger")
         return redirect(url_for("media.manage_tags"))
 
     associated_media = Media.query.filter_by(tag_id=tag.id).all()
@@ -369,9 +399,17 @@ def delete_tag(tag_id):
             f"Tag '{tag.name}' deleted along with {media_count} files "
             f"by User {current_user.id}"
         )
+
+        # --- AUDIT LOG ---
+        log_audit_action(
+            "DELETE",
+            "Tag",
+            f"Deleted tag '{tag.name}' and {media_count} associated media file(s).",
+        )
+
         flash(
-            f'Tag "{tag.name}" and {media_count} associated file(s) \
-                were deleted successfully.',
+            f'Tag "{tag.name}" and {media_count} associated file(s) '
+            f"were deleted successfully.",
             "success",
         )
 

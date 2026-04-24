@@ -4,6 +4,8 @@ from flask import jsonify, render_template, request
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 
+from tab_view.utils import log_audit_action
+
 from . import errors_bp
 
 logger = logging.getLogger(__name__)
@@ -28,9 +30,16 @@ def handle_http_error(error):
         else f"IP: {request.remote_addr}"
     )
     logger.warning(
-        f"HTTP {error.code}: {error.name} - Path: \
-            {request.path} ({user_info})"
+        f"HTTP {error.code}: {error.name} - Path: {request.path} ({user_info})"
     )
+
+    if error.code in [401, 403] and current_user.is_authenticated:
+        log_audit_action(
+            "SECURITY",
+            "System",
+            f"Blocked unauthorized access attempt to '{request.path}' \
+                (HTTP {error.code}).",
+        )
 
     if wants_json_response():
         return jsonify(
@@ -56,8 +65,7 @@ def handle_exception(error):
         else f"IP: {request.remote_addr}"
     )
     logger.error(
-        f"Critical Exception: {str(error)} - \
-            Path: {request.path} ({user_info})",
+        f"Critical Exception: {str(error)} - Path: {request.path} ({user_info})",
         exc_info=True,
     )
 

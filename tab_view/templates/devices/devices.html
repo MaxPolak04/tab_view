@@ -150,26 +150,36 @@
         </div>
 
         <nav class="mt-5 d-flex justify-content-center" aria-label="Page navigation">
-            <ul class="pagination pagination-custom shadow-sm mx-auto">
-                <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
-                    <a class="page-link" href="{{ url_for('devices.get_all_devices', page=1, sort=current_sort) }}" aria-label="First">
-                        <i class="bi bi-chevron-double-left"></i>
-                    </a>
-                </li>
-                {% if pagination.has_prev %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('devices.get_all_devices', page=pagination.prev_num, sort=current_sort) }}">{{ pagination.prev_num }}</a></li>
+    <ul class="pagination pagination-custom shadow-sm mx-auto">
+
+        <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
+            <a class="page-link" href="{{ url_for('devices.get_all_devices', page=1, sort=current_sort) }}" aria-label="First">
+                <i class="bi bi-chevron-double-left"></i>
+            </a>
+        </li>
+
+        {% for p in pagination.iter_pages(left_edge=1, left_current=3, right_current=3, right_edge=1) %}
+            {% if p %}
+                {% if p == pagination.page %}
+                    <li class="page-item active"><span class="page-link" aria-current="page">{{ p }}</span></li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('devices.get_all_devices', page=p, sort=current_sort) }}">{{ p }}</a>
+                    </li>
                 {% endif %}
-                <li class="page-item active"><span class="page-link" aria-current="page">{{ pagination.page }}</span></li>
-                {% if pagination.has_next %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('devices.get_all_devices', page=pagination.next_num, sort=current_sort) }}">{{ pagination.next_num }}</a></li>
-                {% endif %}
-                <li class="page-item {{ 'disabled' if not pagination.page < pagination.pages }}">
-                    <a class="page-link" href="{{ url_for('devices.get_all_devices', page=pagination.pages, sort=current_sort) }}" aria-label="Last">
-                        <i class="bi bi-chevron-double-right"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
+            {% endif %}
+        {% endfor %}
+
+        <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
+            <a class="page-link" href="{{ url_for('devices.get_all_devices', page=pagination.pages, sort=current_sort) }}" aria-label="Last">
+                <i class="bi bi-chevron-double-right"></i>
+            </a>
+        </li>
+
+    </ul>
+</nav>
     </div>
 {% endblock %}
 

@@ -12,21 +12,19 @@
         return;
     }
 
-    // Zmienne stanu aplikacji
+    const clockOverlay = document.getElementById('system-clock-overlay');
+
     let currentEventId = null;
+    let currentEventTitle = null;
     let currentPlaylist = [];
     let currentPlaylistIndex = 0;
 
     let isTransitioning = false;
-    let isPlaying = false; // Zapobiega wielokrotnemu uruchomieniu pętli mediów
+    let isPlaying = false;
     let fallbackMedia = { filename: 'default.jpg', media_type: 'image', cache_buster: Date.now() };
 
-    // Zmienna zapobiegająca mruganiu tego samego pliku
     let currentPlayingUrl = null;
 
-    // ==========================================
-    // 1. PĘTLA POBIERANIA DANYCH (CO 60 SEKUND)
-    // ==========================================
     async function fetchState() {
         try {
             const response = await fetch(window.DEVICE_API_URL);
@@ -37,27 +35,34 @@
 
         } catch (error) {
             console.error('Error fetching device state:', error);
-            // W przypadku błędu (np. brak WiFi) nie przerywamy odtwarzania
         }
     }
 
     function handleStateUpdate(data) {
+        if (clockOverlay) {
+            if (data.show_clock === true) {
+                clockOverlay.classList.remove('d-none');
+            } else {
+                clockOverlay.classList.add('d-none');
+            }
+        }
+
         if (data.status === 'event') {
             if (currentEventId !== data.event_id) {
                 console.log('New event detected in background:', data.event_id);
-                // Mamy całkowicie nowe wydarzenie
                 currentEventId = data.event_id;
+                currentEventTitle = data.event_title;
                 currentPlaylist = data.playlist;
                 currentPlaylistIndex = 0;
             } else {
-                // To samo wydarzenie - aktualizujemy playlistę "w locie"
-                // (jeśli np. w panelu admina dorzuciłeś jakiś obrazek)
                 currentPlaylist = data.playlist;
+                currentEventTitle = data.event_title;
             }
         } else if (data.status === 'default') {
             if (currentEventId !== null) {
                 console.log('Event ended, scheduled fallback to default media.');
                 currentEventId = null;
+                currentEventTitle = null;
                 currentPlaylist = [];
                 currentPlaylistIndex = 0;
             }
@@ -66,60 +71,66 @@
             }
         }
 
-        // Jeśli to zupełnie pierwsze uruchomienie tabletu - startujemy odtwarzanie
         if (!isPlaying) {
             playNextMedia();
         }
     }
 
-    // ==========================================
-    // 2. PĘTLA ODTWARZANIA NA EKRANIE
-    // ==========================================
     function playNextMedia() {
         isPlaying = true;
         let itemToPlay = null;
 
-        if (currentPlaylist && currentPlaylist.length > 0) {
-            // Zabezpieczenie indeksu (np. gdy playlista została skrócona w panelu)
+        if (currentEventId !== null && (!currentPlaylist || currentPlaylist.length === 0)) {
+            itemToPlay = {
+                media_type: 'text_only',
+                title: currentEventTitle || "No Title",
+                duration: 60
+            };
+        }
+        else if (currentPlaylist && currentPlaylist.length > 0) {
             if (currentPlaylistIndex >= currentPlaylist.length) {
                 currentPlaylistIndex = 0;
             }
             itemToPlay = currentPlaylist[currentPlaylistIndex];
             currentPlaylistIndex++;
-        } else {
-            // Brak wydarzenia = odtwarzamy media domyślne
+        }
+        else {
             itemToPlay = {
                 filename: fallbackMedia.filename,
                 media_type: fallbackMedia.media_type,
                 cache_buster: fallbackMedia.cache_buster,
-                duration: 10 // Czas wyświetlania domyślnego zdjęcia
+                duration: 10
             };
         }
 
-        renderMedia(itemToPlay.filename, itemToPlay.media_type, itemToPlay.cache_buster, itemToPlay.duration || 10);
+        renderMedia(itemToPlay);
     }
 
-    function renderMedia(filename, mediaType, cacheBuster, duration) {
+    function renderMedia(item) {
         isTransitioning = true;
 
-        const cacheBusterParam = cacheBuster ? `?v=${cacheBuster}` : '';
-        const mediaUrl = `/static/uploads/${filename}${cacheBusterParam}`;
+        let mediaUrl = null;
+        let isTextOnly = item.media_type === 'text_only';
 
-        // ZAPOBIEGANIE MRUGANIU (Jeśli mamy zagrać dokładnie ten sam plik)
+        if (isTextOnly) {
+            mediaUrl = `text_only_${item.title}`;
+        } else {
+            const cacheBusterParam = item.cache_buster ? `?v=${item.cache_buster}` : '';
+            mediaUrl = `/static/uploads/${item.filename}${cacheBusterParam}`;
+        }
+
         if (currentPlayingUrl === mediaUrl) {
             isTransitioning = false;
 
-            if (mediaType === 'image') {
-                // Czekamy ustalony czas i przechodzimy do następnego slajdu
-                setTimeout(playNextMedia, duration * 1000);
-            } else if (mediaType === 'video') {
-                // Cofamy wideo do zera i puszczamy od nowa (płynny loop)
+            if (isTextOnly || item.media_type === 'image') {
+                setTimeout(playNextMedia, item.duration * 1000);
+            } else if (item.media_type === 'video') {
                 const video = main.querySelector('video');
                 if (video) {
                     video.currentTime = 0;
                     video.play().catch(e => console.error("Video replay error:", e));
                 } else {
-                    injectNewMedia(mediaUrl, mediaType, duration);
+                    injectNewMedia(item, mediaUrl);
                 }
             }
             return;
@@ -127,20 +138,49 @@
 
         currentPlayingUrl = mediaUrl;
 
-        // Fizyczna zmiana pliku z animacją
         if (main.firstChild) {
             main.firstChild.style.animation = 'fadeOut 0.3s ease-out';
             setTimeout(() => {
                 main.innerHTML = '';
-                injectNewMedia(mediaUrl, mediaType, duration);
+                injectNewMedia(item, mediaUrl);
             }, 300);
         } else {
-            injectNewMedia(mediaUrl, mediaType, duration);
+            injectNewMedia(item, mediaUrl);
         }
     }
 
-    function injectNewMedia(mediaUrl, mediaType, duration) {
-        if (mediaType === 'image') {
+    function injectNewMedia(item, mediaUrl) {
+        if (item.media_type === 'text_only') {
+            const textContainer = document.createElement('div');
+
+            textContainer.style.width = '100vw';
+            textContainer.style.height = '100vh';
+            textContainer.style.display = 'flex';
+            textContainer.style.alignItems = 'center';
+            textContainer.style.justifyContent = 'center';
+            textContainer.style.backgroundColor = '#212121';
+            textContainer.style.animation = 'fadeIn 0.5s ease-in';
+            textContainer.style.padding = '5vw';
+            textContainer.style.boxSizing = 'border-box';
+            textContainer.style.overflow = 'hidden';
+
+            const textElement = document.createElement('h1');
+            textElement.textContent = item.title;
+            textElement.style.fontSize = '8vw';
+            textElement.style.color = '#ffffff';
+            textElement.style.textAlign = 'center';
+            textElement.style.fontFamily = '"Montserrat", sans-serif';
+            textElement.style.fontWeight = 'bold';
+            textElement.style.wordBreak = 'break-word';
+            textElement.style.margin = '0';
+
+            textContainer.appendChild(textElement);
+            main.appendChild(textContainer);
+
+            isTransitioning = false;
+            setTimeout(playNextMedia, item.duration * 1000);
+
+        } else if (item.media_type === 'image') {
             const img = document.createElement('img');
             img.src = mediaUrl;
             img.classList.add('display-img');
@@ -148,19 +188,18 @@
 
             img.onload = () => {
                 isTransitioning = false;
-                // Kiedy czas obrazka mija -> graj następny (będzie czerpał z nowej pamięci)
-                setTimeout(playNextMedia, duration * 1000);
+                setTimeout(playNextMedia, item.duration * 1000);
             };
 
             img.onerror = () => {
                 console.error('Failed to load image:', mediaUrl);
                 isTransitioning = false;
-                setTimeout(playNextMedia, 5000); // W razie błędu czekamy 5s i omijamy
+                setTimeout(playNextMedia, 5000);
             };
 
             main.appendChild(img);
 
-        } else if (mediaType === 'video') {
+        } else if (item.media_type === 'video') {
             const video = document.createElement('video');
             video.src = mediaUrl;
             video.autoplay = true;
@@ -173,14 +212,13 @@
             };
 
             video.onended = () => {
-                // Kiedy wideo dojdzie do końca -> graj następne (będzie czerpał z nowej pamięci)
                 playNextMedia();
             };
 
             video.onerror = () => {
                 console.error('Failed to load video:', mediaUrl);
                 isTransitioning = false;
-                setTimeout(playNextMedia, 5000); // W razie błędu czekamy 5s i omijamy
+                setTimeout(playNextMedia, 5000);
             };
 
             main.appendChild(video);
@@ -196,13 +234,9 @@
         }
     }
 
-    // === INITIALIZATION ===
     console.log('=== DISPLAY ENGINE STARTED (1-MINUTE POLLING) ===');
 
-    // Pierwsze ręczne pobranie danych na start
     fetchState();
-
-    // Ustawienie zegara: twardo pytaj API co równe 60 sekund w tle
     setInterval(fetchState, 60 * 1000);
 
 })();

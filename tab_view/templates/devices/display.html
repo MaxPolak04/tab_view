@@ -14,11 +14,15 @@
 <body>
     <main class="display-menu"></main>
 
+    {% include 'layout/clock.html' %}
+
     <script>
         window.DEVICE_API_URL = "{{ url_for('devices.api_device_state', device_url=device.device_url) }}";
     </script>
 
     <script src="{{ url_for('static', filename='vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/clock.js') }}"></script>
 
     <script src="{{ url_for('static', filename='js/display.js') }}"></script>
 </body>
