@@ -1,4 +1,4 @@
-<div id="system-clock-overlay" class="position-fixed top-0 end-0 p-3 z-3 text-white text-shadow {% if not show_clock %}d-none{% endif %}" style="font-size: 2rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); pointer-events: none;">
-    <span id="clock-time">--:--</span>
-    <span id="clock-date" class="ms-2 fs-4 text-white-50">--.--.----</span>
+<div id="system-clock-overlay" class="clock-pill position-fixed z-3 {% if not show_clock %}d-none{% endif %}">
+    <span id="clock-time" class="fw-bold text-white">--:--</span>
+    <span id="clock-date" class="ms-2 fw-medium text-white-50">--.--.----</span>
 </div>

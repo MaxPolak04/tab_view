@@ -124,7 +124,7 @@ def api_device_state(device_url):
             {
                 "status": "event",
                 "event_id": active_event.id,
-                "event_title": active_event.title,  # <-- Added title for text-only mode
+                "event_title": active_event.title,
                 "playlist": playlist,
                 "show_clock": active_event.show_clock,
             }
@@ -143,7 +143,7 @@ def api_device_state(device_url):
             "status": "default",
             "event_id": None,
             "default_media": default_media_data,
-            "show_clock": device.show_clock,  # Fallback to device config
+            "show_clock": device.show_clock,
         }
     )
 
@@ -183,8 +183,8 @@ def create_device():
             log_audit_action(
                 "CREATE",
                 "Device",
-                f"Created new device '{new_device.name}' \
-                    (URL: {new_device.device_url}).",
+                f"Created new device '{new_device.name}' "
+                f"(URL: {new_device.device_url}).",
             )
 
             flash("Device added successfully!", "success")
@@ -207,10 +207,8 @@ def update_device(device_id):
         return redirect(url_for("devices.get_all_devices"))
 
     device = Device.query.get_or_404(device_id)
-
-    # Filter out System tags and media
-    tags = Tag.query.filter_by(is_system=False).all()
-    media_list = Media.query.join(Tag).filter(~Tag.is_system).all()
+    tags = Tag.query.all()
+    media_list = Media.query.all()
 
     if not media_list:
         flash("No media available. Add a file before updating the device.", "warning")
@@ -247,6 +245,23 @@ def update_device(device_id):
 
         try:
             old_name = device.name
+            changes = []
+
+            # Check exact changes before applying them
+            if device.name != form.name.data:
+                changes.append(f"Name changed to '{form.name.data}'")
+            if device.device_url != form.device_url.data:
+                changes.append(f"URL changed to '{form.device_url.data}'")
+            if device.media_id != form.media_id.data:
+                new_media = Media.query.get(form.media_id.data)
+                new_media_name = (
+                    new_media.filename if new_media else str(form.media_id.data)
+                )
+                changes.append(f"Default Media changed to '{new_media_name}'")
+            if device.show_clock != form.show_clock.data:
+                changes.append(f"Show Clock changed to {form.show_clock.data}")
+
+            # Apply changes
             device.name = form.name.data
             device.device_url = form.device_url.data
             device.media_id = form.media_id.data
@@ -254,17 +269,23 @@ def update_device(device_id):
 
             db.session.commit()
 
-            logger.info(
-                f"Device updated: {old_name} -> {device.name} (ID: {device.id}) "
-                f"by User {current_user.id}"
-            )
-
-            log_audit_action(
-                "UPDATE",
-                "Device",
-                f"Updated device '{old_name}'. New name: \
-                    '{device.name}', URL: '{device.device_url}'.",
-            )
+            # Only log if something was actually modified
+            if changes:
+                changes_str = ", ".join(changes)
+                logger.info(
+                    f"Device updated: {old_name} (ID: {device.id}) "
+                    f"Changes: {changes_str} by User {current_user.id}"
+                )
+                log_audit_action(
+                    "UPDATE",
+                    "Device",
+                    f"Updated device '{old_name}'. Changes: {changes_str}.",
+                )
+            else:
+                logger.info(
+                    f"Device update submitted for '{old_name}' (ID: {device.id}), "
+                    f"but no values were changed by User {current_user.id}."
+                )
 
             flash("Device updated successfully!", "success")
             return redirect(url_for("devices.get_all_devices"))
@@ -299,7 +320,7 @@ def update_device(device_id):
 def device_schedule(device_id):
     device = Device.query.get_or_404(device_id)
 
-    # Filter out System tags and media
+    # Filter out System tags and media for the event schedule picker
     tags = Tag.query.filter_by(is_system=False).all()
     media_list = Media.query.join(Tag).filter(~Tag.is_system).all()
 

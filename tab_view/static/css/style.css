@@ -619,6 +619,43 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     border-radius: 8px;
 }
 
+
+/* ====================================================*/
+/* Display Clock Pill */
+.clock-pill {
+    /* Safe margins to prevent TV overscan cutoff */
+    top: 4vh;
+    right: 4vw;
+
+    /* Styling the semi-transparent pill */
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 50rem;
+    padding: 0.6rem 1.8rem;
+    pointer-events: none;
+
+    /* Depth and separation */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+
+    /* Layout alignment */
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+}
+
+.clock-pill #clock-time {
+    font-size: 2.8rem;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+.clock-pill #clock-date {
+    font-size: 1.6rem;
+    margin-left: 1rem !important;
+}
+
 /* --- MOBILE TABLE CARD VIEW (< 768px) --- */
 @media (max-width: 576px) {
     .table-mobile-cards thead {
