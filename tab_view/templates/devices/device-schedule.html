@@ -24,6 +24,7 @@
     </div>
 </div>
 
+<!-- Main Event Modal -->
 <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0 shadow-lg">
@@ -47,12 +48,12 @@
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <label for="eventStart" class="form-label fw-bold">Event Start:</label>
-                            <input type="datetime-local" class="form-control form-control-lg shadow-sm rounded-3" id="eventStart" required>
+                            <input type="text" class="form-control form-control-lg shadow-sm rounded-3" id="eventStart" required>
                         </div>
 
                         <div class="col-md-6 mb-4">
                             <label for="eventEnd" class="form-label fw-bold">Event End:</label>
-                            <input type="datetime-local" class="form-control form-control-lg shadow-sm rounded-3" id="eventEnd" required>
+                            <input type="text" class="form-control form-control-lg shadow-sm rounded-3" id="eventEnd" required>
                         </div>
                     </div>
 
@@ -72,21 +73,25 @@
                         <small class="text-muted mt-1 d-block">Click a preset color or choose your own.</small>
                     </div>
 
-                    <div class="form-check form-switch mb-4 mt-3">
-                        <input class="form-check-input" type="checkbox" role="switch" id="eventShowClock" style="cursor: pointer; transform: scale(1.3); margin-left: -2em; margin-right: 1em;">
-                        <label class="form-check-label fw-bold" for="eventShowClock" style="cursor: pointer;">Show Clock on Screen</label>
-                        <div class="form-text text-muted mt-1">
-                            <i class="bi bi-clock me-1"></i>Displays the current date and time during this specific event. Overrides the default device settings.
+                    <div class="mb-4 mt-3">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="eventShowClock" style="cursor: pointer; transform: scale(1.3); margin-left: -2em; margin-right: 1em;">
+                            <label class="form-check-label fw-bold" for="eventShowClock" style="cursor: pointer;">Show Clock on Screen</label>
+                        </div>
+                        <div class="alert alert-secondary py-2 small mb-0 border-secondary-subtle shadow-sm rounded-3">
+                            Displays the current date and time during this specific event. Overrides the default device settings.
                         </div>
                     </div>
 
                     <hr class="my-4 border-secondary opacity-25">
 
-                    <div class="form-check form-switch mb-4 mt-3">
-                        <input class="form-check-input" type="checkbox" role="switch" id="eventTextOnly" style="cursor: pointer; transform: scale(1.3); margin-left: -2em; margin-right: 1em;">
-                        <label class="form-check-label fw-bold" for="eventTextOnly" style="cursor: pointer;">Display Event Name text only</label>
-                        <div class="form-text text-muted mt-1">
-                            <i class="bi bi-fonts me-1"></i>Hides the media playlist and displays only the Event Name on a plain background.
+                    <div class="mb-4 mt-3">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="eventTextOnly" style="cursor: pointer; transform: scale(1.3); margin-left: -2em; margin-right: 1em;">
+                            <label class="form-check-label fw-bold" for="eventTextOnly" style="cursor: pointer;">Display Event Name text only</label>
+                        </div>
+                        <div class="alert alert-secondary py-2 small mb-0 border-secondary-subtle shadow-sm rounded-3">
+                            Hides the media playlist and displays only the Event Name on a plain background.
                         </div>
                     </div>
 
@@ -127,6 +132,34 @@
     </div>
 </div>
 
+<!-- Group vs Instance Delete Modal -->
+<div class="modal fade" id="deleteOptionsModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0 bg-danger text-white">
+                <h5 class="modal-title fs-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Event</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="fs-5 mb-4">This event is assigned to multiple devices. How would you like to delete it?</p>
+                <div class="d-grid gap-3">
+                    <button type="button" class="btn btn-outline-primary btn-lg text-start shadow-sm rounded-3 py-3" id="deleteInstanceBtn">
+                        <i class="bi bi-display me-2 fs-4 align-middle"></i>
+                        <span class="fw-bold align-middle">Remove from this device only</span>
+                        <small class="d-block text-muted mt-1 ms-4 ps-2">The event will continue to display on other devices.</small>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-lg text-start shadow-sm rounded-3 py-3" id="deleteGroupBtn">
+                        <i class="bi bi-trash-fill me-2 fs-4 align-middle"></i>
+                        <span class="fw-bold align-middle">Delete from ALL devices</span>
+                        <small class="d-block text-danger mt-1 ms-4 ps-2">This action is permanent and cannot be undone.</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Media Picker Modal -->
 <div class="modal fade" id="playlistMediaPickerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content border-0 shadow-lg">

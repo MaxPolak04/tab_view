@@ -13,7 +13,7 @@ def index():
 
     # Filter out System tags and their corresponding media
     tags = Tag.query.filter_by(is_system=False).all()
-    media_list = Media.query.join(Tag).filter(not Tag.is_system).all()
+    media_list = Media.query.join(Tag).filter(~Tag.is_system).all()
 
     return render_template(
         "dashboard/index.html",
