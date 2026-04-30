@@ -19,17 +19,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
     }
 
-    // Helper to show errors gracefully
     function showEventError(message) {
         const errorContainer = document.getElementById('eventFormError');
         const errorText = document.getElementById('eventFormErrorText');
         if (errorContainer && errorText) {
             errorText.textContent = message;
             errorContainer.classList.remove('d-none');
-            // Scroll to top of modal to ensure error is visible
             document.querySelector('#dashboardEventModal .modal-body').scrollTop = 0;
         } else {
-            // Fallback just in case DOM is broken
             alert(message);
         }
     }
@@ -41,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Smart default dates helper
     function getSmartDates(baseDateStr = null) {
         let now = new Date();
         let start = baseDateStr ? new Date(baseDateStr) : new Date();
@@ -70,9 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         locale: "pl",
         allowInput: true,
         clickOpens: false,
-
         altInputClass: "form-control form-control-lg shadow-sm rounded-start-3",
-
         onReady: function(selectedDates, dateStr, instance) {
             const btnContainer = document.createElement("div");
             btnContainer.className = "d-grid px-2 pb-2 pt-1";
@@ -84,15 +78,15 @@ document.addEventListener('DOMContentLoaded', function() {
             btnContainer.appendChild(btn);
             instance.calendarContainer.appendChild(btnContainer);
         },
-        onInput: function(selectedDates, dateStr, instance) {
+        onInput: function() {
             clearTimeout(fetchAvailabilityTimeout);
             fetchAvailabilityTimeout = setTimeout(() => { checkAvailability(); }, 300);
         },
-        onChange: function(selectedDates, dateStr, instance) {
+        onChange: function() {
             clearTimeout(fetchAvailabilityTimeout);
             fetchAvailabilityTimeout = setTimeout(() => { checkAvailability(); }, 300);
         },
-        onClose: function(selectedDates, dateStr, instance) {
+        onClose: function() {
             checkAvailability();
         }
     };
@@ -156,6 +150,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    document.querySelectorAll('.device-checkbox-wrapper').forEach(wrapper => {
+        wrapper.style.cursor = 'pointer';
+        wrapper.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL' && !e.target.closest('label')) {
+                const cb = this.querySelector('.device-checkbox');
+                if (cb && !cb.disabled) {
+                    cb.checked = !cb.checked;
+                    cb.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    });
+
     const textOnlySwitch = document.getElementById('eventTextOnly');
     const mediaSection = document.getElementById('mediaSection');
 
@@ -180,12 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
             editable: true,
             selectable: true,
 
-            eventDataTransform: function(eventData) {
-                let devName = eventData.extendedProps?.device_name || "Unknown";
-                eventData.title = `${eventData.title} (${devName})`;
-                return eventData;
-            },
-
             events: function(info, successCallback, failureCallback) {
                 const params = new URLSearchParams({ start: info.startStr, end: info.endStr });
                 fetch(`/api/v1/events/?${params.toString()}`, { credentials: 'same-origin' })
@@ -196,15 +197,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .then(data => {
                         if (!data) return;
-                        successCallback(data.map(event => ({
-                            id: event.id, title: event.title, start: event.start, end: event.end,
-                            backgroundColor: event.color || '#3788d8', borderColor: event.color || '#3788d8',
-                            extendedProps: {
-                                group_id: event.group_id, device_id: event.extendedProps.device_id,
-                                device_name: event.extendedProps.device_name, show_clock: event.extendedProps.show_clock,
-                                media_playlist: event.extendedProps.media_playlist
+
+                        const groupedEvents = {};
+                        data.forEach(event => {
+                            const gId = event.group_id || `single-${event.id}`;
+                            if (!groupedEvents[gId]) {
+                                groupedEvents[gId] = {
+                                    id: event.id,
+                                    title: event.title,
+                                    start: event.start,
+                                    end: event.end,
+                                    backgroundColor: event.color || '#3788d8',
+                                    borderColor: event.color || '#3788d8',
+                                    extendedProps: {
+                                        group_id: event.group_id,
+                                        device_ids: [],
+                                        device_names: [],
+                                        show_clock: event.extendedProps.show_clock,
+                                        media_playlist: event.extendedProps.media_playlist
+                                    }
+                                };
                             }
-                        })));
+
+                            if (!groupedEvents[gId].extendedProps.device_ids.includes(event.extendedProps.device_id)) {
+                                groupedEvents[gId].extendedProps.device_ids.push(event.extendedProps.device_id);
+                                groupedEvents[gId].extendedProps.device_names.push(event.extendedProps.device_name);
+                            }
+                        });
+
+                        const uniqueEvents = Object.values(groupedEvents).map(event => {
+                            let devNames = event.extendedProps.device_names.join(', ');
+                            event.title = `${event.title} (${devNames})`;
+                            return event;
+                        });
+
+                        successCallback(uniqueEvents);
                     })
                     .catch(err => failureCallback(err));
             },
@@ -260,11 +287,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 textOnlySwitch.dispatchEvent(new Event('change'));
             }
 
-            const allCalendarEvents = calendar.getEvents();
-            const groupEvents = allCalendarEvents.filter(e => e.extendedProps.group_id === currentGroupId);
-
-            groupEvents.forEach(e => {
-                const cb = document.getElementById(`device-${e.extendedProps.device_id}`);
+            const groupDeviceIds = event.extendedProps.device_ids || [];
+            groupDeviceIds.forEach(devId => {
+                const cb = document.getElementById(`device-${devId}`);
                 if (cb) cb.checked = true;
             });
 
@@ -298,33 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAvailability();
         renderPlaylist();
         eventModal.show();
-    }
-
-    const tagCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
-    const mediaFilterItems = document.querySelectorAll('.media-filter-item');
-
-    if (tagCheckboxes.length > 0 && mediaFilterItems.length > 0) {
-        const allCheckbox = document.getElementById('tag-all');
-        tagCheckboxes.forEach(cb => {
-            cb.addEventListener('change', function() {
-                const isAll = this.dataset.filter === 'all';
-                if (isAll && this.checked) { tagCheckboxes.forEach(otherCb => { if (otherCb !== this) otherCb.checked = false; }); }
-                else if (!isAll && this.checked) { if (allCheckbox) allCheckbox.checked = false; }
-                else if (!isAll && !this.checked) {
-                    const anyChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
-                    if (!anyChecked && allCheckbox) allCheckbox.checked = true;
-                }
-                if (isAll && !this.checked) {
-                     const anyChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
-                     if (!anyChecked) this.checked = true;
-                }
-                const activeFilters = Array.from(tagCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
-                mediaFilterItems.forEach(item => {
-                    const itemTagId = item.dataset.tagId ? item.dataset.tagId.toString() : "";
-                    item.style.display = (activeFilters.includes('all') || activeFilters.includes(itemTagId)) ? '' : 'none';
-                });
-            });
-        });
     }
 
     function renderPlaylist() {
@@ -425,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
             media_playlist: payloadPlaylist
         };
 
-        const url = currentEventId ? `/api/v1/events/${currentEventId}` : '/api/v1/events/';
+        const url = currentEventId ? `/api/v1/events/${currentEventId}?scope=group` : '/api/v1/events/';
         const method = currentEventId ? 'PUT' : 'POST';
 
         fetch(url, {
@@ -451,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!currentEventId || !confirm('Are you sure you want to delete this event from ALL associated devices?')) return;
 
-        fetch(`/api/v1/events/${currentEventId}`, { method: 'DELETE', credentials: 'same-origin' })
+        fetch(`/api/v1/events/${currentEventId}?scope=group`, { method: 'DELETE', credentials: 'same-origin' })
             .then(res => {
                 if (!res.ok) return res.json().then(err => { throw new Error(err.message || 'Error deleting event.'); });
                 return res.json();
@@ -461,12 +459,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateEventDates(event) {
-        const allCalendarEvents = calendar.getEvents();
-        const groupDeviceIds = allCalendarEvents.filter(e => e.extendedProps.group_id === event.extendedProps.group_id).map(e => e.extendedProps.device_id);
-
+        const groupDeviceIds = event.extendedProps.device_ids || [];
         let rawTitle = event.title.replace(/\s\([^)]+\)$/, '');
 
-        fetch(`/api/v1/events/${event.id}`, {
+        fetch(`/api/v1/events/${event.id}?scope=group`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -503,4 +499,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function convertToLocalISO(dStr) { return dStr ? (dStr.length === 16 ? dStr + ':00' : dStr) : null; }
+
+    const tagCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
+    const mediaFilterItems = document.querySelectorAll('.media-filter-item');
+    const allCheckbox = document.getElementById('tag-all');
+
+    function updateMediaFilters() {
+        if (!tagCheckboxes.length || !mediaFilterItems.length) return;
+        const checkedTags = Array.from(tagCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
+
+        mediaFilterItems.forEach(item => {
+            const tagId = item.dataset.tagId ? item.dataset.tagId.toString() : "";
+            if (checkedTags.includes('all') || checkedTags.includes(tagId)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    if (tagCheckboxes.length > 0) {
+        tagCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.dataset.filter === 'all') {
+                    if (this.checked) {
+                        tagCheckboxes.forEach(c => { if (c !== this) c.checked = false; });
+                    } else {
+                        const anyOtherChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
+                        if (!anyOtherChecked) this.checked = true;
+                    }
+                } else {
+                    if (this.checked) {
+                        if (allCheckbox) allCheckbox.checked = false;
+                    } else {
+                        const anyOtherChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
+                        if (!anyOtherChecked && allCheckbox) allCheckbox.checked = true;
+                    }
+                }
+                updateMediaFilters();
+            });
+        });
+        setTimeout(updateMediaFilters, 50);
+    }
 });

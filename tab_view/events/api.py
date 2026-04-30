@@ -23,30 +23,6 @@ class EventAvailabilityResource(Resource):
     def get(self):
         """
         Check device availability for a specific time range.
-        ---
-        tags:
-          - Availability
-        parameters:
-          - name: start
-            in: query
-            type: string
-            required: true
-            description: Start time in ISO 8601 format (e.g., 2024-05-20T10:00:00)
-          - name: end
-            in: query
-            type: string
-            required: true
-            description: End time in ISO 8601 format
-          - name: exclude_group_id
-            in: query
-            type: string
-            required: false
-            description: Optional event group ID to exclude from overlapping checks
-        responses:
-          200:
-            description: Dictionary of busy devices with their blocking event titles
-          400:
-            description: Missing or invalid date parameters
         """
         start_param = request.args.get("start")
         end_param = request.args.get("end")
@@ -152,7 +128,6 @@ class EventResource(Resource):
     def post(self):
         """
         Create a new event or group of events across multiple devices.
-        Allows empty media_playlist for 'text_only' events.
         """
         try:
             data = request.get_json()
@@ -228,7 +203,6 @@ class EventResource(Resource):
                 db.session.add(new_event)
                 db.session.flush()
 
-                # Iterate securely, skips naturally if empty (text_only mode)
                 for idx, item in enumerate(data.get("media_playlist", [])):
                     duration = item.get("duration", 10)
                     if not isinstance(duration, int) or duration < 1 or duration > 300:
@@ -268,7 +242,7 @@ class EventResource(Resource):
     def put(self, event_id):
         """
         Update an existing event or event group.
-        Allows empty media_playlist for 'text_only' events.
+        Accepts '?scope=instance' or '?scope=group' to determine behavior.
         """
         try:
             event = Event.query.get(event_id)
@@ -279,11 +253,8 @@ class EventResource(Resource):
             if not data:
                 return error_response("Request body must be JSON", 400)
 
-            group_id = event.group_id
-            if not group_id:
-                group_id = str(uuid.uuid4())
+            scope = request.args.get("scope", "group")
 
-            device_ids = data.get("device_ids", [event.device_id])
             title = data.get("title", event.title).strip()
             color = data.get("color", event.color)
             show_clock = data.get("show_clock", event.show_clock)
@@ -303,29 +274,39 @@ class EventResource(Resource):
             if start_time >= end_time:
                 return error_response("End time must be after start time", 400)
 
+            # Determine scope of operation
+            if scope == "instance":
+                group_id = str(uuid.uuid4())  # Detach from existing group
+                device_ids = [event.device_id]
+                events_to_delete = [event]
+            else:
+                group_id = event.group_id or str(uuid.uuid4())
+                device_ids = data.get("device_ids", [event.device_id])
+                if event.group_id:
+                    events_to_delete = Event.query.filter_by(
+                        group_id=event.group_id
+                    ).all()
+                else:
+                    events_to_delete = [event]
+
+            ignore_ids = [e.id for e in events_to_delete]
+
             for dev_id in device_ids:
                 overlapping = Event.query.filter(
                     Event.device_id == dev_id,
-                    Event.group_id != group_id,
+                    Event.id.notin_(ignore_ids),
                     Event.start_time < end_time,
                     Event.end_time > start_time,
                 ).first()
 
                 if overlapping:
                     dev = Device.query.get(dev_id)
-                    logger.warning(
-                        f"Event group update blocked - Overlap detected \
-                            for Device {dev_id} ({dev.name}): "
-                        f"'{overlapping.title}' (User: {current_user.id})"
-                    )
                     return error_response(
                         f'Schedule overlap on device "{dev.name}" \
                             with event "{overlapping.title}"',
                         409,
                     )
 
-            # Accept explicit empty list `[]` as intended clear,
-            # fallback to old only if `None`
             playlist_data = data.get("media_playlist")
             if playlist_data is None:
                 playlist_data = [
@@ -337,12 +318,8 @@ class EventResource(Resource):
                     for em in event.event_media
                 ]
 
-            if event.group_id:
-                events_to_replace = Event.query.filter_by(group_id=event.group_id).all()
-                for e in events_to_replace:
-                    db.session.delete(e)
-            else:
-                db.session.delete(event)
+            for e in events_to_delete:
+                db.session.delete(e)
 
             db.session.flush()
 
@@ -373,20 +350,11 @@ class EventResource(Resource):
 
             db.session.commit()
 
-            logger.info(
-                f"Event group updated: '{title}' \
-                    (Group ID: {group_id}, Devices: {device_ids}) "
-                f"by User {current_user.id}"
-            )
-
-            log_audit_action(
-                "UPDATE",
-                "Event",
-                f"Updated event '{title}' on {len(device_ids)} device(s).",
-            )
+            op_type = "instance" if scope == "instance" else "group"
+            log_audit_action("UPDATE", "Event", f"Updated event {op_type} '{title}'.")
 
             return {
-                "message": "Group events updated successfully",
+                "message": f"Event {op_type} updated successfully",
                 "events": [e.to_dict() for e in updated_events],
             }, 200
 
@@ -399,34 +367,41 @@ class EventResource(Resource):
     @limiter.limit("200 per hour")
     def delete(self, event_id):
         """
-        Delete an event and its entire associated group.
+        Delete an event instance or its entire associated group.
+        Accepts '?scope=instance' or '?scope=group'
         """
         try:
             event = Event.query.get(event_id)
             if not event:
-                return error_response(f"Event with id {event_id} not found", 404)
+                return error_response(
+                    f"Event with id \
+                                      {event_id} not found",
+                    404,
+                )
 
+            scope = request.args.get("scope", "group")
             group_id = event.group_id
             event_title = event.title
 
-            if group_id:
-                events_to_delete = Event.query.filter_by(group_id=group_id).all()
-                for e in events_to_delete:
-                    db.session.delete(e)
-            else:
+            if scope == "instance":
                 db.session.delete(event)
+                log_msg = f"Deleted instance of event \
+                    '{event_title}' on device {event.device_id}."
+            else:
+                if group_id:
+                    events_to_delete = Event.query.filter_by(group_id=group_id).all()
+                    for e in events_to_delete:
+                        db.session.delete(e)
+                else:
+                    db.session.delete(event)
+                log_msg = f"Deleted event group '{event_title}'."
 
             db.session.commit()
 
-            logger.info(
-                f"Event group deleted: '{event_title}' \
-                    (Group ID: {group_id or 'None'})"
-                f"by User {current_user.id}"
-            )
+            logger.info(f"Admin {current_user.id} {log_msg.lower()}")
+            log_audit_action("DELETE", "Event", log_msg)
 
-            log_audit_action("DELETE", "Event", f"Deleted event '{event_title}'.")
-
-            return {"message": "Event group deleted successfully"}, 200
+            return {"message": "Operation successful"}, 200
 
         except Exception as e:
             db.session.rollback()

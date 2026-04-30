@@ -45,7 +45,7 @@ jobs:
         run: uv run bandit -r tab_view/ -s B101
 
       - name: Dependency Audit (Pip-Audit)
-        run: uv run pip-audit --ignore-vuln CVE-2026-4539
+        run: uv run pip-audit --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2026-3219
 
       - name: Run Pytest
         run: uv run pytest

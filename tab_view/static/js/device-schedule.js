@@ -3,12 +3,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let calendar;
     let currentEventId = null;
     let currentPlaylist = [];
+    let isGroupEvent = false;
 
     const eventModalEl = document.getElementById('eventModal');
     const eventModal = eventModalEl ? new bootstrap.Modal(eventModalEl) : null;
 
-    const mediaPickerModalEl = document.getElementById('mediaPickerModal');
-    const mediaPickerModal = mediaPickerModalEl ? new bootstrap.Modal(mediaPickerModalEl) : null;
+    const deleteOptionsModalEl = document.getElementById('deleteOptionsModal');
+    const deleteOptionsModal = deleteOptionsModalEl ? new bootstrap.Modal(deleteOptionsModalEl) : null;
 
     const playlistMediaPickerModalEl = document.getElementById('playlistMediaPickerModal');
     const playlistMediaPickerModal = playlistMediaPickerModalEl ? new bootstrap.Modal(playlistMediaPickerModalEl) : null;
@@ -19,17 +20,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Helper to show errors gracefully
     function showEventError(message) {
         const errorContainer = document.getElementById('eventFormError');
         const errorText = document.getElementById('eventFormErrorText');
         if (errorContainer && errorText) {
             errorText.textContent = message;
             errorContainer.classList.remove('d-none');
-            // Scroll to top of modal to ensure error is visible
             document.querySelector('#eventModal .modal-body').scrollTop = 0;
         } else {
-            // Fallback
             alert(message);
         }
     }
@@ -41,7 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Smart default dates helper
     function getSmartDates(baseDateStr = null) {
         let now = new Date();
         let start = baseDateStr ? new Date(baseDateStr) : new Date();
@@ -120,8 +117,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectOverlap: true,
 
             events: function(info, successCallback, failureCallback) {
-                const params = new URLSearchParams({ device_id: currentDeviceId, start: info.startStr, end: info.endStr });
-                fetch(`/api/v1/events/?device_id=${currentDeviceId}`, { credentials: 'same-origin' })
+                const params = new URLSearchParams({ start: info.startStr, end: info.endStr });
+                fetch(`/api/v1/events/?${params.toString()}`, { credentials: 'same-origin' })
                 .then(res => {
                     if (res.status === 401) { window.location.href = '/auth/signin'; return; }
                     if (!res.ok) throw new Error('HTTP Error: ' + res.status);
@@ -129,19 +126,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     if (!data) return;
-                    successCallback(data.map(event => ({
-                        id: event.id,
-                        title: event.title,
-                        start: event.start,
-                        end: event.end,
-                        backgroundColor: event.color || '#3788d8',
-                        borderColor: event.color || '#3788d8',
-                        extendedProps: {
-                            device_id: event.extendedProps.device_id,
-                            show_clock: event.extendedProps.show_clock,
-                            media_playlist: event.extendedProps.media_playlist
+
+                    const groupedEvents = {};
+                    data.forEach(event => {
+                        const gId = event.group_id || `single-${event.id}`;
+
+                        if (!groupedEvents[gId]) {
+                            groupedEvents[gId] = {
+                                id: event.id,
+                                title: event.title,
+                                start: event.start,
+                                end: event.end,
+                                backgroundColor: event.color || '#3788d8',
+                                borderColor: event.color || '#3788d8',
+                                extendedProps: {
+                                    group_id: event.group_id,
+                                    device_ids: [],
+                                    show_clock: event.extendedProps.show_clock,
+                                    media_playlist: event.extendedProps.media_playlist
+                                }
+                            };
                         }
-                    })));
+
+                        if (event.extendedProps.device_id === currentDeviceId) {
+                            groupedEvents[gId].id = event.id;
+                        }
+
+                        if (!groupedEvents[gId].extendedProps.device_ids.includes(event.extendedProps.device_id)) {
+                            groupedEvents[gId].extendedProps.device_ids.push(event.extendedProps.device_id);
+                        }
+                    });
+
+                    const filteredEvents = Object.values(groupedEvents).filter(event =>
+                        event.extendedProps.device_ids.includes(currentDeviceId)
+                    );
+
+                    successCallback(filteredEvents);
                 })
                 .catch(err => { console.error('Error fetching events:', err); failureCallback(err); });
             },
@@ -187,6 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
+            currentEventId = event.id;
+
+            isGroupEvent = event.extendedProps.device_ids && event.extendedProps.device_ids.length > 1;
 
             if (textOnlySwitch) {
                 textOnlySwitch.checked = currentPlaylist.length === 0;
@@ -194,7 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (deleteBtn) deleteBtn.style.display = 'inline-block';
-            currentEventId = event.id;
         } else {
             modalTitle.textContent = 'New Event';
             document.getElementById('eventForm').reset();
@@ -216,8 +238,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             currentPlaylist = [];
-            if (deleteBtn) deleteBtn.style.display = 'none';
             currentEventId = null;
+            isGroupEvent = false;
+            if (deleteBtn) deleteBtn.style.display = 'none';
         }
 
         renderPlaylist();
@@ -328,13 +351,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 media_playlist: payloadPlaylist
             };
 
-            const url = currentEventId ? `/api/v1/events/${currentEventId}` : '/api/v1/events/';
+            const url = currentEventId ? `/api/v1/events/${currentEventId}?scope=instance` : '/api/v1/events/';
             const method = currentEventId ? 'PUT' : 'POST';
 
             fetch(url, { method: method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eventData) })
             .then(res => {
                 if (res.status === 401) { window.location.href = '/auth/signin'; return; }
-                if (!res.ok) return res.json().then(err => { throw new Error(err.message || err.error || 'Server processing error.'); });
+                if (res.status === 409) return res.json().then(err => { throw new Error(err.message || err.error || 'Overlap detected'); });
+                if (!res.ok) return res.json().then(err => { throw new Error(err.message || err.error || 'HTTP Error: ' + res.status); });
                 return res.json();
             })
             .then(data => {
@@ -343,11 +367,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (eventModal) eventModal.hide();
                 currentEventId = null;
                 currentPlaylist = [];
+                isGroupEvent = false;
                 document.getElementById('eventForm').reset();
             })
             .catch(error => showEventError(error.message));
         });
     }
+
+    const executeDeletion = (scope) => {
+        if (!currentEventId) return;
+
+        fetch(`/api/v1/events/${currentEventId}?scope=${scope}`, { method: 'DELETE', credentials: 'same-origin' })
+        .then(res => {
+            if (res.status === 401) { window.location.href = '/auth/signin'; return; }
+            if (!res.ok) return res.json().then(err => { throw new Error(err.message || 'Error deleting event.'); });
+            return res.json();
+        })
+        .then(data => {
+            if (!data) return;
+            if (calendar) calendar.refetchEvents();
+            if (eventModal) eventModal.hide();
+            if (deleteOptionsModal) deleteOptionsModal.hide();
+            currentEventId = null;
+            currentPlaylist = [];
+            isGroupEvent = false;
+            document.getElementById('eventForm').reset();
+        })
+        .catch(error => showEventError(error.message));
+    };
 
     const deleteEventBtn = document.getElementById('deleteEventBtn');
     if (deleteEventBtn && typeof window.currentDeviceId !== 'undefined' && window.currentDeviceId !== null) {
@@ -356,28 +403,36 @@ document.addEventListener('DOMContentLoaded', function() {
             hideEventError();
 
             if (!currentEventId) return;
-            if (confirm('Are you sure you want to delete this event?')) {
-                fetch(`/api/v1/events/${currentEventId}`, { method: 'DELETE', credentials: 'same-origin' })
-                .then(res => {
-                    if (res.status === 401) { window.location.href = '/auth/signin'; return; }
-                    if (!res.ok) return res.json().then(err => { throw new Error(err.message || 'Error deleting event.'); });
-                    return res.json();
-                })
-                .then(data => {
-                    if (!data) return;
-                    if (calendar) calendar.refetchEvents();
-                    if (eventModal) eventModal.hide();
-                    currentEventId = null;
-                    currentPlaylist = [];
-                    document.getElementById('eventForm').reset();
-                })
-                .catch(error => showEventError(error.message));
+
+            if (isGroupEvent && deleteOptionsModal) {
+                eventModal.hide();
+                deleteOptionsModal.show();
+            } else {
+                if (confirm('Are you sure you want to delete this event from THIS specific device?')) {
+                    executeDeletion('instance');
+                }
             }
         });
     }
 
+    document.getElementById('deleteInstanceBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        executeDeletion('instance');
+    });
+
+    document.getElementById('deleteGroupBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        executeDeletion('group');
+    });
+
+    deleteOptionsModalEl?.addEventListener('hidden.bs.modal', function(e) {
+        if (currentEventId && eventModal) {
+            eventModal.show();
+        }
+    });
+
     function updateEventDates(event) {
-        fetch(`/api/v1/events/${event.id}`, {
+        fetch(`/api/v1/events/${event.id}?scope=instance`, {
             method: 'PUT',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -393,56 +448,56 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(res => {
             if (res.status === 401) { window.location.href = '/auth/signin'; return; }
-            if (!res.ok) return res.json().then(err => { throw new Error(err.message || err.error || 'Overlap detected'); });
+            if (res.status === 409) return res.json().then(err => { throw new Error(err.message || err.error || 'Overlap detected'); });
+            if (!res.ok) throw new Error('HTTP Error: ' + res.status);
             return res.json();
         })
         .catch(error => {
             if (calendar) calendar.refetchEvents();
-            showEventError(error.message);
+            showEventError(error.message || 'Error when moving the event');
         });
     }
-
-    const defaultMediaPreview = document.getElementById('defaultMediaPreview');
-    const defaultMediaSelect = document.getElementById('defaultMediaSelect');
-    if (window.currentDeviceMediaId) updateDefaultMediaPreview(window.currentDeviceMediaId);
-
-    if (defaultMediaPreview && window.isAdmin === true) {
-        defaultMediaPreview.style.cursor = 'pointer';
-        defaultMediaPreview.addEventListener('click', function() { if (mediaPickerModal) mediaPickerModal.show(); });
-    } else if (defaultMediaPreview) {
-        defaultMediaPreview.style.cursor = 'default';
-    }
-
-    document.querySelectorAll('.media-picker-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const mediaId = parseInt(this.dataset.mediaId);
-            if (defaultMediaSelect) defaultMediaSelect.value = mediaId;
-            document.querySelectorAll('.media-picker-item').forEach(i => i.classList.remove('border-primary', 'border-2'));
-            this.classList.add('border-primary', 'border-2');
-            updateDefaultMediaPreview(mediaId);
-            if (mediaPickerModal) mediaPickerModal.hide();
-        });
-    });
 
     const tagCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
     const mediaFilterItems = document.querySelectorAll('.media-filter-item');
-    if (tagCheckboxes.length > 0 && mediaFilterItems.length > 0) {
-        const allCheckbox = document.getElementById('tag-all');
+    const allCheckbox = document.getElementById('tag-all');
+
+    function updateMediaFilters() {
+        if (!tagCheckboxes.length || !mediaFilterItems.length) return;
+        const checkedTags = Array.from(tagCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
+
+        mediaFilterItems.forEach(item => {
+            const tagId = item.dataset.tagId ? item.dataset.tagId.toString() : "";
+            if (checkedTags.includes('all') || checkedTags.includes(tagId)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    if (tagCheckboxes.length > 0) {
         tagCheckboxes.forEach(cb => {
             cb.addEventListener('change', function() {
-                const isAll = this.dataset.filter === 'all';
-                if (isAll && this.checked) { tagCheckboxes.forEach(otherCb => { if (otherCb !== this) otherCb.checked = false; }); }
-                else if (!isAll && this.checked) { if (allCheckbox) allCheckbox.checked = false; }
-                else if (!isAll && !this.checked) {
-                    const anyChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
-                    if (!anyChecked && allCheckbox) allCheckbox.checked = true;
+                if (this.dataset.filter === 'all') {
+                    if (this.checked) {
+                        tagCheckboxes.forEach(c => { if (c !== this) c.checked = false; });
+                    } else {
+                        const anyOtherChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
+                        if (!anyOtherChecked) this.checked = true;
+                    }
+                } else {
+                    if (this.checked) {
+                        if (allCheckbox) allCheckbox.checked = false;
+                    } else {
+                        const anyOtherChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
+                        if (!anyOtherChecked && allCheckbox) allCheckbox.checked = true;
+                    }
                 }
-                if (isAll && !this.checked) { const anyChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked); if (!anyChecked) this.checked = true; }
-                const activeFilters = Array.from(tagCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
-                mediaFilterItems.forEach(item => { const itemTagId = item.dataset.tagId ? item.dataset.tagId.toString() : ""; item.style.display = (activeFilters.includes('all') || activeFilters.includes(itemTagId)) ? '' : 'none'; });
+                updateMediaFilters();
             });
         });
+        setTimeout(updateMediaFilters, 50);
     }
 
     document.querySelectorAll('.color-preset').forEach(btn => {
@@ -456,32 +511,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    function updateDefaultMediaPreview(mediaId) {
-        if (!window.mediaList) return;
-        const media = window.mediaList.find(m => m.id === mediaId);
-        if (!media) return;
-        let preview = '';
-        if (media.media_type === 'image') {
-            preview = `<img src="/static/uploads/${media.filename}" class="img-fluid rounded" style="max-height: 200px; object-fit: contain;"><p class="mt-2 mb-0"><strong>${media.filename}</strong></p>`;
-        } else {
-            preview = `<video class="img-fluid rounded" style="max-height: 200px; object-fit: contain;" autoplay loop muted playsinline><source src="/static/uploads/${media.filename}" type="video/mp4"></video><p class="mt-2 mb-0"><i class="bi bi-play-fill"></i> <strong>${media.filename}</strong></p>`;
-        }
-        if (defaultMediaPreview) defaultMediaPreview.innerHTML = preview;
+    function formatDateTimeLocal(dStr) {
+        const d = new Date(dStr);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     }
 
-    function formatDateTimeLocal(dateStr) {
-        const date = new Date(dateStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
-
-    function convertToLocalISO(dateTimeLocalStr) {
-        if (!dateTimeLocalStr) return null;
-        if (dateTimeLocalStr.length === 16) dateTimeLocalStr += ':00';
-        return dateTimeLocalStr;
-    }
+    function convertToLocalISO(dStr) { return dStr ? (dStr.length === 16 ? dStr + ':00' : dStr) : null; }
 });
