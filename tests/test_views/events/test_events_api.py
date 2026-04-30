@@ -188,13 +188,13 @@ def test_update_event_success(auth_client, init_database):
         # Providing minimal payload to rely on API fallbacks
     }
 
-    # 3. Act
+    # 3. Act - Scope defaults to 'group' if not provided
     response = auth_client.put(f"/api/v1/events/{event.id}", json=payload)
 
     # 4. Assert
     assert response.status_code == 200
     data = response.get_json()
-    assert data["message"] == "Group events updated successfully"
+    assert data["message"] == "Event group updated successfully"
     assert data["events"][0]["title"] == "Updated Title"
 
     updated_event = Event.query.filter_by(title="Updated Title").first()
@@ -228,7 +228,7 @@ def test_delete_event_success(auth_client, init_database):
 
     # 3. Assert
     assert response.status_code == 200
-    assert response.get_json()["message"] == "Event group deleted successfully"
+    assert response.get_json()["message"] == "Operation successful"
 
     # Verify DB state
     assert Event.query.get(event.id) is None
