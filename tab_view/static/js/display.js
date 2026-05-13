@@ -47,6 +47,9 @@
             }
         }
 
+        // Update weather widget state
+        updateWeatherWidget(data.weather, data.show_weather);
+
         if (data.status === 'event') {
             if (currentEventId !== data.event_id) {
                 console.log('New event detected in background:', data.event_id);
@@ -232,6 +235,35 @@
                 });
             }
         }
+    }
+
+    function updateWeatherWidget(weatherData, shouldShow) {
+        const container = document.getElementById('weather-widget');
+        if (!shouldShow || !weatherData || weatherData.length === 0) {
+            container.classList.add('d-none');
+            return;
+        }
+
+        let html = `
+            <div class="weather-sidebar d-flex flex-column gap-5 p-4"
+                 style="background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 0 2.5rem 2.5rem 0; border: 1px solid rgba(255,255,255,0.1); border-left: none;">`;
+
+        weatherData.forEach(day => {
+            html += `
+                <div class="text-center text-white">
+                    <div class="text-uppercase fw-bold opacity-75 mb-1" style="font-size: 1.1rem; letter-spacing: 1.5px;">${day.day}</div>
+                    <i class="bi ${day.icon} d-block display-4 my-2" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));"></i>
+                    <div class="fw-bold fs-2" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
+                    <div class="opacity-90 mt-2 fw-medium" style="font-size: 1.25rem;">
+                        <i class="bi bi-wind me-2"></i>${day.wind}<span style="font-size: 1rem; margin-left: 2px;"> km/h</span>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+        container.classList.remove('d-none');
     }
 
     console.log('=== DISPLAY ENGINE STARTED (1-MINUTE POLLING) ===');

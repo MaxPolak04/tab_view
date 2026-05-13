@@ -214,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         device_ids: [],
                                         device_names: [],
                                         show_clock: event.extendedProps.show_clock,
+                                        show_weather: event.extendedProps.show_weather,
                                         media_playlist: event.extendedProps.media_playlist
                                     }
                                 };
@@ -221,13 +222,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             if (!groupedEvents[gId].extendedProps.device_ids.includes(event.extendedProps.device_id)) {
                                 groupedEvents[gId].extendedProps.device_ids.push(event.extendedProps.device_id);
-                                groupedEvents[gId].extendedProps.device_names.push(event.extendedProps.device_name);
+                                if (event.extendedProps.device_name) {
+                                    groupedEvents[gId].extendedProps.device_names.push(event.extendedProps.device_name);
+                                }
                             }
                         });
 
                         const uniqueEvents = Object.values(groupedEvents).map(event => {
-                            let devNames = event.extendedProps.device_names.join(', ');
-                            event.title = `${event.title} (${devNames})`;
+                            const devNames = event.extendedProps.device_names.filter(Boolean).join(', ');
+                            if (devNames) {
+                                event.title = `${event.title} (${devNames})`;
+                            }
                             return event;
                         });
 
@@ -260,6 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const deleteBtn = document.getElementById('deleteEventBtn');
         const showClockCheckbox = document.getElementById('eventShowClock');
+        const showWeatherCheckbox = document.getElementById('eventShowWeather');
         const eventModalLabel = document.getElementById('eventModalLabel');
 
         document.querySelectorAll('.device-checkbox').forEach(cb => { cb.checked = false; cb.disabled = false; });
@@ -268,14 +274,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (event) {
             eventModalLabel.textContent = 'Edit Event';
-            let rawTitle = event.title.replace(/\s\([^)]+\)$/, '');
+            let rawTitle = event.title.replace(/\s*\([^)]*\)$/, '');
             document.getElementById('eventTitle').value = rawTitle;
             document.getElementById('eventStart')._flatpickr.setDate(event.start);
             document.getElementById('eventEnd')._flatpickr.setDate(event.end);
             document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
 
             if (showClockCheckbox) {
-                showClockCheckbox.checked = event.extendedProps.show_clock || false;
+                showClockCheckbox.checked = event.extendedProps.show_clock === true;
+            }
+            if (showWeatherCheckbox) {
+                showWeatherCheckbox.checked = event.extendedProps.show_weather === true;
             }
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
@@ -309,6 +318,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventColor').value = getRandomHexColor();
 
             if (showClockCheckbox) showClockCheckbox.checked = false;
+            if (showWeatherCheckbox) showWeatherCheckbox.checked = false;
+
             if (textOnlySwitch) {
                 textOnlySwitch.checked = false;
                 textOnlySwitch.dispatchEvent(new Event('change'));
@@ -404,6 +415,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const showClockCheckbox = document.getElementById('eventShowClock');
         const showClock = showClockCheckbox ? showClockCheckbox.checked : false;
 
+        const showWeatherCheckbox = document.getElementById('eventShowWeather');
+        const showWeather = showWeatherCheckbox ? showWeatherCheckbox.checked : false;
+
         const isTextOnly = textOnlySwitch ? textOnlySwitch.checked : false;
 
         if (!title || !start || !end) return showEventError('Please fill in all required fields (Name, Start, End).');
@@ -419,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
             end_time: convertToLocalISO(end),
             color: document.getElementById('eventColor').value,
             show_clock: showClock,
+            show_weather: showWeather,
             device_ids: selectedDevices,
             media_playlist: payloadPlaylist
         };
@@ -460,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateEventDates(event) {
         const groupDeviceIds = event.extendedProps.device_ids || [];
-        let rawTitle = event.title.replace(/\s\([^)]+\)$/, '');
+        let rawTitle = event.title.replace(/\s*\([^)]*\)$/, '');
 
         fetch(`/api/v1/events/${event.id}?scope=group`, {
             method: 'PUT',
@@ -472,6 +487,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 device_ids: groupDeviceIds,
                 color: event.backgroundColor || '#3788d8',
                 show_clock: event.extendedProps.show_clock,
+                show_weather: event.extendedProps.show_weather,
                 media_playlist: event.extendedProps.media_playlist
             }),
             credentials: 'same-origin'

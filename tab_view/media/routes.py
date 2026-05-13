@@ -21,7 +21,14 @@ logger = logging.getLogger(__name__)
 def get_all_media():
     form = MediaDeleteForm()
 
-    tag_filters = request.args.getlist("tag", type=int)
+    tags = Tag.query.all()
+    custom_tags = [t for t in tags if not t.is_system]
+
+    if "tag" not in request.args:
+        tag_filters = [t.id for t in custom_tags]
+    else:
+        tag_filters = request.args.getlist("tag", type=int)
+
     sort_by = request.args.get("sort", "name_asc")
     page = request.args.get("page", 1, type=int)
 
@@ -38,10 +45,8 @@ def get_all_media():
         query = query.order_by(Media.id)
 
     pagination = query.paginate(page=page, per_page=12)
-    tags = Tag.query.all()
 
     active_tags = [t for t in tags if t.id in tag_filters]
-    custom_tags = [t for t in tags if not t.is_system]
 
     if not active_tags:
         active_tag_names = "All"
@@ -50,7 +55,7 @@ def get_all_media():
         and len(active_tags) == len(custom_tags)
         and all(not t.is_system for t in active_tags)
     ):
-        active_tag_names = "All Custom Tags"
+        active_tag_names = "All Custom Tags (No System)"
     elif len(active_tags) <= 2:
         active_tag_names = ", ".join([t.name for t in active_tags])
     else:

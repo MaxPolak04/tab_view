@@ -20,6 +20,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 * 1024
+    WEATHER_LATITUDE = 52.4069
+    WEATHER_LONGITUDE = 16.9299
+    WEATHER_CACHE_MINUTES = 20
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY is not set")

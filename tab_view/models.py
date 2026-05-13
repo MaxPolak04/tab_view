@@ -30,6 +30,7 @@ class Device(db.Model):
     uploaded_at = db.Column(db.DateTime, server_default=db.func.now())
     media_id = db.Column(db.Integer, db.ForeignKey("media.id"))
     show_clock = db.Column(db.Boolean, default=False)
+    show_weather = db.Column(db.Boolean, default=False)
     media = db.relationship("Media")
 
     def __repr__(self):
@@ -94,6 +95,7 @@ class Event(db.Model):
     )
     device_id = db.Column(db.Integer, db.ForeignKey("devices.id"), nullable=False)
     show_clock = db.Column(db.Boolean, default=False)
+    show_weather = db.Column(db.Boolean, default=False)
     device = db.relationship("Device")
     event_media = db.relationship(
         "EventMedia", back_populates="event", cascade="all, delete-orphan"
@@ -113,6 +115,8 @@ class Event(db.Model):
             "extendedProps": {
                 "device_id": self.device_id,
                 "device_name": self.device.name if self.device else None,
+                "show_clock": self.show_clock,
+                "show_weather": self.show_weather,
                 "media_playlist": [
                     {
                         "media_id": em.media_id,

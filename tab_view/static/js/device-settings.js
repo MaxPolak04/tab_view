@@ -1,13 +1,35 @@
 document.addEventListener('DOMContentLoaded', function() {
-    if (!window.mediaPickerConfig) return;
-
     // --- MEDIA PICKER LOGIC ---
     const mediaPreview = document.getElementById('defaultMediaPreview');
     const mediaSelect = document.getElementById('defaultMediaSelect');
     const modalEl = document.getElementById('mediaPickerModal');
 
+    function renderPreview(mediaId) {
+        if (!mediaId || !window.mediaList) return;
+
+        const media = window.mediaList.find(m => m.id == mediaId);
+        if (!media) return;
+
+        let previewHtml = '';
+        if (media.media_type === 'image') {
+            previewHtml = `<img src="/static/uploads/${media.filename}" alt="Selected Media" class="img-fluid rounded-3 shadow-sm" style="max-height: 200px; object-fit: contain;">`;
+        } else {
+            previewHtml = `<video src="/static/uploads/${media.filename}" class="img-fluid rounded-3 shadow-sm" style="max-height: 200px; object-fit: contain;" autoplay loop muted playsinline></video>`;
+        }
+
+        if (mediaPreview) {
+            mediaPreview.innerHTML = previewHtml;
+            mediaPreview.style.border = 'none';
+            mediaPreview.style.backgroundColor = 'transparent';
+        }
+    }
+
     if (mediaPreview && modalEl) {
         const mediaPickerModal = new bootstrap.Modal(modalEl);
+
+        if (window.currentDeviceMediaId) {
+            renderPreview(window.currentDeviceMediaId);
+        }
 
         // Open modal on preview click
         mediaPreview.addEventListener('click', function() {
@@ -20,8 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
 
                 const mediaId = this.dataset.mediaId;
-                const filename = this.dataset.mediaFilename;
-                const mediaType = this.dataset.mediaType;
 
                 // Update hidden input for form submission
                 if (mediaSelect) {
@@ -33,13 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.add('border-primary', 'border-2');
 
                 // Update the preview box
-                let previewHtml = '';
-                if (mediaType === 'image') {
-                    previewHtml = `<img src="/static/uploads/${filename}" alt="Selected Media" class="img-fluid" style="max-height: 200px; object-fit: contain;">`;
-                } else {
-                    previewHtml = `<video src="/static/uploads/${filename}" class="img-fluid" style="max-height: 200px; object-fit: contain;" autoplay loop muted playsinline></video>`;
-                }
-                mediaPreview.innerHTML = previewHtml;
+                renderPreview(mediaId);
 
                 // Close modal
                 mediaPickerModal.hide();

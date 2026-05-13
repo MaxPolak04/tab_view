@@ -168,6 +168,7 @@ class EventResource(Resource):
                 return error_response("End time must be after start time", 400)
 
             show_clock = data.get("show_clock", False)
+            show_weather = data.get("show_weather", False)
 
             group_id = str(uuid.uuid4())
             created_events = []
@@ -199,6 +200,7 @@ class EventResource(Resource):
                     device_id=dev_id,
                     color=data.get("color", "#3788d8"),
                     show_clock=show_clock,
+                    show_weather=show_weather,
                 )
                 db.session.add(new_event)
                 db.session.flush()
@@ -258,6 +260,7 @@ class EventResource(Resource):
             title = data.get("title", event.title).strip()
             color = data.get("color", event.color)
             show_clock = data.get("show_clock", event.show_clock)
+            show_weather = data.get("show_weather", event.show_weather)
 
             try:
                 start_time = datetime.fromisoformat(
@@ -333,6 +336,7 @@ class EventResource(Resource):
                     device_id=dev_id,
                     color=color,
                     show_clock=show_clock,
+                    show_weather=show_weather,
                 )
                 db.session.add(new_event)
                 db.session.flush()
