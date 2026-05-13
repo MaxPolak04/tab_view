@@ -22,6 +22,7 @@ class NewDevice(FlaskForm):
         "Select media for this device:", coerce=int, validators=[DataRequired()]
     )
     show_clock = BooleanField("Show Clock on Screen", default=False)
+    show_weather = BooleanField("Show Weather")
     submit = SubmitField("Add")
 
     def validate_device_url(self, field):
@@ -47,6 +48,7 @@ class UpdateDevice(FlaskForm):
         "Select media for this device:", coerce=int, validators=[DataRequired()]
     )
     show_clock = BooleanField("Show Clock on Screen", default=False)
+    show_weather = BooleanField("Show Weather")
     submit = SubmitField("Update")
 
 

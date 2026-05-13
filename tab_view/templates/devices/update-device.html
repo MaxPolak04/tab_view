@@ -3,78 +3,68 @@
 {% block title %}Update Device{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="row justify-content-center g-4">
-        <div class="col-lg-6 col-xl-5">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
-                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 px-4">
-                    <h5 class="mb-0 fw-bold text-primary">
-                        <i class="bi bi-gear-fill me-2"></i>Device Settings
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <form action="{{ url_for('devices.update_device', device_id=device.id) }}" method="POST">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="fw-bold mb-4">Update Device</h2>
+                    <form method="POST" action="{{ url_for('devices.update_device', device_id=device.id) }}">
                         {{ form.hidden_tag() }}
+
                         <div class="mb-4">
                             {{ form.name.label(class="form-label fw-bold") }}
-                            {{ form.name(class="form-control form-control-lg shadow-sm rounded-3") }}
-                            {% for error in form.name.errors %}
-                                <div class="text-danger small mt-2 fw-medium">
-                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-                                </div>
-                            {% endfor %}
+                            {{ form.name(class="form-control form-control-lg shadow-sm rounded-3", placeholder="Enter device name") }}
                         </div>
+
                         <div class="mb-4">
                             {{ form.device_url.label(class="form-label fw-bold") }}
-                            <div class="input-group input-group-lg shadow-sm">
-                                <span class="input-group-text bg-body-secondary border-end-0 rounded-start-3"><i class="bi bi-link-45deg"></i></span>
-                                {{ form.device_url(class="form-control border-start-0 rounded-end-3", placeholder="device-slug") }}
+                            <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                                <span class="input-group-text border-0 bg-body-secondary text-muted small">/devices/</span>
+                                {{ form.device_url(class="form-control border-0", placeholder="unique-url") }}
                             </div>
-                            {% for error in form.device_url.errors %}
-                                <div class="text-danger small mt-2 fw-medium">
-                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-                                </div>
-                            {% endfor %}
                         </div>
+
                         <div class="mb-4">
-                            {{ form.media_id.label(class="form-label fw-bold") }}
-                            <p class="text-muted small mb-3">Default media displayed outside the schedule</p>
-
-                            {{ form.media_id(class="d-none", id="defaultMediaSelect") }}
-
-                            <div id="defaultMediaPreview" class="border border-secondary-subtle rounded-4 d-flex flex-column align-items-center justify-content-center bg-body shadow-sm overflow-hidden" style="cursor: pointer; min-height: 150px;">
-                                {% if device.media %}
-                                    {% if device.media.media_type == 'image' %}
-                                        <img src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" alt="Selected Media" class="img-fluid object-fit-cover w-100 h-100" style="max-height: 200px;">
-                                    {% elif device.media.media_type == 'video' %}
-                                        <video src="{{ url_for('static', filename='uploads/' ~ device.media.filename) }}" class="img-fluid object-fit-cover w-100 h-100" style="max-height: 200px;" autoplay loop muted playsinline></video>
-                                    {% endif %}
-                                {% else %}
-                                    <i class="bi bi-plus-circle-dotted text-primary mb-2" style="font-size: 2.5rem;"></i>
-                                    <span class="small fw-medium">Click to select media</span>
-                                {% endif %}
+                            <label class="form-label fw-bold">Default Media</label>
+                            <div class="d-none">
+                                {{ form.media_id(id="defaultMediaSelect") }}
                             </div>
-
-                            {% for error in form.media_id.errors %}
-                                <div class="text-danger small mt-2 fw-medium">
-                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-                                </div>
-                            {% endfor %}
+                            <div id="defaultMediaPreview" class="border rounded-3 p-3 bg-body shadow-sm text-center" style="min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+                                <p class="text-muted mb-0 small">No media selected</p>
+                            </div>
+                            <div class="form-text mt-2">Click the preview to change default media.</div>
                         </div>
 
-                        <div class="mb-4 mt-4">
+                        <hr class="my-4 border-secondary opacity-25">
+
+                        <div class="mb-4">
                             <div class="form-check form-switch mb-2">
                                 {{ form.show_clock(class="form-check-input shadow-sm", role="switch", style="cursor: pointer; transform: scale(1.3); margin-left: -2em; margin-right: 1em;") }}
                                 {{ form.show_clock.label(class="form-check-label fw-bold", style="cursor: pointer;") }}
                             </div>
                             <div class="alert alert-secondary py-2 small mb-0 border-secondary-subtle shadow-sm rounded-3">
-                                Displays the current date and time on the screen. (Note: Can be overridden by individual event settings).
+                                Displays the current date and time on the screen.
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end align-items-center mt-5 gap-3">
-                            <a href="{{ url_for('devices.get_all_devices') }}" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill">Cancel</a>
-                            {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
+                        <div class="mb-4 mt-3">
+                            <div class="form-check form-switch mb-2">
+                                {{ form.show_weather(class="form-check-input shadow-sm", role="switch", style="cursor: pointer; transform: scale(1.3); margin-left: -2em; margin-right: 1em;") }}
+                                {{ form.show_weather.label(class="form-check-label fw-bold", style="cursor: pointer;") }}
+                            </div>
+                            <div class="alert alert-secondary py-2 small mb-0 border-secondary-subtle shadow-sm rounded-3">
+                                Displays a 3-day weather forecast sidebar for Poznań on this device.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-5">
+                            <a href="{{ url_for('devices.get_all_devices') }}" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -86,8 +76,8 @@
 <div class="modal fade" id="mediaPickerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fs-4">Select Media</h5>
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fs-4">Select Default Media</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body py-4" style="max-height: 70vh; overflow-y: auto;">
@@ -102,46 +92,26 @@
                     {% endfor %}
                 </div>
 
-                <div class="row g-3" id="mediaPickerGrid">
-                    {% for media in media_list %}
-                    <div class="col-6 col-md-4 col-lg-3 media-filter-item" data-tag-id="{{ media.tag_id }}">
-                        <div class="card media-picker-item h-100 shadow-sm border-secondary-subtle {% if device.media_id == media.id %}border-primary border-2{% endif %}"
-                             data-media-id="{{ media.id }}"
-                             data-media-filename="{{ media.filename }}"
-                             data-media-type="{{ media.media_type }}"
-                             style="cursor: pointer;">
-                            {% if media.media_type == 'image' %}
-                                <img src="{{ url_for('static', filename='uploads/' ~ media.filename) }}"
-                                     class="card-img-top object-fit-cover"
-                                     style="height: 150px;"
-                                     alt="{{ media.filename }}"
-                                     loading="lazy"
-                                     onerror="console.error('Cannot load:', '{{ media.filename }}'); this.src='/static/img/default.jpg';">
-                            {% elif media.media_type == 'video' %}
-                                <video class="card-img-top object-fit-cover" style="height: 150px;" preload="metadata">
-                                    <source src="{{ url_for('static', filename='uploads/' ~ media.filename) }}" type="video/mp4">
+                <div class="row g-3">
+                    {% for m in media_list %}
+                    <div class="col-6 col-md-4 col-lg-3 media-filter-item" data-tag-id="{{ m.tag_id }}">
+                        <div class="card media-picker-item h-100 shadow-sm border-secondary-subtle {% if device.media_id == m.id %}border-primary border-2{% endif %}" data-media-id="{{ m.id }}" style="cursor: pointer;">
+                            {% if m.media_type == 'image' %}
+                                <img src="{{ url_for('static', filename='uploads/' + m.filename) }}" class="card-img-top object-fit-cover" style="height: 150px;">
+                            {% else %}
+                                <video class="card-img-top object-fit-cover" style="height: 150px;">
+                                    <source src="{{ url_for('static', filename='uploads/' + m.filename) }}" type="video/mp4">
                                 </video>
                             {% endif %}
-                            <div class="card-body p-2">
-                                {% if media.media_type == 'video' %}
-                                <span class="badge bg-primary mb-1">
-                                    <i class="bi bi-play-fill"></i> Video
-                                </span>
-                                {% else %}
-                                <span class="badge bg-success mb-1">
-                                    <i class="bi bi-image"></i> Image
-                                </span>
-                                {% endif %}
-                                <small class="d-block text-truncate fw-medium" title="{{ media.filename }}">
-                                    {{ media.filename }}
-                                </small>
+                            <div class="card-body p-2 text-center">
+                                <small class="text-truncate d-block fw-medium">{{ m.filename }}</small>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
             </div>
-            <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-end pt-3 pb-3">
+            <div class="modal-footer bg-body border-top border-secondary-subtle d-flex justify-content-end">
                 <button type="button" class="btn btn-secondary btn-lg px-5 shadow-sm rounded-pill" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -151,12 +121,9 @@
 
 {% block scripts %}
 <script>
-    window.mediaPickerConfig = {
-        deviceId: {{ device.id }},
-        mediaList: {{ media_list|tojson }},
-        currentMediaId: {{ device.media_id if device.media_id else 'null' }},
-        isAdmin: {{ 'true' if current_user.is_admin else 'false' }}
-    };
+    window.currentDeviceMediaId = {{ device.media_id if device.media_id else 'null' }};
+    window.mediaList = {{ media_list|tojson }};
+    window.isAdmin = {{ 'true' if current_user.is_admin else 'false' }};
 </script>
 <script src="{{ url_for('static', filename='js/device-settings.js') }}"></script>
 {% endblock %}

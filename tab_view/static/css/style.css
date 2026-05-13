@@ -656,6 +656,17 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     margin-left: 1rem !important;
 }
 
+.weather-sidebar {
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 0 2rem 2rem 0;
+    padding: 2rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-left: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
 /* --- MOBILE TABLE CARD VIEW (< 768px) --- */
 @media (max-width: 576px) {
     .table-mobile-cards thead {

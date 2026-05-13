@@ -16,6 +16,7 @@ from flask_login import current_user, login_required
 from tab_view import db
 from tab_view.models import Device, Event, Media, Tag
 from tab_view.utils import admin_required, log_audit_action
+from tab_view.weather import WeatherService
 
 from . import devices_bp
 from .forms import DeleteDevice, NewDevice, UpdateDevice
@@ -95,6 +96,8 @@ def api_device_state(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
     now = datetime.now()
 
+    weather_data = WeatherService.get_weather()
+
     def get_cache_buster(filename):
         try:
             filepath = os.path.join(
@@ -107,6 +110,8 @@ def api_device_state(device_url):
     active_event = Event.query.filter(
         Event.device_id == device.id, Event.start_time <= now, Event.end_time > now
     ).first()
+
+    show_weather = active_event.show_weather if active_event else device.show_weather
 
     if active_event:
         playlist = [
@@ -127,6 +132,8 @@ def api_device_state(device_url):
                 "event_title": active_event.title,
                 "playlist": playlist,
                 "show_clock": active_event.show_clock,
+                "show_weather": show_weather,
+                "weather": weather_data,
             }
         )
 
@@ -144,6 +151,8 @@ def api_device_state(device_url):
             "event_id": None,
             "default_media": default_media_data,
             "show_clock": device.show_clock,
+            "show_weather": show_weather,
+            "weather": weather_data,
         }
     )
 
@@ -164,6 +173,7 @@ def create_device():
         device_url = form.device_url.data
         media_id = form.media_id.data
         show_clock = form.show_clock.data
+        show_weather = form.show_weather.data
 
         try:
             new_device = Device(
@@ -171,6 +181,7 @@ def create_device():
                 device_url=device_url,
                 media_id=media_id,
                 show_clock=show_clock,
+                show_weather=show_weather,
             )
             db.session.add(new_device)
             db.session.commit()
@@ -223,6 +234,7 @@ def update_device(device_id):
         form.device_url.data = device.device_url
         form.media_id.data = device.media_id
         form.show_clock.data = device.show_clock
+        form.show_weather.data = device.show_weather
 
     if form.validate_on_submit():
         existing_name = Device.query.filter_by(name=form.name.data).first()
@@ -260,12 +272,15 @@ def update_device(device_id):
                 changes.append(f"Default Media changed to '{new_media_name}'")
             if device.show_clock != form.show_clock.data:
                 changes.append(f"Show Clock changed to {form.show_clock.data}")
+            if device.show_weather != form.show_weather.data:
+                changes.append(f"Show Weather changed to {form.show_weather.data}")
 
             # Apply changes
             device.name = form.name.data
             device.device_url = form.device_url.data
             device.media_id = form.media_id.data
             device.show_clock = form.show_clock.data
+            device.show_weather = form.show_weather.data
 
             db.session.commit()
 

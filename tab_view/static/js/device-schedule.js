@@ -143,6 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     group_id: event.group_id,
                                     device_ids: [],
                                     show_clock: event.extendedProps.show_clock,
+                                    show_weather: event.extendedProps.show_weather,
                                     media_playlist: event.extendedProps.media_playlist
                                 }
                             };
@@ -194,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const modalTitle = document.getElementById('eventModalLabel');
         const deleteBtn = document.getElementById('deleteEventBtn');
         const showClockCheckbox = document.getElementById('eventShowClock');
+        const showWeatherCheckbox = document.getElementById('eventShowWeather');
 
         if (event) {
             modalTitle.textContent = 'Edit Event';
@@ -203,7 +205,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventColor').value = event.backgroundColor || '#3788d8';
 
             if (showClockCheckbox) {
-                showClockCheckbox.checked = event.extendedProps.show_clock || false;
+                showClockCheckbox.checked = event.extendedProps.show_clock === true;
+            }
+            if (showWeatherCheckbox) {
+                showWeatherCheckbox.checked = event.extendedProps.show_weather === true;
             }
 
             currentPlaylist = JSON.parse(JSON.stringify(event.extendedProps.media_playlist || []));
@@ -232,6 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventColor').value = '#3788d8';
 
             if (showClockCheckbox) showClockCheckbox.checked = false;
+            if (showWeatherCheckbox) showWeatherCheckbox.checked = false;
+
             if (textOnlySwitch) {
                 textOnlySwitch.checked = false;
                 textOnlySwitch.dispatchEvent(new Event('change'));
@@ -332,6 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const end = document.getElementById('eventEnd').value;
             const color = document.getElementById('eventColor').value;
             const showClock = document.getElementById('eventShowClock') ? document.getElementById('eventShowClock').checked : false;
+            const showWeather = document.getElementById('eventShowWeather') ? document.getElementById('eventShowWeather').checked : false;
             const isTextOnly = textOnlySwitch ? textOnlySwitch.checked : false;
 
             if (!title || !start || !end) return showEventError('Please fill in all required fields (Name, Start, End).');
@@ -348,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 device_id: currentDeviceId,
                 color: color,
                 show_clock: showClock,
+                show_weather: showWeather,
                 media_playlist: payloadPlaylist
             };
 
@@ -380,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/api/v1/events/${currentEventId}?scope=${scope}`, { method: 'DELETE', credentials: 'same-origin' })
         .then(res => {
             if (res.status === 401) { window.location.href = '/auth/signin'; return; }
-            if (!res.ok) return res.json().then(err => { throw new Error(err.message || 'Error deleting event.'); });
+            if (!res.ok) throw new Error('Error deleting event.');
             return res.json();
         })
         .then(data => {
@@ -443,6 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 device_id: currentDeviceId,
                 color: event.backgroundColor || '#3788d8',
                 show_clock: event.extendedProps.show_clock,
+                show_weather: event.extendedProps.show_weather,
                 media_playlist: event.extendedProps.media_playlist
             })
         })

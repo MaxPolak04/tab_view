@@ -8,6 +8,9 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
 
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
+
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -15,6 +18,8 @@
     <main class="display-menu"></main>
 
     {% include 'layout/clock.html' %}
+
+    <div id="weather-widget" class="position-fixed start-0 top-50 translate-middle-y z-3 d-none"></div>
 
     <script>
         window.DEVICE_API_URL = "{{ url_for('devices.api_device_state', device_url=device.device_url) }}";
