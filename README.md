@@ -3,159 +3,61 @@
 ![Project Version](https://img.shields.io/badge/version-v1.0.0-blue)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![Flask](https://img.shields.io/badge/Flask-3.0-000000)
+![Package Manager](https://img.shields.io/badge/uv-Fast-purple)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
-[![License](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey)](LICENSE)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)
+![Security: Bandit](https://img.shields.io/badge/security-bandit-green.svg)
 [![Security: Trivy](https://img.shields.io/badge/security-trivy-green.svg)](https://aquasecurity.github.io/trivy/)
+![Linter: Ruff](https://img.shields.io/badge/linter-ruff-red.svg)
+[![License](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey)](LICENSE)
 
 ## 📌 About the Project
 
-**TabView** is a dedicated web platform created for **eNStudios** to centrally manage information tablets (Room Booking / Status Display). The system solves the problem of manually updating conference room statuses and display devices.
+**TabView** is an enterprise-grade web platform created to centrally manage information tablets, solving the problem of manual room booking and visual communication for **eNStudios**.
 
-The project was delivered in an end-to-end model: from client problem analysis, through architecture and development, to setting up CI/CD pipelines and production deployment.
+Delivered end-to-end, it offers a robust, autonomous display client capable of real-time scheduling updates and media rotation without page reloads.
 
-<br>
-<div align="center">
-  <img src="docs/assets/TabView-dark-index.png" alt="TabView Dashboard" width="800">
-</div>
-<br>
-
-### Key Features
-* **Resource Management:** Full CRUD for Users, Media, and Devices.
-* **Interactive Schedule:** Media display queue management via `FullCalendar.io` interface, integrated with the API (`Flask-RESTful`).
-* **Media Queueing:** Precise sequencing of photos and videos displayed on tablets.
-* **Role System:** Permission separation (Admin / User).
-* **Interface:** Responsive UI based on Jinja2 templates and Bootstrap (Dark/Light mode).
+### Key High-Level Features
+* **Enterprise Audit Trail:** Comprehensive tracking of all administrative actions (IP, UserAgent, and Event logging) to ensure system integrity and accountability.
+* **Interactive Scheduling:** Real-time media display queue management via a Drag & Drop `FullCalendar.io` interface.
+* **Automated Display Client:** A self-sustaining, resilient frontend client for tablets that guarantees continuous operation via a Smart Fallback System.
 
 ---
 
-## 📸 Gallery
+## 📸 Interactive Previews
+
+*Note: The following visuals demonstrate the core functionality of TabView.*
 
 <p align="center">
-  <img src="docs/assets/TabView-dark-devices.png" width="48%" alt="Devices Dark Mode">
-  <img src="docs/assets/TabView-light-devices.png" width="48%" alt="Devices Light Mode">
-</p>
-<p align="center">
-  <img src="docs/assets/TabView-dark-media.png" width="48%" alt="Media Management">
-  <img src="docs/assets/TabView-dark-settings.png" width="48%" alt="System Settings">
+  <img src="docs/assets/display-demo.gif" width="48%" alt="Display View: Media Rotation & Widgets">
+  <img src="docs/assets/dashboard-demo.gif" width="48%" alt="Dashboard: Drag & Drop Scheduling">
 </p>
 
 ---
 
-## 🏗 Architecture & Tech Stack
+## 🚀 Quick Start (TL;DR)
 
-> 📖 **Architecture Decision Records (ADR):** Detailed technical decisions, trade-offs, and architectural context are documented in the following files:
-> * [ADR 0001: Shift-Left Security & CI/CD](docs/adr/0001-shift-left-security-and-ci-cd.md)
-> * [ADR 0002: Adoption of `uv` package manager](docs/adr/0002-adoption-of-uv-package-manager.md)
-> * [ADR 0003: Implement pre-commit hooks](docs/adr/0003-implement-pre-commit.md)
-> * [ADR 0004: Security architecture and libraries](docs/adr/0004-security-architecture-and-libraries.md)
+Get the project up and running locally in seconds using `uv` and Docker:
 
-The project relies on a modern Python stack with a focus on performance and stability.
+```bash
+# 1. Install dependencies
+uv sync
 
-### Backend & Data
-* **Language:** Python 3.12
-* **Framework:** Flask Ecosystem (Blueprints, Application Factory Pattern, Flask-RESTful).
-* **Database:** MySQL (persistent data storage).
-* **Cache & Queues:** Redis (session caching, rate limiter handling).
-* **Package Management:** `uv` – a modern, ultra-fast Python package manager.
-* **Background Tasks:** `APScheduler` (handling cyclic system tasks).
-
-### Frontend
-* **Rendering:** Server-Side Rendering (SSR) using `Jinja2`.
-* **UI/UX:** Bootstrap + `FullCalendar.io` + custom JavaScript.
+# 2. Start the containerized environment
+docker-compose up -d
+```
 
 ---
 
-## 🚀 DevOps & Infrastructure
+## 📖 Documentation Index
 
-This project places special emphasis on **Infrastructure as Code (IaC)** and full containerization to ensure environment reproducibility. It strictly follows a "Shift-Left Security" philosophy.
+For deep dives into the technical configuration and architecture, please refer to the following manuals:
 
-### Containerization & Deployment
-The entire application is containerized using **Docker** and runs as a rootless `appuser` for enhanced security. The architecture consists of the following services:
-1.  **NginX (Reverse Proxy):** Runs on port `80`, handles incoming traffic, and terminates proxy headers.
-2.  **Web (Gunicorn):** WSGI application server isolated on internal network.
-3.  **Database (MySQL) & Redis:** Completely isolated on the internal `flasknet` network (ports 3306 & 6379 are not exposed to the host system for security reasons).
-
-### CI/CD Pipeline (GitHub Actions)
-An advanced pipeline automates the software delivery process enforcing a strict **GitHub Flow**:
-* **Quality Gates:** Ruff (Linting & Formatting), Pytest run on every Pull Request.
-* **Build & Registry:** Automatically building and pushing images to **GHCR** only upon successful merge to `main`.
-
----
-
-## 🛡️ Security
-
-The approach to security in TabView is twofold: security built into the application (**App Security**) and automatic audits in the development process (**DevSecOps**).
-
-### 1. Application Security (Runtime)
-Features protecting the running application in production:
-* **SQL Injection Protection:** Utilizing `SQLAlchemy ORM` for query parameterization.
-* **CSRF Protection:** All forms protected by tokens generated by `Flask-WTF`.
-* **Rate Limiting:** Protecting the API against Brute-Force and DDoS attacks using `Flask-Limiter` (with `Werkzeug ProxyFix` to accurately track client IPs behind Nginx).
-* **Secure Passwords:** Hashing with rainbow-table resistant algorithms.
-
-### 2. DevSecOps & Code Quality (Pipeline)
-A set of tools triggered automatically in GitHub Actions and as `pre-commit hooks`:
-* **Container Security:** `trivy` automatically scans built container images for OS and library vulnerabilities on every PR.
-* **Dockerfile Linting:** `hadolint` enforces best practices in container layer optimization and security.
-* **Vulnerability Scanning (SCA):** `pip-audit` checks dependencies for known security vulnerabilities (CVE).
-* **Static Application Security Testing (SAST):** `bandit` analyzes source code for insecure patterns.
-
----
-
-## ⚙️ Installation & Setup
-
-### 💻 Local Development (Any OS)
-For local testing and development. This method builds the image locally from the source code.
-
-1.  **Clone the repository:**
-```bash
-git clone https://github.com/MaxPolak04/tab_view.git
-cd tab_view
-```
-2.  **Configure environment:**
-    Copy `.env.example` to `.env` and fill in the values.
-3.  **Start the environment:**
-```bash
-docker compose up -d --build
-```
-The application will be available at `http://localhost:8080`.
-
-### 🌍 Production Deployment (Linux Only)
-**Requirements:** Linux server with standard Docker Engine installed. The system-wide Docker daemon (not a rootless setup like Podman) is required to automatically bind privileged port 80 and access system `journald` logs. You do *not* need to execute commands from the `root` user account (it is safer to use a standard user in the `docker` group).
-
-Do **not** clone the entire repository on the production server. You only need the deployment files.
-
-1.  **Download configuration files:**
-```bash
-mkdir tab_view && cd tab_view
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/docker-compose.yml
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/docker-compose.prod.yml
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/nginx.conf
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/.env.example -O .env
-```
-2.  **Setup Branding Directory:**
-    Create a `branding` directory and place your company's assets inside:
-```bash
-mkdir branding
-# Place these exact files inside the branding folder:
-# 1. default.png
-# 2. logo_black.png
-# 3. logo_white.png
-```
-3.  **Configure Environment:**
-    Edit the `.env` file with highly secure passwords.
-4.  **Launch the system:**
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-*Note: The production override uses `journald` for logging and exposes Nginx directly on port `80`. The standard Docker daemon manages the privileged port binding securely.*
-
-### CLI - User Management
-To create an admin user inside a running container:
-```bash
-# Syntax: flask create-user [user] [pass] --admin (optional)
-docker compose exec web flask create-user admin P@ssw0rd123 --admin
-```
+* [**Engineer's Manual** (`docs/DEVELOPMENT.md`)](docs/DEVELOPMENT.md) - Local setup, environment variables, database migrations, and seeding.
+* [**Deep Tech Dive** (`docs/ARCHITECTURE.md`)](docs/ARCHITECTURE.md) - Display engine logic, 4K UI scaling, caching, and security mechanisms.
+* [**Quality Assurance** (`docs/TESTING.md`)](docs/TESTING.md) - Test suite execution and coverage reporting.
+* [**SRE & Operations** (`docs/DEPLOYMENT.md`)](docs/DEPLOYMENT.md) - Production stack, Rootless Docker, and Nginx configurations.
+* [**Contributing Guide** (`.github/CONTRIBUTING.md`)](.github/CONTRIBUTING.md) - Git flow, pre-commit hooks, and PR processes.
 
 ---
 
