@@ -11,7 +11,7 @@ from flask import (
     request,
     url_for,
 )
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 from tab_view import db
 from tab_view.models import Device, Event, Media, Tag
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @devices_bp.route("/", methods=["GET"])
-@login_required
+@admin_required
 def get_all_devices():
     form = DeleteDevice()
 
@@ -331,7 +331,7 @@ def update_device(device_id):
 
 
 @devices_bp.route("/schedule/<int:device_id>", methods=["GET"])
-@login_required
+@admin_required
 def device_schedule(device_id):
     device = Device.query.get_or_404(device_id)
 

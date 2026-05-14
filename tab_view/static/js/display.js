@@ -251,7 +251,7 @@
         weatherData.forEach(day => {
             html += `
                 <div class="text-center text-white">
-                    <div class="text-uppercase fw-bold opacity-75 mb-1" style="font-size: 1.1rem; letter-spacing: 1.5px;">${day.day}</div>
+                    <div class="text-uppercase fw-bold opacity-75 mb-1" style="font-size: 1.6rem; letter-spacing: 1.5px;">${day.day}</div>
                     <i class="bi ${day.icon} d-block display-4 my-2" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));"></i>
                     <div class="fw-bold fs-2" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
                     <div class="opacity-90 mt-2 fw-medium" style="font-size: 1.25rem;">
