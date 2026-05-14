@@ -13,3 +13,6 @@ tab_view/static/img/*
 !tab_view/static/img/.gitkeep
 tab_view/static/uploads/*
 !tab_view/static/uploads/.gitkeep
+repomix-output.xml
+.repomixignore
+repomix.config.json
