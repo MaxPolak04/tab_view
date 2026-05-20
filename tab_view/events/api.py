@@ -23,6 +23,30 @@ class EventAvailabilityResource(Resource):
     def get(self):
         """
         Check device availability for a specific time range.
+        ---
+        tags:
+          - Events Availability
+        parameters:
+          - name: start
+            in: query
+            type: string
+            required: true
+            description: Start time in ISO 8601 format (e.g., 2026-05-20T11:00:00)
+          - name: end
+            in: query
+            type: string
+            required: true
+            description: End time in ISO 8601 format
+          - name: exclude_group_id
+            in: query
+            type: string
+            required: false
+            description: UUID of a group to exclude from the overlap check
+        responses:
+          200:
+            description: Dictionary of busy devices with blocking event titles
+          400:
+            description: Missing or invalid parameters
         """
         start_param = request.args.get("start")
         end_param = request.args.get("end")
@@ -63,7 +87,21 @@ class EventResource(Resource):
     @limiter.limit("200 per hour")
     def get(self, event_id=None):
         """
-        Retrieve events or a specific event by ID.
+        Retrieve a single event by ID or fetch all scheduled events.
+        ---
+        tags:
+          - Events Management
+        parameters:
+          - name: event_id
+            in: path
+            type: integer
+            required: false
+            description: The ID of the specific event to retrieve.
+        responses:
+          200:
+            description: Event data or list of events retrieved successfully.
+          404:
+            description: Event with the specified ID was not found.
         """
         try:
             if event_id:
@@ -127,7 +165,47 @@ class EventResource(Resource):
     @limiter.limit("200 per hour")
     def post(self):
         """
-        Create a new event or group of events across multiple devices.
+        Create a new event or scheduled layout.
+        ---
+        tags:
+          - Events Management
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              required:
+                - title
+                - start_time
+                - end_time
+                - device_id
+              properties:
+                title:
+                  type: string
+                  description: The title of the event/booking.
+                start_time:
+                  type: string
+                  description: ISO 8601 formatted string for the start time.
+                end_time:
+                  type: string
+                  description: ISO 8601 formatted string for the end time.
+                device_id:
+                  type: integer
+                  description: ID of the tablet device assigned to this event.
+                show_clock:
+                  type: boolean
+                  description: Whether to overlay the digital clock widget.
+                show_weather:
+                  type: boolean
+                  description: Whether to overlay the live weather widget.
+        responses:
+          201:
+            description: Event created successfully.
+          400:
+            description: Invalid parameters or timeline overlap conflict detected.
+          415:
+            description: Unsupported Media Type (Content-Type must be application/json).
         """
         try:
             data = request.get_json()
@@ -243,8 +321,49 @@ class EventResource(Resource):
     @limiter.limit("200 per hour")
     def put(self, event_id):
         """
-        Update an existing event or event group.
-        Accepts '?scope=instance' or '?scope=group' to determine behavior.
+        Update an existing event.
+        ---
+        tags:
+          - Events Management
+        parameters:
+          - name: event_id
+            in: path
+            type: integer
+            required: true
+            description: The ID of the event to update.
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: The updated title of the event.
+                start_time:
+                  type: string
+                  description: ISO 8601 formatted string for the updated start time.
+                end_time:
+                  type: string
+                  description: ISO 8601 formatted string for the updated end time.
+                device_id:
+                  type: integer
+                  description: Updated ID of the tablet device.
+                show_clock:
+                  type: boolean
+                  description: Update whether to overlay the clock widget.
+                show_weather:
+                  type: boolean
+                  description: Update whether to overlay the weather widget.
+        responses:
+          200:
+            description: Event updated successfully.
+          400:
+            description: Invalid parameters or timeline overlap conflict detected.
+          404:
+            description: Event with the specified ID was not found.
+          415:
+            description: Unsupported Media Type (Content-Type must be application/json).
         """
         try:
             event = Event.query.get(event_id)
@@ -371,8 +490,21 @@ class EventResource(Resource):
     @limiter.limit("200 per hour")
     def delete(self, event_id):
         """
-        Delete an event instance or its entire associated group.
-        Accepts '?scope=instance' or '?scope=group'
+        Delete an existing event.
+        ---
+        tags:
+          - Events Management
+        parameters:
+          - name: event_id
+            in: path
+            type: integer
+            required: true
+            description: The ID of the event to delete.
+        responses:
+          200:
+            description: Event deleted successfully.
+          404:
+            description: Event with the specified ID was not found.
         """
         try:
             event = Event.query.get(event_id)

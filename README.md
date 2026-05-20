@@ -3,190 +3,101 @@
 ![Project Version](https://img.shields.io/badge/version-v1.0.0-blue)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB)
 ![Flask](https://img.shields.io/badge/Flask-3.0-000000)
+![Package Manager](https://img.shields.io/badge/uv-Fast-purple)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
-[![License](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey)](LICENSE)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)
+![Security: Bandit](https://img.shields.io/badge/security-bandit-green.svg)
 [![Security: Trivy](https://img.shields.io/badge/security-trivy-green.svg)](https://aquasecurity.github.io/trivy/)
+![Linter: Ruff](https://img.shields.io/badge/linter-ruff-red.svg)
+[![License](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey)](LICENSE)
 
 ## 📌 About the Project
 
-**TabView** is a dedicated web platform created for **eNStudios** to centrally manage information tablets (Room Booking / Status Display). The system solves the problem of manually updating conference room statuses and display devices.
+**An end-to-end Digital Signage system engineered with a focus on Zero-Downtime architecture, Shift-Left security, and enterprise-grade deployment.**
 
-The project was delivered in an end-to-end model: from client problem analysis, through architecture and development, to setting up CI/CD pipelines and production deployment.
+**TabView** is a robust web platform created to centrally manage information tablets, solving the problem of manual room booking and visual communication for **eNStudios**. Delivered as a complete solution, it offers a self-sustaining display client capable of real-time scheduling updates and media rotation without page reloads.
 
-<br>
-<div align="center">
-  <img src="docs/assets/TabView-dark-index.png" alt="TabView Dashboard" width="800">
-</div>
-<br>
+### Key High-Level Features
 
-### Key Features
-* **Resource Management:** Full CRUD for Users, Media, and Devices.
-* **Interactive Schedule:** Media display queue management via `FullCalendar.io` interface, integrated with the API (`Flask-RESTful`).
-* **Media Queueing:** Precise sequencing of photos and videos displayed on tablets.
-* **Role System:** Permission separation (Admin / User).
-* **Interface:** Responsive UI based on Jinja2 templates and Bootstrap (Dark/Light mode).
+- **Enterprise Audit Trail:** Comprehensive tracking of all administrative actions (IP, UserAgent, and Event logging) to ensure strict accountability.
+- **Interactive Scheduling:** Real-time event and booking management powered by a customized `FullCalendar.io` interface, backed by atomic validation rules.
+- **Automated Display Engine:** A lightweight, polling-driven frontend architecture optimized for low-resource tablets, ensuring consistent playback loops.
+- **Hardware Agnostic Asset Distribution:** Support for simultaneous scheduling of static images, HTML layouts, and MP4 video queues with custom display intervals.
 
 ---
 
-## 📸 Gallery
+## 🚀 Quick Start
 
-<p align="center">
-  <img src="docs/assets/TabView-dark-devices.png" width="48%" alt="Devices Dark Mode">
-  <img src="docs/assets/TabView-light-devices.png" width="48%" alt="Devices Light Mode">
-</p>
-<p align="center">
-  <img src="docs/assets/TabView-dark-media.png" width="48%" alt="Media Management">
-  <img src="docs/assets/TabView-dark-settings.png" width="48%" alt="System Settings">
-</p>
+Ensure you have **Docker** and **Docker Compose** installed on your host system.
+
+### 1. Launch the Environment
+
+Clone the repository, configure your environment, and spin up the containerized architecture:
+
+```bash
+git clone https://github.com/your-org/tab-view.git
+cd tab-view
+cp .env.example .env
+docker-compose up -d
+```
+
+### 2. Automated Initialization
+
+The container entrypoint script (`run.sh`) automatically executes the full initialization pipeline:
+
+- Applies all pending database migrations (`flask db upgrade`).
+- Runs the database seeder (`tab_view/seed.py`) to generate sample layouts, devices, and core records.
+
+### 3. Immediate Access
+
+Once the containers are healthy, open your browser and navigate to `http://localhost:8080`. You can log in immediately using the auto-generated evaluation credentials:
+
+- **Username / Login:** `admin`
+- **Password:** `admin`
+
+_(⚠️ Note: These credentials are automatically provisioned by the seeder for evaluation. For configuration and production provisioning, refer to the guides below)._
 
 ---
 
-## 🏗 Architecture & Tech Stack
+## 📚 Documentation Index
 
-> 📖 **Architecture Decision Records (ADR):** Detailed technical decisions, trade-offs, and architectural context are documented in the following files:
-> * [ADR 0001: Shift-Left Security & CI/CD](docs/adr/0001-shift-left-security-and-ci-cd.md)
-> * [ADR 0002: Adoption of `uv` package manager](docs/adr/0002-adoption-of-uv-package-manager.md)
-> * [ADR 0003: Implement pre-commit hooks](docs/adr/0003-implement-pre-commit.md)
-> * [ADR 0004: Security architecture and libraries](docs/adr/0004-security-architecture-and-libraries.md)
+The system's technical details are broken down into dedicated manuals following industry standards:
 
-The project relies on a modern Python stack with a focus on performance and stability.
-
-### Backend & Data
-* **Language:** Python 3.12
-* **Framework:** Flask Ecosystem (Blueprints, Application Factory Pattern, Flask-RESTful).
-* **Database:** MySQL (persistent data storage).
-* **Cache & Queues:** Redis (session caching, rate limiter handling).
-* **Package Management:** `uv` – a modern, ultra-fast Python package manager.
-* **Background Tasks:** `APScheduler` (handling cyclic system tasks).
-
-### Frontend
-* **Rendering:** Server-Side Rendering (SSR) using `Jinja2`.
-* **UI/UX:** Bootstrap + `FullCalendar.io` + custom JavaScript.
+1. **[Engineer's Manual](docs/DEVELOPMENT.md)** – Comprehensive local development setup, package management via `uv`, database seeds, and testing utilities.
+2. **[Architecture & Design Decisions](docs/ARCHITECTURE.md)** – Deep dive into the custom display client, caching mechanisms, 4K canvas layout calculations, and polling implementations.
+3. **[Quality Assurance & Testing](docs/TESTING.md)** – Test suite matrix, coverage metrics, and execution models using `pytest`.
+4. **[SRE & Operations Guide](docs/DEPLOYMENT.md)** – Production architecture, Nginx reverse proxy optimizations, Gunicorn tuning, and Rootless Docker container security structures.
 
 ---
 
-## 🚀 DevOps & Infrastructure
+## 🛠️ Built With
 
-This project places special emphasis on **Infrastructure as Code (IaC)** and full containerization to ensure environment reproducibility. It strictly follows a "Shift-Left Security" philosophy.
-
-### Containerization & Deployment
-The entire application is containerized using **Docker** and runs as a rootless `appuser` for enhanced security. The architecture consists of the following services:
-1.  **NginX (Reverse Proxy):** Runs on port `80`, handles incoming traffic, and terminates proxy headers.
-2.  **Web (Gunicorn):** WSGI application server isolated on internal network.
-3.  **Database (MySQL) & Redis:** Completely isolated on the internal `flasknet` network (ports 3306 & 6379 are not exposed to the host system for security reasons).
-
-### CI/CD Pipeline (GitHub Actions)
-An advanced pipeline automates the software delivery process enforcing a strict **GitHub Flow**:
-* **Quality Gates:** Ruff (Linting & Formatting), Pytest run on every Pull Request.
-* **Build & Registry:** Automatically building and pushing images to **GHCR** only upon successful merge to `main`.
+- **Backend:** Flask, SQLAlchemy (ORM), Flask-Migrate, Flask-RESTful.
+- **Frontend:** Vanilla JS (ES6+), Bootstrap 5, FullCalendar.io, Flatpickr.
+- **Tooling:** `uv` (Fast Python dependency management), Ruff (Linter/Formatter).
+- **Security & Pipeline:** Bandit (SAST), Trivy (Container Scanning), Git Pre-commit Hooks, GitHub Actions.
 
 ---
 
-## 🛡️ Security
+## 🧠 Engineering Reflection & Mindset
 
-The approach to security in TabView is twofold: security built into the application (**App Security**) and automatic audits in the development process (**DevSecOps**).
+This project represents a transition from structural coding to professional software engineering. Developed independently, it implements industry-best practices to prove that scalable software requires deliberate design:
 
-### 1. Application Security (Runtime)
-Features protecting the running application in production:
-* **SQL Injection Protection:** Utilizing `SQLAlchemy ORM` for query parameterization.
-* **CSRF Protection:** All forms protected by tokens generated by `Flask-WTF`.
-* **Rate Limiting:** Protecting the API against Brute-Force and DDoS attacks using `Flask-Limiter` (with `Werkzeug ProxyFix` to accurately track client IPs behind Nginx).
-* **Secure Passwords:** Hashing with rainbow-table resistant algorithms.
-
-### 2. DevSecOps & Code Quality (Pipeline)
-A set of tools triggered automatically in GitHub Actions and as `pre-commit hooks`:
-* **Container Security:** `trivy` automatically scans built container images for OS and library vulnerabilities on every PR.
-* **Dockerfile Linting:** `hadolint` enforces best practices in container layer optimization and security.
-* **Vulnerability Scanning (SCA):** `pip-audit` checks dependencies for known security vulnerabilities (CVE).
-* **Static Application Security Testing (SAST):** `bandit` analyzes source code for insecure patterns.
-
----
-
-## ⚙️ Installation & Setup
-
-### 💻 Local Development (Any OS)
-For local testing and development. This method builds the image locally from the source code.
-
-1.  **Clone the repository:**
-```bash
-git clone https://github.com/MaxPolak04/tab_view.git
-cd tab_view
-```
-2.  **Configure environment:**
-    Copy `.env.example` to `.env` and fill in the values.
-3.  **Start the environment:**
-```bash
-docker compose up -d --build
-```
-The application will be available at `http://localhost:8080`.
-
-### 🌍 Production Deployment (Linux Only)
-**Requirements:** Linux server with standard Docker Engine installed. The system-wide Docker daemon (not a rootless setup like Podman) is required to automatically bind privileged port 80 and access system `journald` logs. You do *not* need to execute commands from the `root` user account (it is safer to use a standard user in the `docker` group).
-
-Do **not** clone the entire repository on the production server. You only need the deployment files.
-
-1.  **Download configuration files:**
-```bash
-mkdir tab_view && cd tab_view
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/docker-compose.yml
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/docker-compose.prod.yml
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/nginx.conf
-wget https://raw.githubusercontent.com/MaxPolak04/tab_view/main/.env.example -O .env
-```
-2.  **Setup Branding Directory:**
-    Create a `branding` directory and place your company's assets inside:
-```bash
-mkdir branding
-# Place these exact files inside the branding folder:
-# 1. default.png
-# 2. logo_black.png
-# 3. logo_white.png
-```
-3.  **Configure Environment:**
-    Edit the `.env` file with highly secure passwords.
-4.  **Launch the system:**
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-*Note: The production override uses `journald` for logging and exposes Nginx directly on port `80`. The standard Docker daemon manages the privileged port binding securely.*
-
-### CLI - User Management
-To create an admin user inside a running container:
-```bash
-# Syntax: flask create-user [user] [pass] --admin (optional)
-docker compose exec web flask create-user admin P@ssw0rd123 --admin
-```
-
----
-
-## 👨‍💻 About the Author & Learning Journey
-
-I am an aspiring Junior Developer, and **TabView** is a project I realized during my student internship at eNStudios.
-
-**Context:**
-The application was created in a **Client (IT Admin) – Contractor (Me)** relationship. The company needed a dedicated solution but lacked the budget for commercial software or a Senior Developer to guide me. I had to fill this gap independently.
-
-**My Path and Challenges:**
-As a one-person team, I had to step out of the programmer role and take full responsibility for the product:
-* **Engineering over Coding:** I didn't focus just on making the code "work", but on making it secure, maintainable, and resilient (e.g., handling backups, predicting production edge-cases).
-* **Self-Education:** I learned everything – from architecture to CI/CD – on the fly, researching user needs and verifying best practices in documentation and online resources.
-* **Conscious AI Use:** Artificial Intelligence was my mentor and reviewer (suggesting DevSecOps implementation, among other things), but never the "manager". **I am not a "VibeCoder"** – I verified every AI suggestion, and ultimately, I know and understand every line of code in this repository.
-
-This project proved to me that I can deliver a complete, secure, and deployable solution, even under the pressure of limited resources and lack of mentorship.
+- **Engineering over Coding:** Focus was placed on architecture resilience, structural security, and predictable error boundaries over just "making it work".
+- **Self-Education:** Explored and deployed modern ecosystems (like `uv` package management and Rootless containerization) entirely on the fly based on documentation analysis.
+- **Conscious Tooling:** Utilized automation and AI strictly as reviewers and architectural mentors. Every single line of code in this repository has been manually verified, tested, and understood.
 
 ---
 
 ## 📫 Feedback & Contact
 
-As a student and beginning software engineer, I have made every effort to ensure this project meets production standards and adheres to Best Practices. However, your feedback is incredibly valuable to me.
+As a student and beginning engineer, I highly value professional code reviews and architectural feedback. Feel free to connect:
 
-Feel free to reach out via:
-* **GitHub Issues:** For technical bug reports.
-* **LinkedIn:** [Professional contact & networking](https://www.linkedin.com/in/maksymilian-polak)
+- **GitHub Issues:** Technical bug reports and feature requests.
+- **LinkedIn:** [Maksymilian Polak](https://www.linkedin.com/in/maksymilian-polak)
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**.
-See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**. See the [LICENSE](LICENSE) file for details.

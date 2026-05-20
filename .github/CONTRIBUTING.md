@@ -1,100 +1,75 @@
-# Contributing to tab_view
+# Contributing to TabView
 
-First off, thank you for considering contributing to `tab_view`! It's people like you that make open-source and collaborative projects great.
+First off, thank you for considering contributing to `TabView`! It's people like you that make open-source and collaborative projects great.
 
-This document outlines the process for setting up your development environment, our branching strategy, and how to submit your changes.
-
-
+This document outlines our branching strategy, code quality standards, and the process for submitting your changes.
 
 ## 1. Development Environment Setup
 
-We recommend running the Flask application and MySQL database locally for the fastest development feedback loop. Redis and Nginx are primarily used in the production Docker setup.
+We have moved all technical instructions regarding setting up the local environment, database migrations, and running the project to a dedicated manual.
 
-### Prerequisites
-- Python 3.12+
-- `uv` (Python package manager)
-- Local MySQL server instance
-- Git
+👉 **Please refer to [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md) to set up your local `uv` and Docker environment.**
 
-### Installation Steps
+_Crucial Step:_ Before making any commits, ensure you have installed the pre-commit hooks as instructed in the development guide (`pre-commit install`).
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/MaxPolak04/tab_view.git
-   cd tab_view
-   ```
+---
 
-2. **Install dependencies using `uv`:**
-   ```bash
-   uv sync
-   ```
+## 2. Branching Strategy & Release Lifecycle
 
-3. **Set up environment variables:**
-   Copy the example environment file and update the database credentials to match your local MySQL setup:
-   ```bash
-   cp .env.example .env
-   ```
+We implement a simplified, stable Git branching topology focused on continuous delivery directly to the core production line:
 
-   Create a `.flaskenv` file in the root directory for local Flask development settings (this file is git-ignored):
-   ```text
-   FLASK_APP=tab_view
-   FLASK_DEBUG=1
-   ```
-
-4. **Initialize the Database:**
-   Ensure your local MySQL server is running and the database specified in your `.env` exists. Then, apply the migrations:
-   ```bash
-   uv run flask db upgrade
-   ```
-
-5. **Install Pre-commit Hooks:**
-   We use `pre-commit` to ensure code quality (Ruff, Bandit, etc.) before every commit.
-   ```bash
-   uv run pre-commit install
-   ```
-
-6. **Run the application:**
-   ```bash
-   uv run flask run
-   ```
-   The application should now be available at `http://127.0.0.1:5000`.
-
-## 2. Branching Strategy
-
-We follow a simplified Git Flow model to keep our history clean and manageable:
-
-- **`main`**: The production-ready branch. **Never commit directly here.**
-- **`develop`**: The main integration branch for the next release.
-- **Feature Branches**: For new additions. Branch off from `develop` and name them `feature/your-feature-name`.
-- **Hotfix Branches**: For urgent production bug fixes. Branch off from `main` and name them `hotfix/bug-name`.
+- **`main`**: The primary production-ready and deployment-tracked branch. **Never commit or push directly to this branch.**
+- **Feature Branches**: All isolated feature implementations, bug fixes, or documentation modifications must be developed on separate dedicated branches created directly from `main`. Use the naming convention `feature/your-feature-name` or `bugfix/issue-name`.
 
 ### Workflow Example:
+
 ```bash
-git checkout develop
-git pull origin develop
+git checkout main
+git pull origin main
 git checkout -b feature/awesome-new-calendar
-# ... make your changes ...
+# ... execute modifications and commit ...
 git push origin feature/awesome-new-calendar
 ```
 
-## 3. Testing and Code Quality
+### Pull Request Rules & Code Consolidation
 
-Before submitting a Pull Request, ensure that your code passes all tests and linting checks.
+1. Open a Pull Request (PR) targeting the **`main`** branch.
+2. Ensure that the automated GitHub Actions CI/CD pipelines pass successfully without breaking testing matrices, linters, or security scanners.
+3. **Squash and Merge:** To maintain a clean, readable, and linear commit history, all accepted Pull Requests are merged exclusively using the **Squash and merge** strategy. This consolidates your entire feature development history into a single clean commit on the `main` branch.
+
+### Release Automation Trigger
+
+Once a Pull Request is successfully squashed and merged into `main`:
+
+- You must provision a new version tag directly on the `main` head (adhering strictly to Semantic Versioning, e.g., `v1.0.1`).
+- Create a formal **GitHub Release** from that specific tag. This process automatically triggers downstream deployment webhooks and pipeline steps to build and ship the release container assets.
+
+---
+
+## 3. Testing and Code Quality (Shift-Left)
+
+Before submitting a Pull Request, you must ensure that your code adheres to our DevSecOps standards.
 
 - **Run tests locally:**
+  Every new feature or bugfix must be accompanied by relevant tests. Run the test suite using:
+
   ```bash
   uv run pytest
   ```
-  *(Note: You can also use the built-in VSCode testing tab if you prefer a GUI).*
 
-- **Pre-commit checks:**
-  These will run automatically when you try to commit. If they modify files (like Ruff formatting), you will need to stage those files and commit again.
+  _(Note: You can also use the built-in VSCode testing tab if you prefer a GUI)._
+
+- **Pre-commit checks (Ruff & Bandit):**
+  Our pre-commit hooks run automatically when you try to commit. If they modify files (like Ruff formatting) or block due to security issues (Bandit), you will need to fix the code, stage those files, and commit again.
+
+---
 
 ## 4. Submitting a Pull Request (PR)
 
 1. Push your feature branch to GitHub.
-2. Open a Pull Request against the **`develop`** branch (not `main`).
-3. Provide a clear and descriptive title for your PR.
-4. Wait for a code review and address any feedback.
+2. Open a Pull Request against the **`main`** branch.
+3. Provide a clear and descriptive title for your PR detailing the problem solved.
+4. Ensure the CI/CD pipeline (GitHub Actions) passes successfully.
+5. Wait for a code review and address any engineering feedback.
 
-Thank you for your contribution!
+Thank you for helping keep TabView secure, robust, and clean!
