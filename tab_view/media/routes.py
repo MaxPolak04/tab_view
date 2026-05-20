@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 
 from tab_view import db
-from tab_view.models import Device, Media, Tag
+from tab_view.models import Device, Event, EventMedia, Media, Tag
 from tab_view.utils import admin_required, detect_type, log_audit_action
 
 from . import media_bp
@@ -332,8 +332,16 @@ def delete_media(media_id):
         logger.warning(
             f"Delete failed: Media {media_id} is in use elsewhere (IntegrityError)."
         )
+
+        # Query conflicting events to provide context in the UI
+        events_using_media = (
+            Event.query.join(EventMedia).filter(EventMedia.media_id == media_id).all()
+        )
+        event_titles = ", ".join([f"'{e.title}'" for e in events_using_media])
+
         flash(
-            "Cannot delete this file because it is assigned to an Event. "
+            f"Cannot delete this file because it is assigned to \
+                the following Event(s): {event_titles}. "
             "Please remove the association in the event first.",
             "danger",
         )
