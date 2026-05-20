@@ -13,20 +13,25 @@
 
 ## 📌 About the Project
 
-**TabView** is an enterprise-grade web platform created to centrally manage information tablets, solving the problem of manual room booking and visual communication for **eNStudios**.
+**An end-to-end Digital Signage system engineered with a focus on Zero-Downtime architecture, Shift-Left security, and enterprise-grade deployment.**
 
-Delivered end-to-end, it offers a robust, autonomous display client capable of real-time scheduling updates and media rotation without page reloads.
+**TabView** is a robust web platform created to centrally manage information tablets, solving the problem of manual room booking and visual communication for **eNStudios**. Delivered as a complete solution, it offers a self-sustaining display client capable of real-time scheduling updates and media rotation without page reloads.
 
-### Key High-Level Features
-* **Enterprise Audit Trail:** Comprehensive tracking of all administrative actions (IP, UserAgent, and Event logging) to ensure system integrity and accountability.
-* **Interactive Scheduling:** Real-time media display queue management via a Drag & Drop `FullCalendar.io` interface.
-* **Automated Display Client:** A self-sustaining, resilient frontend client for tablets that guarantees continuous operation via a Smart Fallback System.
+### ⚡ Why this project stands out?
+
+- **Production-Ready Architecture:** Deployed utilizing `Gunicorn` and `Nginx` within a fully isolated Rootless Docker environment. Heavy background processing (such as automated log cleanup) is delegated to asynchronous jobs via `APScheduler`, ensuring the main WSGI thread is never blocked.
+- **Built-in Resilience:** A custom "Smart Fallback System" guarantees that tablet screens never go black, gracefully handling network outages or empty event schedules by serving default media.
+- **Hardened Security & DevSecOps:**
+  - API defense mechanisms based on strict Rate Limiting (`Flask-Limiter` paired with `Redis`).
+  - Automated CI/CD pipelines with built-in SAST vulnerability scanning (`Bandit`) and dependency tree auditing (`pip-audit`).
+  - Enforced data integrity and robust CSRF protection at the view layer.
+  - An Enterprise Audit Trail tracking all administrative CRUD operations (logging IP, UserAgent, and specific events).
 
 ---
 
 ## 📸 Interactive Previews
 
-*Note: The following visuals demonstrate the core functionality of TabView.*
+_Note: The following visuals demonstrate the core functionality of TabView._
 
 <p align="center">
   <img src="docs/assets/display-demo.gif" width="48%" alt="Display View: Media Rotation & Widgets">
@@ -35,29 +40,30 @@ Delivered end-to-end, it offers a robust, autonomous display client capable of r
 
 ---
 
-## 🚀 Quick Start (TL;DR)
+## 🚀 Quick Start
 
-Get the project up and running locally in seconds using `uv` and Docker:
+To get the project up and running locally, you can use the provided Docker Compose configuration (`docker-compose.yml`). Before starting, ensure your environment is properly set up:
+
+1. **Environment Variables:** Copy the `.env.example` file to a new file named `.env` and fill in the required variables.
+2. **Web Server Config:** Ensure the `nginx.conf` file is present in the main directory.
+3. **Branding Assets:** Verify that the `branding/` directory contains the following image files:
+   - `default.png`
+   - `logo_black.png`
+   - `logo_white.png`
+
+Once the prerequisites are met, simply start the containerized environment:
 
 ```bash
-# 1. Install dependencies
-uv sync
-
-# 2. Start the containerized environment
 docker-compose up -d
 ```
 
 ---
 
-## 📖 Documentation Index
+## 📖 Documentation
 
-For deep dives into the technical configuration and architecture, please refer to the following manuals:
+If you are interested in the technical details, you can explore our [deep tech dive into the architecture](docs/ARCHITECTURE.md), which covers our display engine logic, UI scaling, caching strategy, and security mechanisms. For instructions on local environment setup, configuration variables, and database migrations, refer to the [development guide](docs/DEVELOPMENT.md).
 
-* [**Engineer's Manual** (`docs/DEVELOPMENT.md`)](docs/DEVELOPMENT.md) - Local setup, environment variables, database migrations, and seeding.
-* [**Deep Tech Dive** (`docs/ARCHITECTURE.md`)](docs/ARCHITECTURE.md) - Display engine logic, 4K UI scaling, caching, and security mechanisms.
-* [**Quality Assurance** (`docs/TESTING.md`)](docs/TESTING.md) - Test suite execution and coverage reporting.
-* [**SRE & Operations** (`docs/DEPLOYMENT.md`)](docs/DEPLOYMENT.md) - Production stack, Rootless Docker, and Nginx configurations.
-* [**Contributing Guide** (`.github/CONTRIBUTING.md`)](.github/CONTRIBUTING.md) - Git flow, pre-commit hooks, and PR processes.
+To learn about our testing processes and coverage reporting, check out the [testing manual](docs/TESTING.md). When you are ready to move beyond the local environment, the [deployment instructions](docs/DEPLOYMENT.md) will guide you through the production stack, Nginx setup, and Rootless Docker. Finally, if you'd like to get involved, please read our [contributing guide](.github/CONTRIBUTING.md) to understand our Git flow and PR processes.
 
 ---
 
@@ -70,9 +76,10 @@ The application was created in a **Client (IT Admin) – Contractor (Me)** relat
 
 **My Path and Challenges:**
 As a one-person team, I had to step out of the programmer role and take full responsibility for the product:
-* **Engineering over Coding:** I didn't focus just on making the code "work", but on making it secure, maintainable, and resilient (e.g., handling backups, predicting production edge-cases).
-* **Self-Education:** I learned everything – from architecture to CI/CD – on the fly, researching user needs and verifying best practices in documentation and online resources.
-* **Conscious AI Use:** Artificial Intelligence was my mentor and reviewer (suggesting DevSecOps implementation, among other things), but never the "manager". **I am not a "VibeCoder"** – I verified every AI suggestion, and ultimately, I know and understand every line of code in this repository.
+
+- **Engineering over Coding:** I didn't focus just on making the code "work", but on making it secure, maintainable, and resilient (e.g., handling backups, predicting production edge-cases).
+- **Self-Education:** I learned everything – from architecture to CI/CD – on the fly, researching user needs and verifying best practices in documentation and online resources.
+- **Conscious AI Use:** Artificial Intelligence was my mentor and reviewer (suggesting DevSecOps implementation, among other things), but never the "manager". **I am not a "VibeCoder"** – I verified every AI suggestion, and ultimately, I know and understand every line of code in this repository.
 
 This project proved to me that I can deliver a complete, secure, and deployable solution, even under the pressure of limited resources and lack of mentorship.
 
@@ -83,8 +90,9 @@ This project proved to me that I can deliver a complete, secure, and deployable 
 As a student and beginning software engineer, I have made every effort to ensure this project meets production standards and adheres to Best Practices. However, your feedback is incredibly valuable to me.
 
 Feel free to reach out via:
-* **GitHub Issues:** For technical bug reports.
-* **LinkedIn:** [Professional contact & networking](https://www.linkedin.com/in/maksymilian-polak)
+
+- **GitHub Issues:** For technical bug reports.
+- **LinkedIn:** [Professional contact & networking](https://www.linkedin.com/in/maksymilian-polak)
 
 ---
 
