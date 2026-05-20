@@ -20,8 +20,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 * 1024
-    WEATHER_LATITUDE = 52.4069
-    WEATHER_LONGITUDE = 16.9299
+    WEATHER_LATITUDE = os.getenv("WEATHER_LATITUDE")
+    WEATHER_LONGITUDE = os.getenv("WEATHER_LONGITUDE")
     WEATHER_CACHE_MINUTES = 20
 
     if not SECRET_KEY:
@@ -29,6 +29,12 @@ class Config:
 
     if not SQLALCHEMY_DATABASE_URI:
         raise RuntimeError("DATABASE_URL is not set")
+
+    if not WEATHER_LATITUDE:
+        raise RuntimeError("WEATHER_LATITUDE is not set")
+
+    if not WEATHER_LONGITUDE:
+        raise RuntimeError("WEATHER_LONGITUDE is not set")
 
 
 class ProductionConfig(Config):
