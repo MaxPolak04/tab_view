@@ -83,12 +83,24 @@ def new_media():
         (t.id, t.name) for t in all_tags
     ]
 
+    # Load custom upload message instruction from file
+    upload_message = ""
+    msg_path = os.path.join(current_app.static_folder, "uploads", "upload_message.txt")
+    if os.path.exists(msg_path):
+        try:
+            with open(msg_path, "r", encoding="utf-8") as f:
+                upload_message = f.read().strip()
+        except Exception as e:
+            logger.warning(f"Could not read upload message config: {e}")
+
     if form.validate_on_submit():
         files = request.files.getlist(form.file.name)
 
         if not files or not files[0].filename:
             flash("No files selected for upload.", "warning")
-            return render_template("media/new-media.html", form=form)
+            return render_template(
+                "media/new-media.html", form=form, upload_message=upload_message
+            )
 
         final_tag_id = None
         new_tag_input = form.new_tag_name.data
@@ -125,13 +137,17 @@ def new_media():
                     db.session.rollback()
                     logger.error(f"Error creating tag '{clean_tag_name}': {e}")
                     flash(f"Error creating new tag: {e}", "danger")
-                    return render_template("media/new-media.html", form=form)
+                    return render_template(
+                        "media/new-media.html", form=form, upload_message=upload_message
+                    )
 
         elif selected_tag_id and selected_tag_id != 0:
             final_tag_id = selected_tag_id
         else:
             flash("Please select an existing tag OR create a new one.", "danger")
-            return render_template("media/new-media.html", form=form)
+            return render_template(
+                "media/new-media.html", form=form, upload_message=upload_message
+            )
 
         success_count = 0
         skipped_files = []
@@ -202,7 +218,9 @@ def new_media():
 
         return redirect(url_for("media.get_all_media"))
 
-    return render_template("media/new-media.html", form=form)
+    return render_template(
+        "media/new-media.html", form=form, upload_message=upload_message
+    )
 
 
 @media_bp.route("/update/<int:media_id>", methods=["GET", "POST"])
@@ -340,8 +358,8 @@ def delete_media(media_id):
         event_titles = ", ".join([f"'{e.title}'" for e in events_using_media])
 
         flash(
-            f"Cannot delete this file because it is assigned to \
-                the following Event(s): {event_titles}. "
+            f"Cannot delete this file because it is assigned to "
+            f"the following Event(s): {event_titles}. "
             "Please remove the association in the event first.",
             "danger",
         )
