@@ -127,10 +127,13 @@
             if (isTextOnly || item.media_type === 'image') {
                 setTimeout(playNextMedia, item.duration * 1000);
             } else if (item.media_type === 'video') {
-                const video = main.querySelector('video');
-                if (video) {
-                    video.currentTime = 0;
-                    video.play().catch(e => console.error("Video replay error:", e));
+                // Select all replica streams inside the wrapper and reset them synchronously
+                const videos = main.querySelectorAll('video');
+                if (videos.length > 0) {
+                    videos.forEach(video => {
+                        video.currentTime = 0;
+                        video.play().catch(e => console.error("Video replica resync playback error:", e));
+                    });
                 } else {
                     injectNewMedia(item, mediaUrl);
                 }
@@ -183,52 +186,79 @@
             setTimeout(playNextMedia, item.duration * 1000);
 
         } else if (item.media_type === 'image') {
-            const img = document.createElement('img');
-            img.src = mediaUrl;
-            img.classList.add('display-img');
-            img.style.animation = 'fadeIn 0.5s ease-in';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'blurred-bg-wrapper';
+            wrapper.style.animation = 'fadeIn 0.5s ease-in';
 
-            img.onload = () => {
+            const blurImg = document.createElement('img');
+            blurImg.className = 'bg-blur-layer';
+            blurImg.src = mediaUrl;
+
+            const mainImg = document.createElement('img');
+            mainImg.className = 'media-content-layer';
+            mainImg.src = mediaUrl;
+
+            wrapper.appendChild(blurImg);
+            wrapper.appendChild(mainImg);
+
+            mainImg.onload = () => {
                 isTransitioning = false;
                 setTimeout(playNextMedia, item.duration * 1000);
             };
 
-            img.onerror = () => {
+            mainImg.onerror = () => {
                 console.error('Failed to load image:', mediaUrl);
                 isTransitioning = false;
                 setTimeout(playNextMedia, 5000);
             };
 
-            main.appendChild(img);
+            main.appendChild(wrapper);
 
         } else if (item.media_type === 'video') {
-            const video = document.createElement('video');
-            video.src = mediaUrl;
-            video.autoplay = true;
-            video.muted = true;
-            video.classList.add('display-video');
-            video.style.animation = 'fadeIn 0.5s ease-in';
+            // NEW ARCHITECTURE: Injection of the Blurred Replica Structure for Videos
+            const wrapper = document.createElement('div');
+            wrapper.className = 'blurred-bg-wrapper';
+            wrapper.style.animation = 'fadeIn 0.5s ease-in';
 
-            video.onplaying = () => {
+            const blurVideo = document.createElement('video');
+            blurVideo.className = 'bg-blur-layer';
+            blurVideo.src = mediaUrl;
+            blurVideo.autoplay = true;
+            blurVideo.muted = true;
+            blurVideo.playsInline = true;
+
+            const mainVideo = document.createElement('video');
+            mainVideo.className = 'media-content-layer';
+            mainVideo.src = mediaUrl;
+            mainVideo.autoplay = true;
+            mainVideo.muted = true;
+            mainVideo.playsInline = true;
+
+            wrapper.appendChild(blurVideo);
+            wrapper.appendChild(mainVideo);
+
+            mainVideo.onplaying = () => {
                 isTransitioning = false;
+                // Force background buffer sync-up if delayed
+                blurVideo.play().catch(e => console.error("Background blur video sync prevented:", e));
             };
 
-            video.onended = () => {
+            mainVideo.onended = () => {
                 playNextMedia();
             };
 
-            video.onerror = () => {
+            mainVideo.onerror = () => {
                 console.error('Failed to load video:', mediaUrl);
                 isTransitioning = false;
                 setTimeout(playNextMedia, 5000);
             };
 
-            main.appendChild(video);
+            main.appendChild(wrapper);
 
-            const playPromise = video.play();
+            const playPromise = mainVideo.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    console.error("Autoplay prevented:", error);
+                    console.error("Autoplay calculation halted:", error);
                     isTransitioning = false;
                     setTimeout(playNextMedia, 5000);
                 });
@@ -243,7 +273,6 @@
             return;
         }
 
-        // Zastosowanie jednostek vh i vw w miejsce klas typograficznych Bootstrapa
         let html = `
             <div class="d-flex flex-column text-white text-center"
                  style="gap: 4vh; padding: 3vh 3vh 3vh 2vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 0 4vh 4vh 0; border: 1px solid rgba(255,255,255,0.1); border-left: none; box-shadow: 5px 5px 15px rgba(0,0,0,0.2);">`;
