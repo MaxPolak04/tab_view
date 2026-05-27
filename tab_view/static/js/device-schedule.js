@@ -20,6 +20,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Logic for "All Day" toggle
+    document.getElementById('eventAllDay')?.addEventListener('change', function(e) {
+        if (e.target.checked) {
+            const startInput = document.getElementById('eventStart');
+            const endInput = document.getElementById('eventEnd');
+
+            if (startInput && startInput._flatpickr && startInput._flatpickr.selectedDates.length > 0) {
+                let dStart = new Date(startInput._flatpickr.selectedDates[0]);
+                dStart.setHours(0, 0, 0, 0);
+                startInput._flatpickr.setDate(dStart, true);
+
+                let dEnd = new Date(dStart);
+                dEnd.setDate(dEnd.getDate() + 1);
+
+                if (endInput && endInput._flatpickr) {
+                    endInput._flatpickr.setDate(dEnd, true);
+                }
+            }
+        }
+    });
+
     function showEventError(message) {
         const errorContainer = document.getElementById('eventFormError');
         const errorText = document.getElementById('eventFormErrorText');
@@ -77,6 +98,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             btnContainer.appendChild(btn);
             instance.calendarContainer.appendChild(btnContainer);
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+            const allDaySwitch = document.getElementById('eventAllDay');
+            if (allDaySwitch && allDaySwitch.checked && selectedDates.length > 0) {
+                const d = selectedDates[0];
+                if (d.getHours() !== 0 || d.getMinutes() !== 0) {
+                    allDaySwitch.checked = false;
+                }
+            }
         }
     };
 
@@ -111,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             slotMinTime: '06:00:00',
             slotMaxTime: '22:00:00',
             allDaySlot: false,
+            dayMaxEvents: true,
             editable: true,
             selectable: true,
             selectMirror: true,
@@ -191,6 +222,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!eventModal) return;
 
         hideEventError();
+
+        if (document.getElementById('eventAllDay')) {
+            document.getElementById('eventAllDay').checked = false;
+        }
 
         const modalTitle = document.getElementById('eventModalLabel');
         const deleteBtn = document.getElementById('deleteEventBtn');

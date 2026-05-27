@@ -15,6 +15,27 @@ document.addEventListener('DOMContentLoaded', function() {
         playlistMediaPickerModalEl.addEventListener('hidden.bs.modal', function() { renderPlaylist(); });
     }
 
+    // Logic for "All Day" toggle
+    document.getElementById('eventAllDay')?.addEventListener('change', function(e) {
+        if (e.target.checked) {
+            const startInput = document.getElementById('eventStart');
+            const endInput = document.getElementById('eventEnd');
+
+            if (startInput && startInput._flatpickr && startInput._flatpickr.selectedDates.length > 0) {
+                let dStart = new Date(startInput._flatpickr.selectedDates[0]);
+                dStart.setHours(0, 0, 0, 0);
+                startInput._flatpickr.setDate(dStart, true);
+
+                let dEnd = new Date(dStart);
+                dEnd.setDate(dEnd.getDate() + 1);
+
+                if (endInput && endInput._flatpickr) {
+                    endInput._flatpickr.setDate(dEnd, true);
+                }
+            }
+        }
+    });
+
     function getRandomHexColor() {
         return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
     }
@@ -82,7 +103,14 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(fetchAvailabilityTimeout);
             fetchAvailabilityTimeout = setTimeout(() => { checkAvailability(); }, 300);
         },
-        onChange: function() {
+        onChange: function(selectedDates, dateStr, instance) {
+            const allDaySwitch = document.getElementById('eventAllDay');
+            if (allDaySwitch && allDaySwitch.checked && selectedDates.length > 0) {
+                const d = selectedDates[0];
+                if (d.getHours() !== 0 || d.getMinutes() !== 0) {
+                    allDaySwitch.checked = false;
+                }
+            }
             clearTimeout(fetchAvailabilityTimeout);
             fetchAvailabilityTimeout = setTimeout(() => { checkAvailability(); }, 300);
         },
@@ -184,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             slotMinTime: '06:00:00',
             slotMaxTime: '22:00:00',
             allDaySlot: false,
+            dayMaxEvents: true,
             editable: true,
             selectable: true,
 
@@ -262,6 +291,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!eventModal) return;
 
         hideEventError();
+
+        if (document.getElementById('eventAllDay')) {
+            document.getElementById('eventAllDay').checked = false;
+        }
 
         const deleteBtn = document.getElementById('deleteEventBtn');
         const showClockCheckbox = document.getElementById('eventShowClock');
