@@ -11,6 +11,10 @@
 ![Linter: Ruff](https://img.shields.io/badge/linter-ruff-red.svg)
 [![License](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey)](LICENSE)
 
+<p align="center">
+  <img src="docs/assets/TabView_main_overview.gif" width="100%" alt="TabView Main Overview">
+</p>
+
 ## 📌 About the Project
 
 **An end-to-end Digital Signage system engineered with a focus on Zero-Downtime architecture, Shift-Left security, and enterprise-grade deployment.**
