@@ -6,9 +6,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TZ=Europe/Warsaw \
     PATH="/app/.venv/bin:$PATH"
 
-# Install system dependencies
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install system dependencies and patch OS vulnerabilities
+# hadolint ignore=DL3005,DL3008
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl \
     gcc \
     default-libmysqlclient-dev \
@@ -46,7 +46,7 @@ RUN chmod +x run.sh
 
 # Verify application availability
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:8000/ || exit 1
 
 EXPOSE 8000
-CMD ["./run.sh"]
+ENTRYPOINT ["./run.sh"]

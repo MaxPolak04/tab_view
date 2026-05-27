@@ -76,6 +76,35 @@
 
     <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary mb-5">
         <div class="card-body p-4 p-md-5">
+
+            <div class="d-flex align-items-center mb-5">
+                <div class="bg-info bg-opacity-10 text-info rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                    <i class="bi bi-chat-left-text-fill fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fs-3 fw-bold mb-0">Upload Notice</h3>
+                    <p class="text-muted small mb-0">Display custom instructions or a notice on the "Add New Media" page.</p>
+                </div>
+            </div>
+
+            <form action="{{ url_for('settings.update_upload_message') }}" method="POST">
+                {{ upload_message_form.hidden_tag() }}
+                <div class="mb-4">
+                    {{ upload_message_form.message.label(class="form-label fw-bold") }}
+                    {{ upload_message_form.message(class="form-control form-control-lg shadow-sm rounded-3", rows="3", placeholder="Enter your instructions here (e.g., 'Please ensure all images have a 16:9 ratio before uploading').") }}
+                    <div class="form-text mt-2 text-muted">
+                        <i class="bi bi-info-circle me-1"></i>Leave this field blank to disable and hide the message.
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    {{ upload_message_form.submit(class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill") }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary mb-5">
+        <div class="card-body p-4 p-md-5">
             <div class="d-flex align-items-center mb-5">
                 <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
                     <i class="bi bi-database-fill-gear fs-3"></i>

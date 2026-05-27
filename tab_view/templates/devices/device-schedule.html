@@ -24,7 +24,6 @@
     </div>
 </div>
 
-<!-- Main Event Modal -->
 <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0 shadow-lg">
@@ -45,6 +44,11 @@
                         <div class="form-text text-muted mt-1">Maximum 50 characters.</div>
                     </div>
 
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input shadow-sm" type="checkbox" role="switch" id="eventAllDay" style="cursor: pointer; transform: scale(1.3); margin-left: -2em; margin-right: 1em;">
+                        <label class="form-check-label fw-bold text-primary" for="eventAllDay" style="cursor: pointer;">Set as All Day Event</label>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <label for="eventStart" class="form-label fw-bold">Event Start:</label>
@@ -60,14 +64,18 @@
                     <div class="mb-4">
                         <label for="eventColor" class="form-label fw-bold">Event Color:</label>
                         <div class="d-flex gap-2 align-items-center">
-                            <input type="color" class="form-control form-control-color shadow-sm rounded-3" id="eventColor" value="#3788d8" title="Choose color">
-                            <div class="color-presets d-flex gap-2">
-                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#3788d8" style="background-color: #3788d8; width: 32px; height: 32px; border-radius: 50%;" title="Blue"></button>
-                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#28a745" style="background-color: #28a745; width: 32px; height: 32px; border-radius: 50%;" title="Green"></button>
-                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#dc3545" style="background-color: #dc3545; width: 32px; height: 32px; border-radius: 50%;" title="Red"></button>
-                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#ffc107" style="background-color: #ffc107; width: 32px; height: 32px; border-radius: 50%;" title="Yellow"></button>
-                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#6f42c1" style="background-color: #6f42c1; width: 32px; height: 32px; border-radius: 50%;" title="Purple"></button>
-                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#fd7e14" style="background-color: #fd7e14; width: 32px; height: 32px; border-radius: 50%;" title="Orange"></button>
+                            <input type="color" class="form-control form-control-color shadow-sm rounded-3" id="eventColor" value="#0d6efd" title="Choose color">
+                            <div class="color-presets d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#dc3545" style="background-color: #dc3545; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#fd7e14" style="background-color: #fd7e14; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#ffc107" style="background-color: #ffc107; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#198754" style="background-color: #198754; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#20c997" style="background-color: #20c997; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#0dcaf0" style="background-color: #0dcaf0; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#0d6efd" style="background-color: #0d6efd; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#6610f2" style="background-color: #6610f2; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#6f42c1" style="background-color: #6f42c1; width: 32px; height: 32px; border-radius: 50%;"></button>
+                                <button type="button" class="btn btn-sm color-preset shadow-sm" data-color="#d63384" style="background-color: #d63384; width: 32px; height: 32px; border-radius: 50%;"></button>
                             </div>
                         </div>
                         <small class="text-muted mt-1 d-block">Click a preset color or choose your own.</small>
@@ -142,7 +150,6 @@
     </div>
 </div>
 
-<!-- Group vs Instance Delete Modal -->
 <div class="modal fade" id="deleteOptionsModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -169,7 +176,6 @@
     </div>
 </div>
 
-<!-- Media Picker Modal -->
 <div class="modal fade" id="playlistMediaPickerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content border-0 shadow-lg">

@@ -7,7 +7,15 @@ import zipfile
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
-from flask import current_app, flash, redirect, render_template, send_file, url_for
+from flask import (
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user
 
 from tab_view.models import (
@@ -23,7 +31,13 @@ from tab_view.models import (
 from tab_view.utils import admin_required, log_audit_action
 
 from . import settings_bp
-from .forms import CleanupEventsForm, DefaultImageForm, ExportDataForm, ImportDataForm
+from .forms import (
+    CleanupEventsForm,
+    DefaultImageForm,
+    ExportDataForm,
+    ImportDataForm,
+    UploadMessageForm,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +47,7 @@ def _render_settings_view(
     default_image_form=None,
     export_form=None,
     import_form=None,
+    upload_message_form=None,
     cutoff_date=None,
     affected_count=None,
     dry_run_result=False,
@@ -43,6 +58,19 @@ def _render_settings_view(
     default_image_form = default_image_form or DefaultImageForm()
     export_form = export_form or ExportDataForm()
     import_form = import_form or ImportDataForm()
+    upload_message_form = upload_message_form or UploadMessageForm()
+
+    # Load existing message into the form if not submitted
+    if request.method == "GET" and not upload_message_form.message.data:
+        msg_path = os.path.join(
+            current_app.static_folder, "uploads", "upload_message.txt"
+        )
+        if os.path.exists(msg_path):
+            try:
+                with open(msg_path, "r", encoding="utf-8") as f:
+                    upload_message_form.message.data = f.read().strip()
+            except Exception as e:
+                logger.error(f"Could not read upload message file: {e}")
 
     # Cache buster to force browser to load new default.png
     default_media = Media.query.get(1)
@@ -61,6 +89,7 @@ def _render_settings_view(
         default_image_form=default_image_form,
         export_form=export_form,
         import_form=import_form,
+        upload_message_form=upload_message_form,
         default_timestamp=timestamp,
         server_time=server_time,
         cutoff_date=cutoff_date,
@@ -74,6 +103,32 @@ def _render_settings_view(
 @admin_required
 def settings_view():
     return _render_settings_view()
+
+
+@settings_bp.route("/update-message", methods=["POST"])
+@admin_required
+def update_upload_message():
+    form = UploadMessageForm()
+    if form.validate_on_submit():
+        msg_path = os.path.join(
+            current_app.static_folder, "uploads", "upload_message.txt"
+        )
+        try:
+            with open(msg_path, "w", encoding="utf-8") as f:
+                f.write(form.message.data or "")
+
+            logger.info(f"Upload message updated by Admin {current_user.id}")
+            log_audit_action(
+                "UPDATE", "Settings", "Updated the custom upload instructions message."
+            )
+            flash("Upload message saved successfully.", "success")
+        except Exception as e:
+            logger.error(f"Error saving upload message: {str(e)}")
+            flash(f"Failed to save message: {str(e)}", "danger")
+
+        return redirect(url_for("settings.settings_view"))
+
+    return _render_settings_view(upload_message_form=form)
 
 
 @settings_bp.route("/update-default-image", methods=["POST"])
@@ -151,8 +206,8 @@ def cleanup_events_view():
                 log_audit_action(
                     "DELETE",
                     "System",
-                    f"Performed automated maintenance cleanup. \
-                        Permanently deleted {len(deleted_events)} old events.",
+                    f"Performed automated maintenance cleanup. "
+                    f"Permanently deleted {len(deleted_events)} old events.",
                 )
 
                 flash(f"{len(deleted_events)} events deleted successfully.", "success")

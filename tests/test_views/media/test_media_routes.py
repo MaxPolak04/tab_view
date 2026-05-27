@@ -329,7 +329,8 @@ def test_delete_media_in_use_by_event(auth_client, init_database, app):
         )
 
     assert (
-        b"Cannot delete this file because it is assigned to an Event" in response.data
+        b"Cannot delete this file because it is assigned to the following Event(s):"
+        in response.data
     )
     assert Media.query.get(media.id) is not None
 

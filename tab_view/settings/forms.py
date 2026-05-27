@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileRequired
-from wtforms import BooleanField, FileField, IntegerField, SubmitField
-from wtforms.validators import NumberRange
+from wtforms import BooleanField, FileField, IntegerField, SubmitField, TextAreaField
+from wtforms.validators import Length, NumberRange, Optional
 
 
 class CleanupEventsForm(FlaskForm):
@@ -40,3 +40,10 @@ class ImportDataForm(FlaskForm):
         ],
     )
     submit = SubmitField("Import and Restore")
+
+
+class UploadMessageForm(FlaskForm):
+    message = TextAreaField(
+        "Upload Instructions Message", validators=[Optional(), Length(max=1000)]
+    )
+    submit = SubmitField("Save Message")

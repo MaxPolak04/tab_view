@@ -166,7 +166,7 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     font-size: 2rem !important;
 }
 
-.display-menu,
+/* .display-menu,
 .default-menu {
     display: flex;
     justify-content: center;
@@ -177,9 +177,21 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     margin: 0;
     background-color: #212121;
     overflow: hidden;
+} */
+
+.display-menu,
+.default-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #111215;
+    overflow: hidden;
+    z-index: 1;
 }
 
-.display-img,
+/* .display-img,
 .display-video,
 .default-img {
     display: block;
@@ -189,7 +201,7 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     margin: 0;
     object-fit: contain;
     background-color: #212121;
-}
+} */
 
 .flash-overlay {
   position: fixed;
@@ -606,6 +618,44 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     border-bottom-right-radius: 50rem !important;
 }
 
+/* Integracja FullCalendar Popover ("+X more") z motywami Bootstrap 5 */
+.fc-theme-standard .fc-popover,
+.fc-popover {
+    background-color: var(--bs-body-bg) !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: 0.8rem !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    color: var(--bs-body-color) !important;
+    z-index: 1060 !important;
+}
+
+.fc-theme-standard .fc-popover-header,
+.fc-popover-header {
+    background-color: var(--bs-tertiary-bg) !important;
+    color: var(--bs-body-color) !important;
+    border-bottom: 1px solid var(--bs-border-color) !important;
+    padding: 0.8rem 1rem !important;
+    border-top-left-radius: calc(0.8rem - 1px) !important;
+    border-top-right-radius: calc(0.8rem - 1px) !important;
+}
+
+.fc-theme-standard .fc-popover-body,
+.fc-popover-body {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+    padding: 0.8rem !important;
+}
+
+.fc-popover-close {
+    color: var(--bs-body-color) !important;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.fc-popover-close:hover {
+    opacity: 1 !important;
+}
+
 
 /* Flatpickr */
 .flatpickr-calendar {
@@ -665,6 +715,61 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-left: 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Wrapper for image elements utilizing blurred replica background layout */
+.blurred-bg-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: block;
+}
+
+/* Background replica blurred layer */
+.bg-blur-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(10px) brightness(0.6);
+    transform: scale(1.1);
+    z-index: 1;
+    will-change: filter, transform;
+}
+
+/* Foreground crisp content layer */
+.media-content-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+}
+
+/* Base class for all media elements in the player */
+.display-media {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    background-color: #111215;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    z-index: 2;
+}
+
+/* Active class dynamically added by JS to trigger fade-in */
+.display-media.active {
+    opacity: 1;
 }
 
 /* --- MOBILE TABLE CARD VIEW (< 768px) --- */
