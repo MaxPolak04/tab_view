@@ -20,7 +20,112 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Logic for "All Day" toggle
+    // --- AJAX UPLOAD LOGIC ---
+    const uploadAjaxModalEl = document.getElementById('uploadAjaxModal');
+    const uploadAjaxModal = uploadAjaxModalEl ? new bootstrap.Modal(uploadAjaxModalEl) : null;
+    const ajaxUploadForm = document.getElementById('ajaxUploadForm');
+    const btnSubmitAjaxUpload = document.getElementById('btnSubmitAjaxUpload');
+
+    if (uploadAjaxModalEl) {
+        uploadAjaxModalEl.addEventListener('hidden.bs.modal', function() {
+            if (ajaxUploadForm) ajaxUploadForm.reset();
+            document.getElementById('ajaxUploadError').classList.add('d-none');
+        });
+    }
+
+    if (btnSubmitAjaxUpload && ajaxUploadForm) {
+        btnSubmitAjaxUpload.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(ajaxUploadForm);
+
+            const originalText = btnSubmitAjaxUpload.innerHTML;
+            btnSubmitAjaxUpload.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+            btnSubmitAjaxUpload.disabled = true;
+            document.getElementById('ajaxUploadError').classList.add('d-none');
+
+            fetch('/media/api/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(res => res.json().then(data => ({ status: res.status, body: data })))
+            .then(result => {
+                if (result.status === 200 && result.body.success) {
+                    result.body.media.forEach(m => {
+                        addMediaToGrid(m);
+                    });
+
+                    uploadAjaxModal.hide();
+                    playlistMediaPickerModal?.show();
+                } else {
+                    const errEl = document.getElementById('ajaxUploadError');
+                    errEl.textContent = result.body.message || 'Upload failed. Check your inputs.';
+                    errEl.classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                const errEl = document.getElementById('ajaxUploadError');
+                errEl.textContent = 'Network error during upload.';
+                errEl.classList.remove('d-none');
+            })
+            .finally(() => {
+                btnSubmitAjaxUpload.innerHTML = originalText;
+                btnSubmitAjaxUpload.disabled = false;
+            });
+        });
+    }
+
+    function addMediaToGrid(media) {
+        const container = document.getElementById('mediaGridContainer');
+        if (!container) return;
+
+        const col = document.createElement('div');
+        col.className = 'col-6 col-md-4 col-lg-3 media-filter-item';
+        col.dataset.tagId = media.tag_id;
+
+        let preview = media.media_type === 'image'
+            ? `<img src="/static/uploads/${media.filename}" class="card-img-top object-fit-cover" style="height: 150px;" loading="lazy">`
+            : `<video class="card-img-top object-fit-cover" style="height: 150px;" preload="metadata"><source src="/static/uploads/${media.filename}" type="video/mp4"></video>`;
+
+        let badge = media.media_type === 'video'
+            ? `<span class="badge bg-primary mb-1"><i class="bi bi-play-fill"></i> Video</span>`
+            : `<span class="badge bg-success mb-1"><i class="bi bi-image"></i> Image</span>`;
+
+        col.innerHTML = `
+            <div class="card playlist-media-item h-100 shadow-sm border-secondary-subtle"
+                 data-media-id="${media.id}"
+                 data-media-filename="${media.filename}"
+                 data-media-type="${media.media_type}"
+                 style="cursor: pointer;">
+                ${preview}
+                <div class="card-body p-2">
+                    ${badge}
+                    <small class="d-block text-truncate fw-medium" title="${media.filename}">${media.filename}</small>
+                </div>
+            </div>
+        `;
+
+        const card = col.querySelector('.playlist-media-item');
+        card.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            const mediaId = parseInt(this.dataset.mediaId);
+            const exists = currentPlaylist.some(m => m.media_id === mediaId);
+            if (exists) {
+                if (typeof showEventError === 'function') showEventError('This media is already in the playlist!');
+                return;
+            }
+            currentPlaylist.push({ media_id: mediaId, filename: this.dataset.mediaFilename, media_type: this.dataset.mediaType, order: currentPlaylist.length, duration: 10 });
+            playlistMediaPickerModal?.hide();
+        });
+
+        container.insertBefore(col, container.firstChild);
+
+        if (typeof window.mediaList !== 'undefined') window.mediaList.push(media);
+        if (typeof updateMediaFilters === 'function') updateMediaFilters();
+    }
+    // --- END AJAX UPLOAD LOGIC ---
+
     document.getElementById('eventAllDay')?.addEventListener('change', function(e) {
         if (e.target.checked) {
             const startInput = document.getElementById('eventStart');
@@ -323,243 +428,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
             div.innerHTML = `
                 <i class="bi bi-grip-vertical" style="cursor: grab;"></i>
-                ${preview}
-                <div class="playlist-item-info"><strong>${index + 1}. ${item.filename}</strong><br><small class="text-muted">${item.media_type}</small></div>
-                ${durationField}
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeFromPlaylist(${index})"><i class="bi bi-trash"></i></button>
-            `;
-
-            div.addEventListener('dragstart', handleDragStart);
-            div.addEventListener('dragover', handleDragOver);
-            div.addEventListener('drop', handleDrop);
-            div.addEventListener('dragend', handleDragEnd);
-
-            container.appendChild(div);
-        });
-    }
-
-    let draggedItem = null;
-    function handleDragStart(e) { draggedItem = this; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
-    function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); e.dataTransfer.dropEffect = 'move'; const target = e.target.closest('.playlist-item'); if (target && target !== draggedItem) { const rect = target.getBoundingClientRect(); const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5; target.parentNode.insertBefore(draggedItem, next ? target.nextSibling : target); } return false; }
-    function handleDrop(e) { if (e.stopPropagation) e.stopPropagation(); return false; }
-    function handleDragEnd(e) { this.classList.remove('dragging'); const items = document.querySelectorAll('.playlist-item'); const newPlaylist = []; items.forEach((item, newIndex) => { const oldIndex = parseInt(item.dataset.index); newPlaylist.push({...currentPlaylist[oldIndex], order: newIndex}); }); currentPlaylist = newPlaylist; renderPlaylist(); }
-
-    window.updatePlaylistItemDuration = function(index, duration) { currentPlaylist[index].duration = parseInt(duration); };
-    window.removeFromPlaylist = function(index) { currentPlaylist.splice(index, 1); renderPlaylist(); };
-
-    const addMediaBtn = document.getElementById('addMediaToPlaylist');
-    if (addMediaBtn && playlistMediaPickerModal) {
-        addMediaBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); playlistMediaPickerModal.show(); });
-    }
-
-    document.querySelectorAll('.playlist-media-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault(); e.stopPropagation();
-            const mediaId = parseInt(this.dataset.mediaId);
-            const exists = currentPlaylist.some(m => m.media_id === mediaId);
-            if (exists) return showEventError('This media is already in the playlist!');
-            currentPlaylist.push({ media_id: mediaId, filename: this.dataset.mediaFilename, media_type: this.dataset.mediaType, order: currentPlaylist.length, duration: 10 });
-            if (playlistMediaPickerModal) playlistMediaPickerModal.hide();
-        });
-    });
-
-    const saveEventBtn = document.getElementById('saveEventBtn');
-    if (saveEventBtn && typeof window.currentDeviceId !== 'undefined' && window.currentDeviceId !== null) {
-        saveEventBtn.addEventListener('click', function(e) {
-            e.preventDefault(); e.stopPropagation();
-            hideEventError();
-
-            const title = document.getElementById('eventTitle').value.trim();
-            const start = document.getElementById('eventStart').value;
-            const end = document.getElementById('eventEnd').value;
-            const color = document.getElementById('eventColor').value;
-            const showClock = document.getElementById('eventShowClock') ? document.getElementById('eventShowClock').checked : false;
-            const showWeather = document.getElementById('eventShowWeather') ? document.getElementById('eventShowWeather').checked : false;
-            const isTextOnly = textOnlySwitch ? textOnlySwitch.checked : false;
-
-            if (!title || !start || !end) return showEventError('Please fill in all required fields (Name, Start, End).');
-            if (title.length > 50) return showEventError('Event Name is too long (maximum is 50 characters).');
-            if (!isTextOnly && currentPlaylist.length === 0) return showEventError('Please select media or enable "Text Only" mode.');
-            if (new Date(start) >= new Date(end)) return showEventError('Event End must be later than Event Start.');
-
-            const payloadPlaylist = isTextOnly ? [] : currentPlaylist;
-
-            const eventData = {
-                title: title,
-                start_time: convertToLocalISO(start),
-                end_time: convertToLocalISO(end),
-                device_id: currentDeviceId,
-                color: color,
-                show_clock: showClock,
-                show_weather: showWeather,
-                media_playlist: payloadPlaylist
-            };
-
-            const url = currentEventId ? `/api/v1/events/${currentEventId}?scope=instance` : '/api/v1/events/';
-            const method = currentEventId ? 'PUT' : 'POST';
-
-            fetch(url, { method: method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eventData) })
-            .then(res => {
-                if (res.status === 401) { window.location.href = '/auth/signin'; return; }
-                if (res.status === 409) return res.json().then(err => { throw new Error(err.message || err.error || 'Overlap detected'); });
-                if (!res.ok) return res.json().then(err => { throw new Error(err.message || err.error || 'HTTP Error: ' + res.status); });
-                return res.json();
-            })
-            .then(data => {
-                if (!data) return;
-                if (calendar) calendar.refetchEvents();
-                if (eventModal) eventModal.hide();
-                currentEventId = null;
-                currentPlaylist = [];
-                isGroupEvent = false;
-                document.getElementById('eventForm').reset();
-            })
-            .catch(error => showEventError(error.message));
-        });
-    }
-
-    const executeDeletion = (scope) => {
-        if (!currentEventId) return;
-
-        fetch(`/api/v1/events/${currentEventId}?scope=${scope}`, { method: 'DELETE', credentials: 'same-origin' })
-        .then(res => {
-            if (res.status === 401) { window.location.href = '/auth/signin'; return; }
-            if (!res.ok) throw new Error('Error deleting event.');
-            return res.json();
-        })
-        .then(data => {
-            if (!data) return;
-            if (calendar) calendar.refetchEvents();
-            if (eventModal) eventModal.hide();
-            if (deleteOptionsModal) deleteOptionsModal.hide();
-            currentEventId = null;
-            currentPlaylist = [];
-            isGroupEvent = false;
-            document.getElementById('eventForm').reset();
-        })
-        .catch(error => showEventError(error.message));
-    };
-
-    const deleteEventBtn = document.getElementById('deleteEventBtn');
-    if (deleteEventBtn && typeof window.currentDeviceId !== 'undefined' && window.currentDeviceId !== null) {
-        deleteEventBtn.addEventListener('click', function(e) {
-            e.preventDefault(); e.stopPropagation();
-            hideEventError();
-
-            if (!currentEventId) return;
-
-            if (isGroupEvent && deleteOptionsModal) {
-                eventModal.hide();
-                deleteOptionsModal.show();
-            } else {
-                if (confirm('Are you sure you want to delete this event from THIS specific device?')) {
-                    executeDeletion('instance');
-                }
-            }
-        });
-    }
-
-    document.getElementById('deleteInstanceBtn')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        executeDeletion('instance');
-    });
-
-    document.getElementById('deleteGroupBtn')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        executeDeletion('group');
-    });
-
-    deleteOptionsModalEl?.addEventListener('hidden.bs.modal', function(e) {
-        if (currentEventId && eventModal) {
-            eventModal.show();
-        }
-    });
-
-    function updateEventDates(event) {
-        fetch(`/api/v1/events/${event.id}?scope=instance`, {
-            method: 'PUT',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                title: event.title,
-                start_time: event.start.toISOString(),
-                end_time: event.end.toISOString(),
-                device_id: currentDeviceId,
-                color: event.backgroundColor || '#3788d8',
-                show_clock: event.extendedProps.show_clock,
-                show_weather: event.extendedProps.show_weather,
-                media_playlist: event.extendedProps.media_playlist
-            })
-        })
-        .then(res => {
-            if (res.status === 401) { window.location.href = '/auth/signin'; return; }
-            if (res.status === 409) return res.json().then(err => { throw new Error(err.message || err.error || 'Overlap detected'); });
-            if (!res.ok) throw new Error('HTTP Error: ' + res.status);
-            return res.json();
-        })
-        .catch(error => {
-            if (calendar) calendar.refetchEvents();
-            showEventError(error.message || 'Error when moving the event');
-        });
-    }
-
-    const tagCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
-    const mediaFilterItems = document.querySelectorAll('.media-filter-item');
-    const allCheckbox = document.getElementById('tag-all');
-
-    function updateMediaFilters() {
-        if (!tagCheckboxes.length || !mediaFilterItems.length) return;
-        const checkedTags = Array.from(tagCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
-
-        mediaFilterItems.forEach(item => {
-            const tagId = item.dataset.tagId ? item.dataset.tagId.toString() : "";
-            if (checkedTags.includes('all') || checkedTags.includes(tagId)) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    if (tagCheckboxes.length > 0) {
-        tagCheckboxes.forEach(cb => {
-            cb.addEventListener('change', function() {
-                if (this.dataset.filter === 'all') {
-                    if (this.checked) {
-                        tagCheckboxes.forEach(c => { if (c !== this) c.checked = false; });
-                    } else {
-                        const anyOtherChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
-                        if (!anyOtherChecked) this.checked = true;
-                    }
-                } else {
-                    if (this.checked) {
-                        if (allCheckbox) allCheckbox.checked = false;
-                    } else {
-                        const anyOtherChecked = Array.from(tagCheckboxes).some(c => c.dataset.filter !== 'all' && c.checked);
-                        if (!anyOtherChecked && allCheckbox) allCheckbox.checked = true;
-                    }
-                }
-                updateMediaFilters();
-            });
-        });
-        setTimeout(updateMediaFilters, 50);
-    }
-
-    document.querySelectorAll('.color-preset').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const color = this.dataset.color;
-            const eventColorInput = document.getElementById('eventColor');
-            if (eventColorInput) eventColorInput.value = color;
-            document.querySelectorAll('.color-preset').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    function formatDateTimeLocal(dStr) {
-        const d = new Date(dStr);
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    }
-
-    function convertToLocalISO(dStr) { return dStr ? (dStr.length === 16 ? dStr + ':00' : dStr) : null; }
-});

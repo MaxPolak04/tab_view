@@ -1,7 +1,15 @@
 import logging
 import os
 
-from flask import current_app, flash, redirect, render_template, request, url_for
+from flask import (
+    current_app,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
@@ -450,3 +458,147 @@ def delete_tag(tag_id):
         flash(f"An error occurred while deleting the tag: {str(e)}", "danger")
 
     return redirect(url_for("media.manage_tags"))
+
+
+@media_bp.route("/api/upload", methods=["POST"])
+@login_required
+def api_upload_media():
+    """
+    Dedicated API endpoint for handling AJAX uploads from Calendar modals.
+    Returns clean JSON instead of template redirects.
+    """
+    form = MediaUploadForm()
+
+    # Reload tag choices for dynamic validation
+    all_tags = Tag.query.order_by(Tag.name).all()
+    form.tag_id.choices = [(0, "--- Select Existing Tag ---")] + [
+        (t.id, t.name) for t in all_tags
+    ]
+
+    if form.validate_on_submit():
+        files = request.files.getlist(form.file.name)
+
+        if not files or not files[0].filename:
+            return jsonify(
+                {"success": False, "message": "No files selected for upload."}
+            ), 400
+
+        final_tag_id = None
+        new_tag_input = form.new_tag_name.data
+        selected_tag_id = form.tag_id.data
+
+        # Handle tag creation or assignment (matching standard route logic)
+        if new_tag_input and new_tag_input.strip():
+            clean_tag_name = new_tag_input.strip()
+            existing_tag = Tag.query.filter_by(name=clean_tag_name).first()
+            if existing_tag:
+                final_tag_id = existing_tag.id
+            else:
+                try:
+                    new_tag = Tag(name=clean_tag_name)
+                    db.session.add(new_tag)
+                    db.session.commit()
+                    final_tag_id = new_tag.id
+                    logger.info(
+                        f"Created new tag '{clean_tag_name}' \
+                            (ID: {new_tag.id}) via API by User {current_user.id}"
+                    )
+                    log_audit_action(
+                        "CREATE",
+                        "Tag",
+                        f"Created new tag '{clean_tag_name}' during API media upload.",
+                    )
+                except Exception as e:
+                    db.session.rollback()
+                    logger.error(f"Error creating tag '{clean_tag_name}' via API: {e}")
+                    return jsonify(
+                        {"success": False, "message": f"Error creating new tag: {e}"}
+                    ), 500
+        elif selected_tag_id and selected_tag_id != 0:
+            final_tag_id = selected_tag_id
+        else:
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Please select an existing tag OR create a new one.",
+                }
+            ), 400
+
+        success_count = 0
+        skipped_files = []
+        saved_media_data = []
+
+        for file in files:
+            filename = secure_filename(file.filename)
+            if not filename:
+                continue
+
+            if len(filename) > 255:
+                skipped_files.append(f"{filename} (name too long)")
+                continue
+
+            existing_file = Media.query.filter_by(filename=filename).first()
+            if existing_file:
+                skipped_files.append(f"{filename} (already exists)")
+                continue
+
+            try:
+                save_path = os.path.join(current_app.static_folder, "uploads", filename)
+                file.save(save_path)
+
+                media = Media(
+                    filename=filename,
+                    media_type=detect_type(filename),
+                    tag_id=final_tag_id,
+                )
+                db.session.add(media)
+                db.session.commit()
+
+                success_count += 1
+                saved_media_data.append(
+                    {
+                        "id": media.id,
+                        "filename": media.filename,
+                        "media_type": media.media_type,
+                        "tag_id": media.tag_id,
+                    }
+                )
+
+                logger.info(
+                    f"Media added via API: {filename} with Tag ID \
+                        {final_tag_id} by User {current_user.id}"
+                )
+
+            except Exception as e:
+                db.session.rollback()
+                skipped_files.append(f"{filename} (error saving)")
+                logger.error(f"Error saving API file {filename}: {str(e)}")
+
+        if success_count > 0:
+            log_audit_action(
+                "CREATE",
+                "Media",
+                f"Successfully uploaded {success_count} new media file(s) via API.",
+            )
+
+        # If zero files succeeded but some were skipped, count as fail
+        if success_count == 0 and skipped_files:
+            return jsonify(
+                {
+                    "success": False,
+                    "message": f"Upload failed. Skipped: {', '.join(skipped_files)}",
+                }
+            ), 400
+
+        msg = f"Uploaded {success_count} file(s)."
+        if skipped_files:
+            msg += f" Skipped: {', '.join(skipped_files)}"
+
+        return jsonify(
+            {"success": True, "message": msg, "media": saved_media_data}
+        ), 200
+
+    # WTForms generic validation failure
+    return jsonify(
+        {"success": False, "message": "Validation failed. Please check form inputs."}
+    ), 400
