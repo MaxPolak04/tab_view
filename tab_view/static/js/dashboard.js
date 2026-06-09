@@ -5,6 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPlaylist = [];
     let fetchAvailabilityTimeout = null;
 
+    // GLOBAL FIX FOR BOOTSTRAP 5 NESTED MODALS
+    // Ensures scroll is locked and UI doesn't break when one of multiple open modals is hidden
+    document.addEventListener('hidden.bs.modal', function () {
+        if (document.querySelectorAll('.modal.show').length > 0) {
+            document.body.classList.add('modal-open');
+        }
+    });
+
     const eventModalEl = document.getElementById('dashboardEventModal');
     const eventModal = eventModalEl ? new bootstrap.Modal(eventModalEl) : null;
 
@@ -20,6 +28,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadAjaxModal = uploadAjaxModalEl ? new bootstrap.Modal(uploadAjaxModalEl) : null;
     const ajaxUploadForm = document.getElementById('ajaxUploadForm');
     const btnSubmitAjaxUpload = document.getElementById('btnSubmitAjaxUpload');
+
+    // EXPLICIT MODAL CHAINING TO PREVENT BACKDROP CORRUPTION
+    const btnOpenUploadAjax = document.getElementById('btnOpenUploadAjax');
+    if (btnOpenUploadAjax) {
+        btnOpenUploadAjax.addEventListener('click', function(e) {
+            e.preventDefault();
+            playlistMediaPickerModal?.hide();
+            // Wait for fade transition before launching next modal to secure backdrop rendering
+            setTimeout(() => { uploadAjaxModal?.show(); }, 400);
+        });
+    }
+
+    const btnBackToLibrary = document.getElementById('btnBackToLibrary');
+    if (btnBackToLibrary) {
+        btnBackToLibrary.addEventListener('click', function(e) {
+            e.preventDefault();
+            uploadAjaxModal?.hide();
+            setTimeout(() => { playlistMediaPickerModal?.show(); }, 400);
+        });
+    }
 
     if (uploadAjaxModalEl) {
         uploadAjaxModalEl.addEventListener('hidden.bs.modal', function() {
@@ -52,7 +80,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
 
                     uploadAjaxModal.hide();
-                    playlistMediaPickerModal?.show();
+                    // Crucial fix: Delay reopening to allow Bootstrap DOM state to settle
+                    setTimeout(() => { playlistMediaPickerModal?.show(); }, 400);
                 } else {
                     const errEl = document.getElementById('ajaxUploadError');
                     errEl.textContent = result.body.message || 'Upload failed. Check your inputs.';
@@ -108,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const exists = currentPlaylist.some(m => m.media_id === mediaId);
             if (exists) {
                 if (typeof showEventError === 'function') showEventError('This media is already in the playlist!');
+                else alert('This media is already in the playlist!');
                 return;
             }
             currentPlaylist.push({ media_id: mediaId, filename: this.dataset.mediaFilename, media_type: this.dataset.mediaType, order: currentPlaylist.length, duration: 10 });
