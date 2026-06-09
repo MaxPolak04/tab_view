@@ -98,7 +98,7 @@ class WeatherService:
                 f"latitude={lat}&longitude={lon}"
                 f"&daily=weathercode,temperature_2m_max,windspeed_10m_max"
                 f"&hourly=weathercode,temperature_2m,windspeed_10m"
-                f"&forecast_days=3&timezone=auto"
+                f"&forecast_days=3&timezone=auto&current_weather=true"
             )
 
             response = requests.get(url, timeout=6)
@@ -106,64 +106,64 @@ class WeatherService:
             resp = response.json()
 
             daily = resp.get("daily", {})
+            current = resp.get("current_weather")
             hourly = resp.get("hourly", {})
 
-            # HOURLY DATA: Now, in 3 hours, in 6 hours
-            today_data = []
-            hourly_times = hourly.get("time", [])
-            if hourly_times:
-                current_hour = now.replace(minute=0, second=0, microsecond=0)
-                target_times = [
-                    current_hour,
-                    current_hour + timedelta(hours=3),
-                    current_hour + timedelta(hours=6),
-                ]
+            forecast = []
+            for i in range(3):
+                day_label = (
+                    "Today" if i == 0 else (now + timedelta(days=i)).strftime("%a")
+                )
 
-                for i, target_time in enumerate(target_times):
-                    idx = cls._nearest_hour_index(hourly_times, target_time.isoformat())
+                try:
+                    daily_code = daily.get("weathercode", [None] * 3)[i]
+                except IndexError:
+                    daily_code = None
+
+                try:
+                    daily_temp = daily.get("temperature_2m_max", [None] * 3)[i]
+                except IndexError:
+                    daily_temp = None
+
+                try:
+                    daily_wind = daily.get("windspeed_10m_max", [None] * 3)[i]
+                except IndexError:
+                    daily_wind = None
+
+                if i == 0 and current:
+                    code = current.get("weathercode", daily_code)
+                    temp = current.get("temperature", daily_temp or 0)
+                    wind = current.get("windspeed", daily_wind or 0)
+                else:
+                    code = daily_code
+                    temp = daily_temp or 0
+                    wind = daily_wind or 0
+
+                if i == 0 and hourly and not current:
+                    hourly_times = hourly.get("time", [])
+                    idx = cls._nearest_hour_index(
+                        hourly_times,
+                        now.replace(minute=0, second=0, microsecond=0).isoformat(),
+                    )
                     try:
                         code = hourly.get("weathercode", [None])[idx]
-                        temp = hourly.get("temperature_2m", [None])[idx]
-                        wind = hourly.get("windspeed_10m", [None])[idx]
-
-                        time_label = (
-                            "Current" if i == 0 else target_time.strftime("%H:%M")
-                        )
-
-                        today_data.append(
-                            {
-                                "time": time_label,
-                                "temp": round(float(temp)) if temp is not None else 0,
-                                "wind": round(float(wind)) if wind is not None else 0,
-                                "icon": cls._map_icon(code),
-                            }
-                        )
+                        temp = hourly.get("temperature_2m", [temp])[idx]
+                        wind = hourly.get("windspeed_10m", [wind])[idx]
                     except (IndexError, TypeError) as e:
                         current_app.logger.warning(
                             f"Failed to extract hourly data at index {idx}: {e}"
                         )
 
-            # DAILY DATA (Tomorrow, the Day After Tomorrow)
-            future_data = []
-            for i in range(1, 3):
-                day_label = (now + timedelta(days=i)).strftime("%a").upper()
-                try:
-                    code = daily.get("weathercode", [None] * 3)[i]
-                    temp = daily.get("temperature_2m_max", [None] * 3)[i]
-                    wind = daily.get("windspeed_10m_max", [None] * 3)[i]
+                forecast.append(
+                    {
+                        "day": day_label,
+                        "temp": round(float(temp)) if temp is not None else None,
+                        "wind": round(float(wind)) if wind is not None else None,
+                        "icon": cls._map_icon(code),
+                    }
+                )
 
-                    future_data.append(
-                        {
-                            "day": day_label,
-                            "temp": round(float(temp)) if temp is not None else 0,
-                            "wind": round(float(wind)) if wind is not None else 0,
-                            "icon": cls._map_icon(code),
-                        }
-                    )
-                except IndexError:
-                    pass
-
-            cls._cache = {"today": today_data, "future": future_data}
+            cls._cache = forecast
             cls._last_update = now
             return cls._cache
 
