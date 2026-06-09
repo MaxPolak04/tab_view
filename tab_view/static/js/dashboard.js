@@ -5,6 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPlaylist = [];
     let fetchAvailabilityTimeout = null;
 
+    // GLOBAL FIX FOR BOOTSTRAP 5 NESTED MODALS
+    // Ensures scroll is locked and UI doesn't break when one of multiple open modals is hidden
+    document.addEventListener('hidden.bs.modal', function () {
+        if (document.querySelectorAll('.modal.show').length > 0) {
+            document.body.classList.add('modal-open');
+        }
+    });
+
     const eventModalEl = document.getElementById('dashboardEventModal');
     const eventModal = eventModalEl ? new bootstrap.Modal(eventModalEl) : null;
 
@@ -15,7 +23,134 @@ document.addEventListener('DOMContentLoaded', function() {
         playlistMediaPickerModalEl.addEventListener('hidden.bs.modal', function() { renderPlaylist(); });
     }
 
-    // Logic for "All Day" toggle
+    // --- AJAX UPLOAD LOGIC ---
+    const uploadAjaxModalEl = document.getElementById('uploadAjaxModal');
+    const uploadAjaxModal = uploadAjaxModalEl ? new bootstrap.Modal(uploadAjaxModalEl) : null;
+    const ajaxUploadForm = document.getElementById('ajaxUploadForm');
+    const btnSubmitAjaxUpload = document.getElementById('btnSubmitAjaxUpload');
+
+    // EXPLICIT MODAL CHAINING TO PREVENT BACKDROP CORRUPTION
+    const btnOpenUploadAjax = document.getElementById('btnOpenUploadAjax');
+    if (btnOpenUploadAjax) {
+        btnOpenUploadAjax.addEventListener('click', function(e) {
+            e.preventDefault();
+            playlistMediaPickerModal?.hide();
+            // Wait for fade transition before launching next modal to secure backdrop rendering
+            setTimeout(() => { uploadAjaxModal?.show(); }, 400);
+        });
+    }
+
+    const btnBackToLibrary = document.getElementById('btnBackToLibrary');
+    if (btnBackToLibrary) {
+        btnBackToLibrary.addEventListener('click', function(e) {
+            e.preventDefault();
+            uploadAjaxModal?.hide();
+            setTimeout(() => { playlistMediaPickerModal?.show(); }, 400);
+        });
+    }
+
+    if (uploadAjaxModalEl) {
+        uploadAjaxModalEl.addEventListener('hidden.bs.modal', function() {
+            if (ajaxUploadForm) ajaxUploadForm.reset();
+            document.getElementById('ajaxUploadError').classList.add('d-none');
+        });
+    }
+
+    if (btnSubmitAjaxUpload && ajaxUploadForm) {
+        btnSubmitAjaxUpload.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(ajaxUploadForm);
+
+            const originalText = btnSubmitAjaxUpload.innerHTML;
+            btnSubmitAjaxUpload.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+            btnSubmitAjaxUpload.disabled = true;
+            document.getElementById('ajaxUploadError').classList.add('d-none');
+
+            fetch('/media/api/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(res => res.json().then(data => ({ status: res.status, body: data })))
+            .then(result => {
+                if (result.status === 200 && result.body.success) {
+                    result.body.media.forEach(m => {
+                        addMediaToGrid(m);
+                    });
+
+                    uploadAjaxModal.hide();
+                    // Crucial fix: Delay reopening to allow Bootstrap DOM state to settle
+                    setTimeout(() => { playlistMediaPickerModal?.show(); }, 400);
+                } else {
+                    const errEl = document.getElementById('ajaxUploadError');
+                    errEl.textContent = result.body.message || 'Upload failed. Check your inputs.';
+                    errEl.classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                const errEl = document.getElementById('ajaxUploadError');
+                errEl.textContent = 'Network error during upload.';
+                errEl.classList.remove('d-none');
+            })
+            .finally(() => {
+                btnSubmitAjaxUpload.innerHTML = originalText;
+                btnSubmitAjaxUpload.disabled = false;
+            });
+        });
+    }
+
+    function addMediaToGrid(media) {
+        const container = document.getElementById('mediaGridContainer');
+        if (!container) return;
+
+        const col = document.createElement('div');
+        col.className = 'col-6 col-md-4 col-lg-3 media-filter-item';
+        col.dataset.tagId = media.tag_id;
+
+        let preview = media.media_type === 'image'
+            ? `<img src="/static/uploads/${media.filename}" class="card-img-top object-fit-cover" style="height: 150px;" loading="lazy">`
+            : `<video class="card-img-top object-fit-cover" style="height: 150px;" preload="metadata"><source src="/static/uploads/${media.filename}" type="video/mp4"></video>`;
+
+        let badge = media.media_type === 'video'
+            ? `<span class="badge bg-primary mb-1"><i class="bi bi-play-fill"></i> Video</span>`
+            : `<span class="badge bg-success mb-1"><i class="bi bi-image"></i> Image</span>`;
+
+        col.innerHTML = `
+            <div class="card playlist-media-item h-100 shadow-sm border-secondary-subtle"
+                 data-media-id="${media.id}"
+                 data-media-filename="${media.filename}"
+                 data-media-type="${media.media_type}"
+                 style="cursor: pointer;">
+                ${preview}
+                <div class="card-body p-2">
+                    ${badge}
+                    <small class="d-block text-truncate fw-medium" title="${media.filename}">${media.filename}</small>
+                </div>
+            </div>
+        `;
+
+        const card = col.querySelector('.playlist-media-item');
+        card.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            const mediaId = parseInt(this.dataset.mediaId);
+            const exists = currentPlaylist.some(m => m.media_id === mediaId);
+            if (exists) {
+                if (typeof showEventError === 'function') showEventError('This media is already in the playlist!');
+                else alert('This media is already in the playlist!');
+                return;
+            }
+            currentPlaylist.push({ media_id: mediaId, filename: this.dataset.mediaFilename, media_type: this.dataset.mediaType, order: currentPlaylist.length, duration: 10 });
+            playlistMediaPickerModal?.hide();
+        });
+
+        container.insertBefore(col, container.firstChild);
+
+        if (typeof window.mediaList !== 'undefined') window.mediaList.push(media);
+        if (typeof updateMediaFilters === 'function') updateMediaFilters();
+    }
+    // --- END AJAX UPLOAD LOGIC ---
+
     document.getElementById('eventAllDay')?.addEventListener('change', function(e) {
         if (e.target.checked) {
             const startInput = document.getElementById('eventStart');
@@ -424,6 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.removeFromPlaylist = function(index) { currentPlaylist.splice(index, 1); renderPlaylist(); };
 
     document.getElementById('addMediaToPlaylist')?.addEventListener('click', e => { e.preventDefault(); playlistMediaPickerModal?.show(); });
+
     document.querySelectorAll('.playlist-media-item').forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
@@ -553,11 +689,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const mediaFilterItems = document.querySelectorAll('.media-filter-item');
     const allCheckbox = document.getElementById('tag-all');
 
-    function updateMediaFilters() {
-        if (!tagCheckboxes.length || !mediaFilterItems.length) return;
-        const checkedTags = Array.from(tagCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
+    window.updateMediaFilters = function() {
+        if (!tagCheckboxes.length || !document.querySelectorAll('.media-filter-item').length) return;
 
-        mediaFilterItems.forEach(item => {
+        const activeCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
+        const checkedTags = Array.from(activeCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
+        const allMediaItems = document.querySelectorAll('.media-filter-item');
+
+        allMediaItems.forEach(item => {
             const tagId = item.dataset.tagId ? item.dataset.tagId.toString() : "";
             if (checkedTags.includes('all') || checkedTags.includes(tagId)) {
                 item.style.display = '';

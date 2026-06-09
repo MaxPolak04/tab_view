@@ -169,4 +169,4 @@ class WeatherService:
 
         except Exception as e:
             current_app.logger.error(f"Weather fetch error: {str(e)}")
-            return cls._cache or []
+            return cls._cache or {"today": [], "future": []}
