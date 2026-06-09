@@ -127,7 +127,6 @@
             if (isTextOnly || item.media_type === 'image') {
                 setTimeout(playNextMedia, item.duration * 1000);
             } else if (item.media_type === 'video') {
-                // Select all replica streams inside the wrapper and reset them synchronously
                 const videos = main.querySelectorAll('video');
                 if (videos.length > 0) {
                     videos.forEach(video => {
@@ -215,7 +214,6 @@
             main.appendChild(wrapper);
 
         } else if (item.media_type === 'video') {
-            // NEW ARCHITECTURE: Injection of the Blurred Replica Structure for Videos
             const wrapper = document.createElement('div');
             wrapper.className = 'blurred-bg-wrapper';
             wrapper.style.animation = 'fadeIn 0.5s ease-in';
@@ -239,7 +237,6 @@
 
             mainVideo.onplaying = () => {
                 isTransitioning = false;
-                // Force background buffer sync-up if delayed
                 blurVideo.play().catch(e => console.error("Background blur video sync prevented:", e));
             };
 
@@ -267,32 +264,68 @@
     }
 
     function updateWeatherWidget(weatherData, shouldShow) {
-        const container = document.getElementById('weather-widget');
-        if (!shouldShow || !weatherData || weatherData.length === 0) {
-            container.classList.add('d-none');
+        const containerLeft = document.getElementById('weather-widget-left');
+        const containerRight = document.getElementById('weather-widget-right');
+
+        if (!shouldShow || !weatherData || (!weatherData.today && !weatherData.future)) {
+            if (containerLeft) containerLeft.classList.add('d-none');
+            if (containerRight) containerRight.classList.add('d-none');
             return;
         }
 
-        let html = `
-            <div class="d-flex flex-column text-white text-center"
-                 style="gap: 4vh; padding: 3vh 3vh 3vh 2vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 0 4vh 4vh 0; border: 1px solid rgba(255,255,255,0.1); border-left: none; box-shadow: 5px 5px 15px rgba(0,0,0,0.2);">`;
+        // --- RENDERING THE LEFT WIDGET (Today - Hourly Weather) ---
+        if (containerLeft && weatherData.today && weatherData.today.length > 0) {
+            let htmlLeft = `
+                <div class="d-flex flex-column text-white text-center"
+                     style="width: 26vh; box-sizing: border-box; padding: 3vh 3vh 3vh 2vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 0 4vh 4vh 0; border: 1px solid rgba(255,255,255,0.1); border-left: none; box-shadow: 5px 5px 15px rgba(0,0,0,0.2);">`;
 
-        weatherData.forEach(day => {
-            html += `
-                <div>
-                    <div class="text-uppercase fw-bold opacity-75" style="font-size: 2vh; letter-spacing: 0.2vw; margin-bottom: 1vh;">${day.day}</div>
-                    <i class="bi ${day.icon} d-block" style="font-size: 7vh; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); margin: 1.5vh 0;"></i>
-                    <div class="fw-bold" style="font-size: 5vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
-                    <div class="opacity-90 fw-medium" style="font-size: 2.5vh; margin-top: 1.5vh;">
-                        <i class="bi bi-wind" style="margin-right: 0.5vw;"></i>${day.wind}<span style="font-size: 1.8vh; margin-left: 0.2vw;"> km/h</span>
+            weatherData.today.forEach((slot, idx) => {
+                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.2); padding-top: 2vh; margin-top: 2vh;' : '';
+                htmlLeft += `
+                    <div style="${borderTop}">
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 2vh; letter-spacing: 0.2vw; margin-bottom: 1vh;">${slot.time}</div>
+                        <i class="bi ${slot.icon} d-block" style="font-size: 7vh; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); margin: 1.5vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 5vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${slot.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 2.5vh; margin-top: 1.5vh;">
+                            <i class="bi bi-wind" style="margin-right: 0.5vw;"></i>${slot.wind}<span style="font-size: 1.8vh; margin-left: 0.2vw;"> km/h</span>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
-        html += '</div>';
+                `;
+            });
+            htmlLeft += '</div>';
 
-        container.innerHTML = html;
-        container.classList.remove('d-none');
+            containerLeft.innerHTML = htmlLeft;
+            containerLeft.classList.remove('d-none');
+        } else if (containerLeft) {
+            containerLeft.classList.add('d-none');
+        }
+
+        // --- RENDERING THE RIGHT-HAND WIDGET (The Future—Tomorrow and the Day After Tomorrow) ---
+        if (containerRight && weatherData.future && weatherData.future.length > 0) {
+            let htmlRight = `
+                <div class="d-flex flex-column text-white text-center"
+                     style="width: 26vh; box-sizing: border-box; padding: 3vh 2vh 3vh 3vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 4vh 0 0 4vh; border: 1px solid rgba(255,255,255,0.1); border-right: none; box-shadow: -5px 5px 15px rgba(0,0,0,0.2);">`;
+
+            weatherData.future.forEach((day, idx) => {
+                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.2); padding-top: 2vh; margin-top: 2vh;' : '';
+                htmlRight += `
+                    <div style="${borderTop}">
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 2vh; letter-spacing: 0.2vw; margin-bottom: 1vh;">${day.day}</div>
+                        <i class="bi ${day.icon} d-block" style="font-size: 7vh; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); margin: 1.5vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 5vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 2.5vh; margin-top: 1.5vh;">
+                            <i class="bi bi-wind" style="margin-right: 0.5vw;"></i>${day.wind}<span style="font-size: 1.8vh; margin-left: 0.2vw;"> km/h</span>
+                        </div>
+                    </div>
+                `;
+            });
+            htmlRight += '</div>';
+
+            containerRight.innerHTML = htmlRight;
+            containerRight.classList.remove('d-none');
+        } else if (containerRight) {
+            containerRight.classList.add('d-none');
+        }
     }
 
     console.log('=== DISPLAY ENGINE STARTED (1-MINUTE POLLING) ===');
