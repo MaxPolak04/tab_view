@@ -126,7 +126,9 @@ class WeatherService:
                         temp = hourly.get("temperature_2m", [None])[idx]
                         wind = hourly.get("windspeed_10m", [None])[idx]
 
-                        time_label = "NOW" if i == 0 else target_time.strftime("%H:%M")
+                        time_label = (
+                            "Current" if i == 0 else target_time.strftime("%H:%M")
+                        )
 
                         today_data.append(
                             {
