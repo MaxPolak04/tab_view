@@ -17,7 +17,7 @@ repos:
         args: ['--maxkb=15000']
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.11
+    rev: v0.15.19
     hooks:
       # Replaces Flake8/Isort - provides ultra-fast static analysis
       - id: ruff
