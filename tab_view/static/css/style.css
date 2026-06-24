@@ -772,6 +772,67 @@ h6, .h6 { font-size: 1.6rem; font-weight: 600; }
     opacity: 1;
 }
 
+/* ==========================================================================
+   System Clock Overlay - Linux/macOS Top Bar Architecture
+   ========================================================================== */
+#system-clock-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: auto !important;
+    right: auto !important;
+    z-index: 1050 !important;
+    pointer-events: none !important; /* Allows clicking "through" the clock to underlying interactive elements */
+}
+
+.top-bar-kiosk {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.5vw !important;
+    padding: 0.8vh 2.2vw !important;
+
+    /* Glassmorphism synchronized 1:1 with .weather-sidebar */
+    background-color: rgba(0, 0, 0, 0.65) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-top: none !important;
+    border-radius: 0 0 1.6rem 1.6rem !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35) !important;
+}
+
+#clock-time {
+    font-size: 3.2vh !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    line-height: 1 !important;
+    letter-spacing: 0.05vw !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    margin: 0 !important;
+}
+
+.top-bar-separator {
+    width: 1px !important;
+    height: 2.6vh !important;
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    margin: 0 !important;
+}
+
+#clock-date {
+    font-size: 2vh !important;
+    font-weight: 500 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    line-height: 1 !important;
+    letter-spacing: 0.1vw !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
 /* --- MOBILE TABLE CARD VIEW (< 768px) --- */
 @media (max-width: 576px) {
     .table-mobile-cards thead {

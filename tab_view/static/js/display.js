@@ -277,17 +277,17 @@
         if (containerLeft && weatherData.today && weatherData.today.length > 0) {
             let htmlLeft = `
                 <div class="d-flex flex-column text-white text-center"
-                     style="width: 26vh; box-sizing: border-box; padding: 3vh 3vh 3vh 2vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 0 4vh 4vh 0; border: 1px solid rgba(255,255,255,0.1); border-left: none; box-shadow: 5px 5px 15px rgba(0,0,0,0.2);">`;
+                     style="width: 24vh; box-sizing: border-box; padding: 2vh 2.5vh 2vh 1.5vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 0 3vh 3vh 0; border: 1px solid rgba(255,255,255,0.15); border-left: none; box-shadow: 5px 5px 20px rgba(0,0,0,0.3);">`;
 
             weatherData.today.forEach((slot, idx) => {
-                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.2); padding-top: 2vh; margin-top: 2vh;' : '';
+                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.5vh; margin-top: 1.5vh;' : '';
                 htmlLeft += `
                     <div style="${borderTop}">
-                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 2vh; letter-spacing: 0.2vw; margin-bottom: 1vh;">${slot.time}</div>
-                        <i class="bi ${slot.icon} d-block" style="font-size: 7vh; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); margin: 1.5vh 0;"></i>
-                        <div class="fw-bold" style="font-size: 5vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${slot.temp}°C</div>
-                        <div class="opacity-90 fw-medium" style="font-size: 2.5vh; margin-top: 1.5vh;">
-                            <i class="bi bi-wind" style="margin-right: 0.5vw;"></i>${slot.wind}<span style="font-size: 1.8vh; margin-left: 0.2vw;"> km/h</span>
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.8vh; letter-spacing: 0.15vw; margin-bottom: 0.5vh;">${slot.time}</div>
+                        <i class="bi ${slot.icon} d-block" style="font-size: 5.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.8vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 4vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${slot.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 2.2vh; margin-top: 1vh;">
+                            <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${slot.wind}<span style="font-size: 1.6vh; margin-left: 0.2vw;"> km/h</span>
                         </div>
                     </div>
                 `;
@@ -300,21 +300,21 @@
             containerLeft.classList.add('d-none');
         }
 
-        // --- RENDERING THE RIGHT-HAND WIDGET (The Future—Tomorrow and the Day After Tomorrow) ---
+        // --- RENDERING THE RIGHT-HAND WIDGET (The Future) ---
         if (containerRight && weatherData.future && weatherData.future.length > 0) {
             let htmlRight = `
                 <div class="d-flex flex-column text-white text-center"
-                     style="width: 26vh; box-sizing: border-box; padding: 3vh 2vh 3vh 3vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 4vh 0 0 4vh; border: 1px solid rgba(255,255,255,0.1); border-right: none; box-shadow: -5px 5px 15px rgba(0,0,0,0.2);">`;
+                     style="width: 24vh; box-sizing: border-box; padding: 2vh 1.5vh 2vh 2.5vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 3vh 0 0 3vh; border: 1px solid rgba(255,255,255,0.15); border-right: none; box-shadow: -5px 5px 20px rgba(0,0,0,0.3);">`;
 
             weatherData.future.forEach((day, idx) => {
-                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.2); padding-top: 2vh; margin-top: 2vh;' : '';
+                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.5vh; margin-top: 1.5vh;' : '';
                 htmlRight += `
                     <div style="${borderTop}">
-                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 2vh; letter-spacing: 0.2vw; margin-bottom: 1vh;">${day.day}</div>
-                        <i class="bi ${day.icon} d-block" style="font-size: 7vh; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); margin: 1.5vh 0;"></i>
-                        <div class="fw-bold" style="font-size: 5vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
-                        <div class="opacity-90 fw-medium" style="font-size: 2.5vh; margin-top: 1.5vh;">
-                            <i class="bi bi-wind" style="margin-right: 0.5vw;"></i>${day.wind}<span style="font-size: 1.8vh; margin-left: 0.2vw;"> km/h</span>
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.8vh; letter-spacing: 0.15vw; margin-bottom: 0.5vh;">${day.day}</div>
+                        <i class="bi ${day.icon} d-block" style="font-size: 5.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.8vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 4vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 2.2vh; margin-top: 1vh;">
+                            <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${day.wind}<span style="font-size: 1.6vh; margin-left: 0.2vw;"> km/h</span>
                         </div>
                     </div>
                 `;
