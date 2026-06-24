@@ -18,7 +18,7 @@
 
     <div id="weather-widget-left" class="position-fixed start-0 top-50 translate-middle-y z-3 d-none"></div>
 
-    <div id="weather-widget-right" class="position-fixed end-0 z-3 d-none" style="top: 25vh;"></div>
+    <div id="weather-widget-right" class="position-fixed end-0 top-50 translate-middle-y z-3 d-none"></div>
 
     <script>
         window.DEVICE_API_URL = "{{ url_for('devices.api_device_state', device_url=device.device_url) }}";

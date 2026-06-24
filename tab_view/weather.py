@@ -65,6 +65,7 @@ class WeatherService:
     def get_weather(cls):
         now = datetime.now()
 
+        # Cache TTL: 30 minutes (1800 seconds)
         if (
             cls._cache
             and cls._last_update
@@ -84,90 +85,130 @@ class WeatherService:
                 f"&timezone=auto"
             )
 
+            # SRE Guardrail: Explicit 5s timeout avoids worker thread lockup
             response = requests.get(url, timeout=5)
             response.raise_for_status()
             data = response.json()
 
             daily = data.get("daily", {})
             hourly = data.get("hourly", {})
-            current = data.get("current_weather")
 
+            # --- 1. LEFT PANEL: Strictly [Now, +3h, +6h] ---
+            today_forecast = []
+            hourly_times = hourly.get("time", [])
+            hourly_temps = hourly.get("temperature_2m", [])
+            hourly_codes = hourly.get("weathercode", [])
+            hourly_winds = hourly.get("windspeed_10m", [])
+
+            if hourly_times:
+                now_iso = now.replace(minute=0, second=0, microsecond=0).isoformat()
+                current_idx = cls._nearest_hour_index(hourly_times, now_iso)
+
+                for offset in [0, 3, 6]:
+                    target_idx = current_idx + offset
+                    if target_idx < len(hourly_times):
+                        dt_hour = datetime.fromisoformat(hourly_times[target_idx])
+
+                        if offset == 0:
+                            time_label = "Teraz"
+                        else:
+                            time_label = dt_hour.strftime("%H:%M")
+
+                        temp_val = (
+                            hourly_temps[target_idx]
+                            if target_idx < len(hourly_temps)
+                            else None
+                        )
+                        wind_val = (
+                            hourly_winds[target_idx]
+                            if target_idx < len(hourly_winds)
+                            else None
+                        )
+                        code_val = (
+                            hourly_codes[target_idx]
+                            if target_idx < len(hourly_codes)
+                            else None
+                        )
+
+                        today_forecast.append(
+                            {
+                                "time": time_label,
+                                "temp": round(float(temp_val))
+                                if temp_val is not None
+                                else "--",
+                                "wind": round(float(wind_val))
+                                if wind_val is not None
+                                else "--",  # <--- DODANY WIATR DO SŁOWNIKA
+                                "icon": cls._map_icon(code_val),
+                            }
+                        )
+
+            # --- 2. RIGHT PANEL: Strictly 3 future days (Jutro, Pojutrze, Day +3) ---
+            future_forecast = []
             daily_times = daily.get("time", [])
             daily_codes = daily.get("weathercode", [])
             daily_temps = daily.get("temperature_2m_max", [])
             daily_winds = daily.get("windspeed_10m_max", [])
 
-            forecast = []
             dni_pl = ["Pon", "Wto", "Śro", "Czw", "Pią", "Sob", "Nied"]
 
-            for i in range(min(len(daily_times), 5)):
+            # Range (1, 4) strictly grabs index 1, 2, and 3
+            for i in range(1, min(len(daily_times), 4)):
                 date_str = daily_times[i]
-                dt = datetime.fromisoformat(date_str)
+                dt_day = datetime.fromisoformat(date_str)
 
-                if i == 0:
-                    day_label = "Dziś"
-                elif i == 1:
+                if i == 1:
                     day_label = "Jutro"
+                elif i == 2:
+                    day_label = "Pojutrze"
                 else:
-                    day_label = dni_pl[dt.weekday()]
+                    day_label = dni_pl[dt_day.weekday()]
 
-                daily_code = daily_codes[i] if i < len(daily_codes) else None
-                daily_temp = daily_temps[i] if i < len(daily_temps) else None
-                daily_wind = daily_winds[i] if i < len(daily_winds) else None
+                temp_val = daily_temps[i] if i < len(daily_temps) else None
+                wind_val = daily_winds[i] if i < len(daily_winds) else None
+                code_val = daily_codes[i] if i < len(daily_codes) else None
 
-                code = daily_code
-                temp = daily_temp or 0
-                wind = daily_wind or 0
-
-                if i == 0 and hourly and not current:
-                    hourly_times = hourly.get("time", [])
-                    idx = cls._nearest_hour_index(
-                        hourly_times,
-                        now.replace(minute=0, second=0, microsecond=0).isoformat(),
-                    )
-                    try:
-                        code = hourly.get("weathercode", [None])[idx]
-                        temp = hourly.get("temperature_2m", [temp])[idx]
-                        wind = hourly.get("windspeed_10m", [wind])[idx]
-                    except (IndexError, TypeError) as e:
-                        current_app.logger.warning(
-                            f"Failed to extract hourly data at index {idx}: {e}"
-                        )
-
-                forecast.append(
+                future_forecast.append(
                     {
                         "day": day_label,
-                        "temp": round(float(temp)) if temp is not None else None,
-                        "wind": round(float(wind)) if wind is not None else None,
-                        "icon": cls._map_icon(code),
+                        "temp": round(float(temp_val))
+                        if temp_val is not None
+                        else "--",
+                        "wind": round(float(wind_val))
+                        if wind_val is not None
+                        else "--",
+                        "icon": cls._map_icon(code_val),
                     }
                 )
 
-            # Lead Architect Fix: Map flat list to frontend strict contract shape
-            weather_contract = {
-                "today": (
-                    forecast[0]
-                    if forecast
-                    else {"day": "Dziś", "temp": 0, "wind": 0, "icon": "bi-cloud"}
-                ),
-                "future": forecast[1:] if len(forecast) > 1 else [],
-            }
-
-            cls._cache = weather_contract
+            cls._cache = {"today": today_forecast, "future": future_forecast}
             cls._last_update = now
             return cls._cache
 
         except Exception as e:
             current_app.logger.error(f"Weather fetch error: {str(e)}")
 
-            # Graceful degradation UI fallback matching display.js schema
             safe_fallback = {
-                "today": {
-                    "day": "Dziś",
-                    "temp": "--",
-                    "wind": "--",
-                    "icon": "bi-cloud-slash",
-                },
+                "today": [
+                    {
+                        "time": "Teraz",
+                        "temp": "--",
+                        "wind": "--",
+                        "icon": "bi-cloud-slash",
+                    },
+                    {
+                        "time": "+3h",
+                        "temp": "--",
+                        "wind": "--",
+                        "icon": "bi-cloud-slash",
+                    },
+                    {
+                        "time": "+6h",
+                        "temp": "--",
+                        "wind": "--",
+                        "icon": "bi-cloud-slash",
+                    },
+                ],
                 "future": [
                     {
                         "day": "Jutro",
@@ -177,6 +218,12 @@ class WeatherService:
                     },
                     {
                         "day": "Pojutrze",
+                        "temp": "--",
+                        "wind": "--",
+                        "icon": "bi-cloud-slash",
+                    },
+                    {
+                        "day": "Za 3 dni",
                         "temp": "--",
                         "wind": "--",
                         "icon": "bi-cloud-slash",
