@@ -1,6 +1,7 @@
 (function() {
     'use strict';
 
+    // Verify if DEVICE_API_URL is properly injected via environment/template
     if (typeof window.DEVICE_API_URL === 'undefined') {
         console.error('DEVICE_API_URL is not defined');
         return;
@@ -25,6 +26,7 @@
 
     let currentPlayingUrl = null;
 
+    // Fetch the current device state from the API endpoint
     async function fetchState() {
         try {
             const response = await fetch(window.DEVICE_API_URL);
@@ -38,6 +40,7 @@
         }
     }
 
+    // Process state updates and handle conditional overlays
     function handleStateUpdate(data) {
         if (clockOverlay) {
             if (data.show_clock === true) {
@@ -78,6 +81,7 @@
         }
     }
 
+    // Determine the next media sequence to render
     function playNextMedia() {
         isPlaying = true;
         let itemToPlay = null;
@@ -108,6 +112,7 @@
         renderMedia(itemToPlay);
     }
 
+    // Prepare and inject the actual media components
     function renderMedia(item) {
         isTransitioning = true;
 
@@ -153,6 +158,7 @@
         }
     }
 
+    // Handles DOM injection of text, image or video media based on types
     function injectNewMedia(item, mediaUrl) {
         if (item.media_type === 'text_only') {
             const textContainer = document.createElement('div');
@@ -263,6 +269,7 @@
         }
     }
 
+    // Renders the left and right weather widgets with scaled down fonts and tight padding
     function updateWeatherWidget(weatherData, shouldShow) {
         const containerLeft = document.getElementById('weather-widget-left');
         const containerRight = document.getElementById('weather-widget-right');
@@ -277,17 +284,17 @@
         if (containerLeft && weatherData.today && weatherData.today.length > 0) {
             let htmlLeft = `
                 <div class="d-flex flex-column text-white text-center"
-                     style="width: 24vh; box-sizing: border-box; padding: 2vh 2.5vh 2vh 1.5vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 0 3vh 3vh 0; border: 1px solid rgba(255,255,255,0.15); border-left: none; box-shadow: 5px 5px 20px rgba(0,0,0,0.3);">`;
+                     style="width: 16vh; box-sizing: border-box; padding: 1vh 1.2vh 1vh 0.8vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 0 2vh 2vh 0; border: 1px solid rgba(255,255,255,0.15); border-left: none; box-shadow: 5px 5px 20px rgba(0,0,0,0.3);">`;
 
             weatherData.today.forEach((slot, idx) => {
-                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.5vh; margin-top: 1.5vh;' : '';
+                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.6vh; margin-top: 0.6vh;' : '';
                 htmlLeft += `
                     <div style="${borderTop}">
-                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.8vh; letter-spacing: 0.15vw; margin-bottom: 0.5vh;">${slot.time}</div>
-                        <i class="bi ${slot.icon} d-block" style="font-size: 5.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.8vh 0;"></i>
-                        <div class="fw-bold" style="font-size: 4vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${slot.temp}°C</div>
-                        <div class="opacity-90 fw-medium" style="font-size: 2.2vh; margin-top: 1vh;">
-                            <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${slot.wind}<span style="font-size: 1.6vh; margin-left: 0.2vw;"> km/h</span>
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.5vh; letter-spacing: 0.15vw; margin-bottom: 0.2vh;">${slot.time}</div>
+                        <i class="bi ${slot.icon} d-block" style="font-size: 4.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.3vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 3.2vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${slot.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 1.8vh; margin-top: 0.4vh;">
+                            <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${slot.wind}<span style="font-size: 1.4vh; margin-left: 0.2vw;"> km/h</span>
                         </div>
                     </div>
                 `;
@@ -304,17 +311,17 @@
         if (containerRight && weatherData.future && weatherData.future.length > 0) {
             let htmlRight = `
                 <div class="d-flex flex-column text-white text-center"
-                     style="width: 24vh; box-sizing: border-box; padding: 2vh 1.5vh 2vh 2.5vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 3vh 0 0 3vh; border: 1px solid rgba(255,255,255,0.15); border-right: none; box-shadow: -5px 5px 20px rgba(0,0,0,0.3);">`;
+                     style="width: 16vh; box-sizing: border-box; padding: 1vh 0.8vh 1vh 1.2vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 2vh 0 0 2vh; border: 1px solid rgba(255,255,255,0.15); border-right: none; box-shadow: -5px 5px 20px rgba(0,0,0,0.3);">`;
 
             weatherData.future.forEach((day, idx) => {
-                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.5vh; margin-top: 1.5vh;' : '';
+                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.6vh; margin-top: 0.6vh;' : '';
                 htmlRight += `
                     <div style="${borderTop}">
-                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.8vh; letter-spacing: 0.15vw; margin-bottom: 0.5vh;">${day.day}</div>
-                        <i class="bi ${day.icon} d-block" style="font-size: 5.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.8vh 0;"></i>
-                        <div class="fw-bold" style="font-size: 4vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
-                        <div class="opacity-90 fw-medium" style="font-size: 2.2vh; margin-top: 1vh;">
-                            <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${day.wind}<span style="font-size: 1.6vh; margin-left: 0.2vw;"> km/h</span>
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.5vh; letter-spacing: 0.15vw; margin-bottom: 0.2vh;">${day.day}</div>
+                        <i class="bi ${day.icon} d-block" style="font-size: 4.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.3vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 3.2vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 1.8vh; margin-top: 0.4vh;">
+                            <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${day.wind}<span style="font-size: 1.4vh; margin-left: 0.2vw;"> km/h</span>
                         </div>
                     </div>
                 `;
