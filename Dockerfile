@@ -26,6 +26,8 @@ RUN uv lock && uv sync --frozen --no-dev --no-install-project
 
 COPY . .
 
+RUN uv sync --frozen --no-dev
+
 RUN groupadd -r tabview && useradd -r -g tabview tabview \
     && mkdir -p /app/instance \
     && chown -R tabview:tabview /app
