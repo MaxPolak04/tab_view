@@ -2,9 +2,9 @@ FROM python:3.12-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    FLASK_APP=app.py \
+    FLASK_APP="tab_view:create_app()" \
     FLASK_ENV=production \
-    PORT=5000 \
+    PORT=8000 \
     UV_SYSTEM_PYTHON=1 \
     VIRTUAL_ENV="/app/.venv"
 
@@ -34,9 +34,9 @@ RUN groupadd -r tabview && useradd -r -g tabview tabview \
 
 USER tabview
 
-EXPOSE 5000
+EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/ || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "tab_view:create_app()"]
