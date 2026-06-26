@@ -1,52 +1,39 @@
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
-# Enforce consistent Python behavior and prepare paths
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    TZ=Europe/Warsaw \
-    PATH="/app/.venv/bin:$PATH"
-
-# Install system dependencies and patch OS vulnerabilities
-# hadolint ignore=DL3005,DL3008
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
-    curl \
-    gcc \
-    default-libmysqlclient-dev \
-    pkg-config \
-    ffmpeg \
-    tzdata \
-    && rm -rf /var/lib/apt/lists/*
-
-# Inject high-performance package manager
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
-
-# Create a non-root system user for security isolation
-RUN groupadd -r appgroup && \
-    useradd -r -g appgroup -m -d /home/appuser appuser
+    FLASK_APP=app.py \
+    FLASK_ENV=production \
+    PORT=5000 \
+    UV_SYSTEM_PYTHON=1
 
 WORKDIR /app
 
-# Give appuser ownership of the /app directory so uv can create .venv
-RUN chown appuser:appgroup /app
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+    curl=7.88.1* \
+    ca-certificates=20230311* \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency definitions and assign ownership immediately
-COPY --chown=appuser:appgroup pyproject.toml uv.lock README.md ./
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
 
-# Drop root privileges early
-USER appuser
+ENV PATH="/root/.local/bin/:$PATH"
 
-# Install dependencies into /app/.venv
-RUN uv sync --frozen --no-install-project --no-dev
+COPY pyproject.toml .
 
-# Copy application source code
-COPY --chown=appuser:appgroup . .
+RUN uv lock && uv sync --frozen --no-dev --no-install-project
 
-# Ensure entrypoint is executable
-RUN chmod +x run.sh
+COPY . .
 
-# Verify application availability
+RUN groupadd -r tabview && useradd -r -g tabview tabview \
+    && mkdir -p /app/instance \
+    && chown -R tabview:tabview /app
+
+USER tabview
+
+EXPOSE 5000
+
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:5000/ || exit 1
 
-EXPOSE 8000
-ENTRYPOINT ["./run.sh"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "app:app"]
