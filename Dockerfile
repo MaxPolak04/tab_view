@@ -5,7 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     FLASK_APP=app.py \
     FLASK_ENV=production \
     PORT=5000 \
-    UV_SYSTEM_PYTHON=1
+    UV_SYSTEM_PYTHON=1 \
+    VIRTUAL_ENV="/app/.venv"
+
+ENV PATH="$VIRTUAL_ENV/bin:/root/.local/bin:$PATH"
 
 WORKDIR /app
 
@@ -16,8 +19,6 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
 RUN sh /uv-installer.sh && rm /uv-installer.sh
-
-ENV PATH="/root/.local/bin/:$PATH"
 
 COPY pyproject.toml .
 
