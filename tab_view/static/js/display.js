@@ -269,7 +269,7 @@
         }
     }
 
-    // Renders the left and right weather widgets with scaled down fonts and tight padding
+    // Renders the left and right weather widgets stretching to 70vh with equalized width calculation
     function updateWeatherWidget(weatherData, shouldShow) {
         const containerLeft = document.getElementById('weather-widget-left');
         const containerRight = document.getElementById('weather-widget-right');
@@ -283,17 +283,17 @@
         // --- RENDERING THE LEFT WIDGET (Today - Hourly Weather) ---
         if (containerLeft && weatherData.today && weatherData.today.length > 0) {
             let htmlLeft = `
-                <div class="d-flex flex-column text-white text-center"
-                     style="width: 16vh; box-sizing: border-box; padding: 1vh 1.2vh 1vh 0.8vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 0 2vh 2vh 0; border: 1px solid rgba(255,255,255,0.15); border-left: none; box-shadow: 5px 5px 20px rgba(0,0,0,0.3);">`;
+                <div id="weather-inner-left" class="d-flex flex-column text-white text-center"
+                     style="height: 70vh; width: fit-content; min-width: 11vh; box-sizing: border-box; padding: 0 1.6vh 0 1.2vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 0 2.5vh 2.5vh 0; border: 1px solid rgba(255,255,255,0.15); border-left: none; box-shadow: 5px 5px 20px rgba(0,0,0,0.3);">`;
 
             weatherData.today.forEach((slot, idx) => {
-                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.6vh; margin-top: 0.6vh;' : '';
+                const borderStyle = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15);' : '';
                 htmlLeft += `
-                    <div style="${borderTop}">
-                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.5vh; letter-spacing: 0.15vw; margin-bottom: 0.2vh;">${slot.time}</div>
-                        <i class="bi ${slot.icon} d-block" style="font-size: 4.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.3vh 0;"></i>
-                        <div class="fw-bold" style="font-size: 3.2vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${slot.temp}°C</div>
-                        <div class="opacity-90 fw-medium" style="font-size: 1.8vh; margin-top: 0.4vh;">
+                    <div class="d-flex flex-column justify-content-center" style="flex: 1; ${borderStyle}">
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.6vh; letter-spacing: 0.15vw; margin-bottom: 0.4vh;">${slot.time}</div>
+                        <i class="bi ${slot.icon} d-block" style="font-size: 4.8vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.4vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 3.5vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${slot.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 1.8vh; margin-top: 0.6vh;">
                             <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${slot.wind}<span style="font-size: 1.4vh; margin-left: 0.2vw;"> km/h</span>
                         </div>
                     </div>
@@ -310,17 +310,17 @@
         // --- RENDERING THE RIGHT-HAND WIDGET (The Future) ---
         if (containerRight && weatherData.future && weatherData.future.length > 0) {
             let htmlRight = `
-                <div class="d-flex flex-column text-white text-center"
-                     style="width: 16vh; box-sizing: border-box; padding: 1vh 0.8vh 1vh 1.2vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 2vh 0 0 2vh; border: 1px solid rgba(255,255,255,0.15); border-right: none; box-shadow: -5px 5px 20px rgba(0,0,0,0.3);">`;
+                <div id="weather-inner-right" class="d-flex flex-column text-white text-center"
+                     style="height: 70vh; width: fit-content; min-width: 11vh; box-sizing: border-box; padding: 0 1.2vh 0 1.6vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); border-radius: 2.5vh 0 0 2.5vh; border: 1px solid rgba(255,255,255,0.15); border-right: none; box-shadow: -5px 5px 20px rgba(0,0,0,0.3);">`;
 
             weatherData.future.forEach((day, idx) => {
-                const borderTop = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.6vh; margin-top: 0.6vh;' : '';
+                const borderStyle = idx > 0 ? 'border-top: 1px solid rgba(255,255,255,0.15);' : '';
                 htmlRight += `
-                    <div style="${borderTop}">
-                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.5vh; letter-spacing: 0.15vw; margin-bottom: 0.2vh;">${day.day}</div>
-                        <i class="bi ${day.icon} d-block" style="font-size: 4.5vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.3vh 0;"></i>
-                        <div class="fw-bold" style="font-size: 3.2vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
-                        <div class="opacity-90 fw-medium" style="font-size: 1.8vh; margin-top: 0.4vh;">
+                    <div class="d-flex flex-column justify-content-center" style="flex: 1; ${borderStyle}">
+                        <div class="text-uppercase fw-bold opacity-75" style="font-size: 1.6vh; letter-spacing: 0.15vw; margin-bottom: 0.4vh;">${day.day}</div>
+                        <i class="bi ${day.icon} d-block" style="font-size: 4.8vh; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); margin: 0.4vh 0;"></i>
+                        <div class="fw-bold" style="font-size: 3.5vh; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${day.temp}°C</div>
+                        <div class="opacity-90 fw-medium" style="font-size: 1.8vh; margin-top: 0.6vh;">
                             <i class="bi bi-wind" style="margin-right: 0.4vw;"></i>${day.wind}<span style="font-size: 1.4vh; margin-left: 0.2vw;"> km/h</span>
                         </div>
                     </div>
@@ -332,6 +332,21 @@
             containerRight.classList.remove('d-none');
         } else if (containerRight) {
             containerRight.classList.add('d-none');
+        }
+
+        // --- POST-RENDER WIDTH SYNCHRONIZATION ---
+        const innerLeft = document.getElementById('weather-inner-left');
+        const innerRight = document.getElementById('weather-inner-right');
+
+        if (innerLeft && innerRight) {
+            // Reset widths to auto-calculate raw intrinsic sizes first
+            innerLeft.style.width = 'fit-content';
+            innerRight.style.width = 'fit-content';
+
+            const maxWidth = Math.max(innerLeft.offsetWidth, innerRight.offsetWidth);
+
+            innerLeft.style.width = `${maxWidth}px`;
+            innerRight.style.width = `${maxWidth}px`;
         }
     }
 
