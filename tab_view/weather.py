@@ -110,7 +110,7 @@ class WeatherService:
                         dt_hour = datetime.fromisoformat(hourly_times[target_idx])
 
                         if offset == 0:
-                            time_label = "Teraz"
+                            time_label = "Now"
                         else:
                             time_label = dt_hour.strftime("%H:%M")
 
@@ -138,19 +138,20 @@ class WeatherService:
                                 else "--",
                                 "wind": round(float(wind_val))
                                 if wind_val is not None
-                                else "--",  # <--- DODANY WIATR DO SŁOWNIKA
+                                else "--",  # <--- ADDED WIND TO DICTIONARY
                                 "icon": cls._map_icon(code_val),
                             }
                         )
 
-            # --- 2. RIGHT PANEL: Strictly 3 future days (Jutro, Pojutrze, Day +3) ---
+            # --- 2. RIGHT PANEL: Strictly 3 future days
+            # (Tomorrow, Day After, Day +3) ---
             future_forecast = []
             daily_times = daily.get("time", [])
             daily_codes = daily.get("weathercode", [])
             daily_temps = daily.get("temperature_2m_max", [])
             daily_winds = daily.get("windspeed_10m_max", [])
 
-            dni_pl = ["Pon", "Wto", "Śro", "Czw", "Pią", "Sob", "Nied"]
+            days_en = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
             # Range (1, 4) strictly grabs index 1, 2, and 3
             for i in range(1, min(len(daily_times), 4)):
@@ -158,11 +159,11 @@ class WeatherService:
                 dt_day = datetime.fromisoformat(date_str)
 
                 if i == 1:
-                    day_label = "Jutro"
+                    day_label = "Tomorrow"
                 elif i == 2:
-                    day_label = "Pojutrze"
+                    day_label = "Day After"
                 else:
-                    day_label = dni_pl[dt_day.weekday()]
+                    day_label = days_en[dt_day.weekday()]
 
                 temp_val = daily_temps[i] if i < len(daily_temps) else None
                 wind_val = daily_winds[i] if i < len(daily_winds) else None
@@ -191,7 +192,7 @@ class WeatherService:
             safe_fallback = {
                 "today": [
                     {
-                        "time": "Teraz",
+                        "time": "Now",
                         "temp": "--",
                         "wind": "--",
                         "icon": "bi-cloud-slash",
@@ -211,19 +212,19 @@ class WeatherService:
                 ],
                 "future": [
                     {
-                        "day": "Jutro",
+                        "day": "Tomorrow",
                         "temp": "--",
                         "wind": "--",
                         "icon": "bi-cloud-slash",
                     },
                     {
-                        "day": "Pojutrze",
+                        "day": "Day After",
                         "temp": "--",
                         "wind": "--",
                         "icon": "bi-cloud-slash",
                     },
                     {
-                        "day": "Za 3 dni",
+                        "day": "In 3 days",
                         "temp": "--",
                         "wind": "--",
                         "icon": "bi-cloud-slash",
