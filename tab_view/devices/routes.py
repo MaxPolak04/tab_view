@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from flask import (
     current_app,
@@ -94,7 +95,9 @@ def show_device(device_url):
 @devices_bp.route("/api/<device_url>/current_state")
 def api_device_state(device_url):
     device = Device.query.filter_by(device_url=device_url).first_or_404()
-    now = datetime.now()
+
+    warsaw_tz = ZoneInfo("Europe/Warsaw")
+    now = datetime.now(warsaw_tz).replace(tzinfo=None)
 
     weather_data = WeatherService.get_weather()
 
