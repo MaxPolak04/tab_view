@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash
 
 from tab_view import db
 from tab_view.models import User
+from tab_view.tasks import cleanup_old_audit_logs
 
 from .seed import seed_data
 
@@ -35,3 +36,12 @@ def create_user_command(username, password, admin):
 
     role = "Admin" if admin else "User"
     click.echo(click.style(f"Success! Created {role}: {username}", fg="green"))
+
+
+@click.command("cleanup-logs")
+@with_appcontext
+def cleanup_logs_command():
+    """Manually trigger the audit logs cleanup task."""
+    click.echo("Starting manual audit log cleanup...")
+    cleanup_old_audit_logs()
+    click.echo("Cleanup finished.")

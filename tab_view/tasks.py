@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from tab_view import create_app, db
+from tab_view import db, scheduler
 from tab_view.models import AuditLog
 
 logger = logging.getLogger(__name__)
@@ -13,10 +13,10 @@ def cleanup_old_audit_logs():
     Intended to be run as a scheduled background job.
     Uses application context to interact with the database.
     """
-    app = create_app()
-    with app.app_context():
+    with scheduler.app.app_context():
         try:
-            cutoff_date = datetime.now() - timedelta(days=90)
+            # cutoff_date = datetime.now() - timedelta(days=90)
+            cutoff_date = datetime.now() - timedelta(days=1)
 
             old_logs_query = AuditLog.query.filter(AuditLog.timestamp < cutoff_date)
             logs_count = old_logs_query.count()
@@ -40,12 +40,12 @@ def cleanup_old_audit_logs():
             )
 
 
-def setup_scheduled_tasks(scheduler):
+def setup_scheduled_tasks(scheduler_instance):
     """
     Registers all background jobs and starts the scheduler.
     """
     # Run the cleanup job every day at 03:00 AM
-    scheduler.add_job(
+    scheduler_instance.add_job(
         id="cleanup_audit_logs",
         func=cleanup_old_audit_logs,
         trigger="cron",
@@ -53,4 +53,5 @@ def setup_scheduled_tasks(scheduler):
         minute=0,
     )
 
-    scheduler.start()
+    if not scheduler_instance.running:
+        scheduler_instance.start()
