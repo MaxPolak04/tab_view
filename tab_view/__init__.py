@@ -119,10 +119,11 @@ def create_app(config_class=ProductionConfig):
 
     csrf.exempt(events_bp)
 
-    from .commands import create_user_command, seed_db_command
+    from .commands import cleanup_logs_command, create_user_command, seed_db_command
 
     app.cli.add_command(create_user_command)
     app.cli.add_command(seed_db_command)
+    app.cli.add_command(cleanup_logs_command)
 
     if not app.config.get("TESTING"):
         with app.app_context():
