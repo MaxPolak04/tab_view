@@ -144,7 +144,20 @@ document.addEventListener('DOMContentLoaded', function() {
             playlistMediaPickerModal?.hide();
         });
 
-        container.insertBefore(col, container.firstChild);
+        // Wstawiamy alfabetycznie zamiast na początku, dla zachowania spójności
+        let inserted = false;
+        const existingItems = container.querySelectorAll('.media-filter-item');
+        for (let i = 0; i < existingItems.length; i++) {
+            const currentItemFilename = existingItems[i].querySelector('.playlist-media-item').dataset.mediaFilename.toLowerCase();
+            if (media.filename.toLowerCase() < currentItemFilename) {
+                container.insertBefore(col, existingItems[i]);
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            container.appendChild(col);
+        }
 
         if (typeof window.mediaList !== 'undefined') window.mediaList.push(media);
         if (typeof updateMediaFilters === 'function') updateMediaFilters();
@@ -686,19 +699,37 @@ document.addEventListener('DOMContentLoaded', function() {
     function convertToLocalISO(dStr) { return dStr ? (dStr.length === 16 ? dStr + ':00' : dStr) : null; }
 
     const tagCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
-    const mediaFilterItems = document.querySelectorAll('.media-filter-item');
     const allCheckbox = document.getElementById('tag-all');
 
+    // Secure & stable active search implementation for modal grids
+    const playlistMediaSearch = document.getElementById('playlistMediaSearch');
+    if (playlistMediaSearch) {
+        playlistMediaSearch.addEventListener('input', function() {
+            if (typeof updateMediaFilters === 'function') {
+                updateMediaFilters();
+            }
+        });
+    }
+
     window.updateMediaFilters = function() {
-        if (!tagCheckboxes.length || !document.querySelectorAll('.media-filter-item').length) return;
+        const allMediaItems = document.querySelectorAll('.media-filter-item');
+        if (!allMediaItems.length) return;
 
         const activeCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
-        const checkedTags = Array.from(activeCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
-        const allMediaItems = document.querySelectorAll('.media-filter-item');
+        const checkedTags = activeCheckboxes.length ? Array.from(activeCheckboxes).filter(c => c.checked).map(c => c.dataset.filter) : ['all'];
+
+        const searchInput = document.getElementById('playlistMediaSearch');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
         allMediaItems.forEach(item => {
             const tagId = item.dataset.tagId ? item.dataset.tagId.toString() : "";
-            if (checkedTags.includes('all') || checkedTags.includes(tagId)) {
+            const mediaCard = item.querySelector('.playlist-media-item');
+            const filename = mediaCard && mediaCard.dataset.mediaFilename ? mediaCard.dataset.mediaFilename.toLowerCase() : "";
+
+            const matchesTag = checkedTags.includes('all') || checkedTags.includes(tagId);
+            const matchesSearch = filename.includes(searchTerm);
+
+            if (matchesTag && matchesSearch) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';
