@@ -148,7 +148,20 @@ document.addEventListener('DOMContentLoaded', function() {
             playlistMediaPickerModal?.hide();
         });
 
-        container.insertBefore(col, container.firstChild);
+        // Dynamiczne i alfabetyczne dodanie elementu
+        let inserted = false;
+        const existingItems = container.querySelectorAll('.media-filter-item');
+        for (let i = 0; i < existingItems.length; i++) {
+            const currentItemFilename = existingItems[i].querySelector('.playlist-media-item').dataset.mediaFilename.toLowerCase();
+            if (media.filename.toLowerCase() < currentItemFilename) {
+                container.insertBefore(col, existingItems[i]);
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            container.appendChild(col);
+        }
 
         if (typeof window.mediaList !== 'undefined') window.mediaList.push(media);
         if (typeof updateMediaFilters === 'function') updateMediaFilters();
@@ -641,16 +654,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const tagCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
-    const mediaFilterItems = document.querySelectorAll('.media-filter-item');
     const allCheckbox = document.getElementById('tag-all');
 
-    function updateMediaFilters() {
-        if (!tagCheckboxes.length || !mediaFilterItems.length) return;
-        const checkedTags = Array.from(tagCheckboxes).filter(c => c.checked).map(c => c.dataset.filter);
+    // Secure & stable active search implementation for modal grids
+    const playlistMediaSearch = document.getElementById('playlistMediaSearch');
+    if (playlistMediaSearch) {
+        playlistMediaSearch.addEventListener('input', function() {
+            if (typeof updateMediaFilters === 'function') {
+                updateMediaFilters();
+            }
+        });
+    }
 
-        mediaFilterItems.forEach(item => {
+    window.updateMediaFilters = function() {
+        const allMediaItems = document.querySelectorAll('.media-filter-item');
+        if (!allMediaItems.length) return;
+
+        const activeCheckboxes = document.querySelectorAll('.tag-filter-checkbox');
+        const checkedTags = activeCheckboxes.length ? Array.from(activeCheckboxes).filter(c => c.checked).map(c => c.dataset.filter) : ['all'];
+
+        const searchInput = document.getElementById('playlistMediaSearch');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : "";
+
+        allMediaItems.forEach(item => {
             const tagId = item.dataset.tagId ? item.dataset.tagId.toString() : "";
-            if (checkedTags.includes('all') || checkedTags.includes(tagId)) {
+            const mediaCard = item.querySelector('.playlist-media-item');
+            const filename = mediaCard && mediaCard.dataset.mediaFilename ? mediaCard.dataset.mediaFilename.toLowerCase() : "";
+
+            const matchesTag = checkedTags.includes('all') || checkedTags.includes(tagId);
+            const matchesSearch = filename.includes(searchTerm);
+
+            if (matchesTag && matchesSearch) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';

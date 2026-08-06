@@ -38,9 +38,15 @@ def get_all_media():
         tag_filters = request.args.getlist("tag", type=int)
 
     sort_by = request.args.get("sort", "name_asc")
-    page = request.args.get("page", 1, type=int)
+
+    # Capture search query
+    search_query = request.args.get("q", "").strip()
 
     query = Media.query
+
+    # Apply search filter
+    if search_query:
+        query = query.filter(Media.filename.ilike(f"%{search_query}%"))
 
     if tag_filters:
         query = query.filter(Media.tag_id.in_(tag_filters))
@@ -52,7 +58,8 @@ def get_all_media():
     else:
         query = query.order_by(Media.id)
 
-    pagination = query.paginate(page=page, per_page=12)
+    # Fetch all records - UI handles rendering performance via lazy loading
+    media_items = query.all()
 
     active_tags = [t for t in tags if t.id in tag_filters]
 
@@ -71,13 +78,13 @@ def get_all_media():
 
     return render_template(
         "media/media.html",
-        media=pagination.items,
-        pagination=pagination,
+        media=media_items,
         tags=tags,
         form=form,
         current_tags=tag_filters,
         active_tag_names=active_tag_names,
         current_sort=sort_by,
+        current_q=search_query,
     )
 
 

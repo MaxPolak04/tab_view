@@ -42,7 +42,12 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-body-tertiary">
         <div class="card-body p-3">
             <div class="row align-items-center">
-                <div class="col-md-8 d-flex gap-3">
+                <div class="col-md-8 d-flex gap-3 align-items-center">
+
+                    <div class="position-relative" style="min-width: 250px;">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" id="mediaSearch" class="form-control rounded-pill shadow-sm ps-5" placeholder="Search media..." value="{{ current_q }}">
+                    </div>
 
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary border dropdown-toggle shadow-sm rounded-pill bg-body text-body"
@@ -53,6 +58,7 @@
                         <div class="dropdown-menu shadow-sm border-0 p-3" style="min-width: 260px;">
                             <form action="{{ url_for('media.get_all_media') }}" method="GET">
                                 <input type="hidden" name="sort" value="{{ current_sort }}">
+                                <input type="hidden" name="q" value="{{ current_q }}">
 
                                 <div class="mb-3 overflow-auto" style="max-height: 250px;">
 
@@ -113,7 +119,7 @@
                                     {% endfor %}
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center pt-2">
-                                    <a href="{{ url_for('media.get_all_media', sort=current_sort) }}" class="btn btn-sm btn-outline-secondary shadow-sm rounded-pill px-3">Clear All</a>
+                                    <a href="{{ url_for('media.get_all_media', sort=current_sort, q=current_q) }}" class="btn btn-sm btn-outline-secondary shadow-sm rounded-pill px-3">Clear All</a>
                                     <button type="submit" class="btn btn-sm btn-primary px-4 shadow-sm rounded-pill">Apply</button>
                                 </div>
                             </form>
@@ -128,9 +134,9 @@
                         </button>
                         <ul class="dropdown-menu shadow-sm border-0">
                             <li><a class="dropdown-item {{ 'active' if current_sort == 'name_asc' }}"
-                                    href="{{ url_for('media.get_all_media', tag=current_tags, sort='name_asc') }}">Filename (A-Z)</a></li>
+                                    href="{{ url_for('media.get_all_media', tag=current_tags, sort='name_asc', q=current_q) }}">Filename (A-Z)</a></li>
                             <li><a class="dropdown-item {{ 'active' if current_sort == 'name_desc' }}"
-                                    href="{{ url_for('media.get_all_media', tag=current_tags, sort='name_desc') }}">Filename (Z-A)</a></li>
+                                    href="{{ url_for('media.get_all_media', tag=current_tags, sort='name_desc', q=current_q) }}">Filename (Z-A)</a></li>
                         </ul>
                     </div>
 
@@ -145,17 +151,19 @@
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4" id="mediaGrid">
         {% for m in media %}
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
             <div class="card h-100 border-0 rounded-4 shadow-sm bg-body-tertiary position-relative">
                 <div class="position-relative overflow-hidden rounded-top-4 bg-dark d-flex align-items-center justify-content-center"
                     style="height: 200px;">
                     {% if m.media_type == 'image' %}
+                    <!-- Lazy loading applied here -->
                     <img src="{{ url_for('static', filename='uploads/' ~ m.filename) }}" alt="{{ m.filename }}"
-                        class="w-100 h-100 object-fit-cover opacity-hover">
+                        class="w-100 h-100 object-fit-cover opacity-hover" loading="lazy">
                     {% elif m.media_type == 'video' %}
-                    <video class="w-100 h-100 object-fit-cover opacity-hover hover-video" muted loop playsinline preload="metadata">
+                    <!-- Preload blocked to save memory/bandwidth during fast scrolling -->
+                    <video class="w-100 h-100 object-fit-cover opacity-hover hover-video" muted loop playsinline preload="none">
                         <source src="{{ url_for('static', filename='uploads/' ~ m.filename) }}" type="video/mp4">
                     </video>
                     {% endif %}
@@ -209,42 +217,19 @@
             </div>
         </div>
         {% endfor %}
+
+        {% if not media %}
+        <div class="col-12 text-center py-5">
+            <h5 class="text-muted">No media files found.</h5>
+        </div>
+        {% endif %}
     </div>
 
-    <nav class="mt-5 d-flex justify-content-center" aria-label="Page navigation">
-        <ul class="pagination pagination-custom shadow-sm">
-
-            <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
-                <a class="page-link" href="{{ url_for('media.get_all_media', page=1, tag=current_tags, sort=current_sort) }}">
-                    <i class="bi bi-chevron-double-left"></i>
-                </a>
-            </li>
-
-            {% for p in pagination.iter_pages(left_edge=1, left_current=3, right_current=3, right_edge=1) %}
-                {% if p %}
-                    {% if p == pagination.page %}
-                        <li class="page-item active"><span class="page-link">{{ p }}</span></li>
-                    {% else %}
-                        <li class="page-item">
-                            <a class="page-link" href="{{ url_for('media.get_all_media', page=p, tag=current_tags, sort=current_sort) }}">{{ p }}</a>
-                        </li>
-                    {% endif %}
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
-                {% endif %}
-            {% endfor %}
-
-            <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
-                <a class="page-link" href="{{ url_for('media.get_all_media', page=pagination.pages, tag=current_tags, sort=current_sort) }}">
-                    <i class="bi bi-chevron-double-right"></i>
-                </a>
-            </li>
-
-        </ul>
-    </nav>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/hover-video.js') }}"></script>
+<!-- Skrypt wyszukiwania wydzielony do osobnego pliku -->
+<script src="{{ url_for('static', filename='js/media-search.js') }}"></script>
 {% endblock %}

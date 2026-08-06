@@ -55,8 +55,38 @@ jobs:
       - name: Run Pytest
         run: uv run pytest
 
-  build-scan-push:
+  release:
+    name: Create Release
     needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          generateReleaseNotes: true
+
+  build-scan-push:
+    needs: [test, release]
+    if: always() && needs.test.result == 'success' && (needs.release.result == 'success' || needs.release.result == 'skipped')
     name: Build, Scan & Push
     runs-on: ubuntu-latest
     permissions:
@@ -115,6 +145,7 @@ jobs:
             ${{ env.GHCR_IMAGE }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ needs.release.outputs.new_tag }},enable=${{ needs.release.outputs.new_tag != '' }}
             type=sha,format=long
             type=semver,pattern={{version}}
 
