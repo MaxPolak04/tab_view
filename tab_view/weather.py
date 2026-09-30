@@ -82,7 +82,7 @@ class WeatherService:
                 f"?latitude={lat}&longitude={lon}"
                 f"&daily=weathercode,temperature_2m_max,windspeed_10m_max"
                 f"&hourly=temperature_2m,weathercode,windspeed_10m"
-                f"&timezone=auto"
+                f"&timezone=Europe%2FWarsaw"
             )
 
             # SRE Guardrail: Explicit 5s timeout avoids worker thread lockup

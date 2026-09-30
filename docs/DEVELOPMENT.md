@@ -76,6 +76,46 @@ docker compose exec web flask create-user secure_admin P@ssw0rd123 --admin
 
 ---
 
+## Dependency Management & Pipeline Fixes (uv)
+
+When the CI/CD pipeline (e.g., `pip-audit`) blocks a PR due to vulnerable or outdated packages, use the following workflow to correctly upgrade dependencies, regenerate the lockfile, and sync your local environment.
+
+### 1. Resolving Vulnerabilities & Updating Packages
+
+To explicitly update a main dependency (writes to `pyproject.toml` and updates `uv.lock`):
+```bash
+uv add "package_name>=X.Y.Z"
+```
+
+To explicitly update a development dependency (e.g., `pip`, `pytest`):
+```bash
+uv add --dev "package_name>=X.Y.Z"
+```
+
+To update a transitive dependency (a package required by another package) directly in `uv.lock` without modifying `pyproject.toml` bounds:
+```bash
+uv lock --upgrade-package package_name
+```
+
+### 2. Synchronizing the Environment
+
+After pulling changes from `main` or generating a new `uv.lock`, enforce synchronization with your local `.venv`:
+```bash
+uv sync
+```
+
+*Note: `uv sync` ensures your `.venv` is an exact mirror of `uv.lock`. Manual `pip install` modifications will be overwritten.*
+
+### 3. Debugging Dependency Trees
+
+If you need to investigate why a specific, vulnerable version is being installed:
+```bash
+uv tree
+uv tree | grep package_name
+```
+
+---
+
 ## Local Execution (Native Workflow)
 
 Once environment variables are verified and database migrations are applied to your local MySQL instance, launch the native Flask development server using `uv`:
