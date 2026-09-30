@@ -14,9 +14,9 @@ ENV PATH="$VIRTUAL_ENV/bin:/root/.local/bin:$PATH"
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
-    curl=7.88.1* \
-    ca-certificates=20230311* \
-    tzdata=2024* \
+    curl \
+    ca-certificates \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
