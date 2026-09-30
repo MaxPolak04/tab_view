@@ -4,11 +4,16 @@ services:
     container_name: flask_app
     restart: always
     env_file: .env
+    environment:
+      - TZ=Europe/Warsaw
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -32,6 +37,7 @@ services:
       MYSQL_USER: tab_view
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: Europe/Warsaw
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -47,6 +53,8 @@ services:
     image: nginx:alpine
     container_name: nginx_proxy
     restart: always
+    environment:
+      - TZ=Europe/Warsaw
     ports:
       - "8080:80"
     volumes:
@@ -61,6 +69,8 @@ services:
     image: redis:alpine
     container_name: redis
     restart: always
+    environment:
+      - TZ=Europe/Warsaw
     networks:
       - flasknet
 

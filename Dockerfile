@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     FLASK_ENV=production \
     PORT=8000 \
     UV_SYSTEM_PYTHON=1 \
-    VIRTUAL_ENV="/app/.venv"
+    VIRTUAL_ENV="/app/.venv" \
+    TZ="Europe/Warsaw"
 
 ENV PATH="$VIRTUAL_ENV/bin:/root/.local/bin:$PATH"
 
@@ -15,6 +16,7 @@ WORKDIR /app
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl=7.88.1* \
     ca-certificates=20230311* \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
