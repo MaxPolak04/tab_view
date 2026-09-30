@@ -13,6 +13,7 @@ ENV PATH="$VIRTUAL_ENV/bin:/root/.local/bin:$PATH"
 
 WORKDIR /app
 
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
@@ -30,6 +31,7 @@ COPY . .
 
 RUN uv sync --frozen --no-dev
 
+# Setup unprivileged user for security
 RUN groupadd -r tabview && useradd -r -g tabview tabview \
     && mkdir -p /app/instance \
     && chown -R tabview:tabview /app
