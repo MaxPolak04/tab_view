@@ -16,7 +16,7 @@ WORKDIR /app
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl=7.88.1* \
     ca-certificates=20230311* \
-    tzdata \
+    tzdata=2024* \
     && rm -rf /var/lib/apt/lists/*
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
