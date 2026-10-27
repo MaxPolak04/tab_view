@@ -83,12 +83,16 @@ def show_device(device_url):
             }
         )
 
+    warsaw_tz = ZoneInfo("Europe/Warsaw")
+    server_time = datetime.now(warsaw_tz).replace(tzinfo=None).isoformat()
+
     return render_template(
         "devices/display.html",
         device=device,
         media=media,
         schedule=schedule,
         show_clock=device.show_clock,
+        server_time=server_time,
     )
 
 
@@ -98,6 +102,7 @@ def api_device_state(device_url):
 
     warsaw_tz = ZoneInfo("Europe/Warsaw")
     now = datetime.now(warsaw_tz).replace(tzinfo=None)
+    server_time_str = now.isoformat()
 
     weather_data = WeatherService.get_weather()
 
@@ -137,6 +142,7 @@ def api_device_state(device_url):
                 "show_clock": active_event.show_clock,
                 "show_weather": show_weather,
                 "weather": weather_data,
+                "server_time": server_time_str,
             }
         )
 
@@ -156,6 +162,7 @@ def api_device_state(device_url):
             "show_clock": device.show_clock,
             "show_weather": show_weather,
             "weather": weather_data,
+            "server_time": server_time_str,
         }
     )
 

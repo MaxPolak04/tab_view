@@ -40,6 +40,62 @@ def test_show_device_404(client, init_database):
     assert response.status_code == 404
 
 
+def test_show_device_includes_server_time(client, init_database):
+    """
+    Test that the device display page includes server_time for clock sync.
+    """
+    tag = Tag(name="Clock Tag")
+    init_database.session.add(tag)
+    init_database.session.commit()
+
+    media = Media(filename="clock.jpg", media_type="image", tag_id=tag.id)
+    init_database.session.add(media)
+    init_database.session.commit()
+
+    device = Device(
+        name="Clock Screen",
+        device_url="clock-screen",
+        media_id=media.id,
+        show_clock=True,
+    )
+    init_database.session.add(device)
+    init_database.session.commit()
+
+    response = client.get(url_for("devices.show_device", device_url="clock-screen"))
+    assert response.status_code == 200
+    assert b"data-server-time=" in response.data
+    assert b"window.INITIAL_SERVER_TIME" in response.data
+
+
+def test_api_device_state_includes_server_time(client, init_database):
+    """
+    Test that /api/<device_url>/current_state includes server_time in response.
+    """
+    tag = Tag(name="API Tag")
+    init_database.session.add(tag)
+    init_database.session.commit()
+
+    media = Media(filename="api.jpg", media_type="image", tag_id=tag.id)
+    init_database.session.add(media)
+    init_database.session.commit()
+
+    device = Device(
+        name="API Screen",
+        device_url="api-screen",
+        media_id=media.id,
+        show_clock=True,
+    )
+    init_database.session.add(device)
+    init_database.session.commit()
+
+    response = client.get(url_for("devices.api_device_state", device_url="api-screen"))
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "server_time" in data
+    assert data["server_time"] is not None
+    assert "T" in data["server_time"]
+
+
 # --- PERMISSIONS TESTS (User vs Admin) ---
 
 
