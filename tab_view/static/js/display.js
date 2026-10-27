@@ -28,11 +28,18 @@
 
     // Fetch the current device state from the API endpoint
     async function fetchState() {
+        const fetchStartTime = Date.now();
         try {
             const response = await fetch(window.DEVICE_API_URL);
             if (!response.ok) throw new Error('Network response was not ok');
 
             const data = await response.json();
+            const latency = Date.now() - fetchStartTime;
+
+            if (data.server_time && typeof window.syncServerTime === 'function') {
+                window.syncServerTime(data.server_time, latency);
+            }
+
             handleStateUpdate(data);
 
         } catch (error) {

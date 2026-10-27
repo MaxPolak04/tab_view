@@ -22,6 +22,9 @@
 
     <script>
         window.DEVICE_API_URL = "{{ url_for('devices.api_device_state', device_url=device.device_url) }}";
+        {% if server_time %}
+        window.INITIAL_SERVER_TIME = "{{ server_time }}";
+        {% endif %}
     </script>
 
     <script src="{{ url_for('static', filename='vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>

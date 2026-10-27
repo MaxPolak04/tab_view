@@ -1,4 +1,4 @@
-<div id="system-clock-overlay" class="position-fixed top-0 start-50 translate-middle-x z-3 d-none">
+<div id="system-clock-overlay" class="position-fixed top-0 start-50 translate-middle-x z-3 {% if not show_clock %}d-none{% endif %}"{% if server_time %} data-server-time="{{ server_time }}"{% endif %}>
     <div class="top-bar-kiosk">
         <div id="clock-time" class="fw-bold"></div>
         <div class="top-bar-separator"></div>
